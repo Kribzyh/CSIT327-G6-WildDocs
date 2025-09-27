@@ -1,12 +1,11 @@
-# accounts/models.py
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.contrib.auth.hashers import make_password, check_password
 
-student_id_validator = RegexValidator(
+id_validator = RegexValidator(
     regex=r'^\d{2}-\d{4}-\d{3}$',
-    message="Student ID must be in the format YY-NNNN-NNN (e.g., 23-6385-642)."
+    message="ID must be in the format YY-NNNN-NNN (e.g., 23-6385-642)."
 )
 
 class StudentAccount(models.Model):
@@ -18,14 +17,13 @@ class StudentAccount(models.Model):
     student_id = models.CharField(
         max_length=20,
         unique=True,
-        validators=[student_id_validator]
+        validators=[id_validator]
     )
     course = models.CharField(max_length=100, blank=True, null=True)
     year_level = models.IntegerField(blank=True, null=True)
     contact_number = models.CharField(max_length=15, blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        # hash the password if it’s not already hashed
         if not self.password.startswith('pbkdf2_'):
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
@@ -35,16 +33,17 @@ class StudentAccount(models.Model):
 
     def __str__(self):
         return f"{self.username} ({self.student_id})"
-    
+
 
 class Staff(models.Model):
-    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    role = models.CharField(max_length = 100)
+    role = models.CharField(max_length=100)
+    staff_id = models.CharField(
+        max_length=20,
+        unique=True,
+        validators=[id_validator]
+    )
     department = models.CharField(max_length=100, blank=True, null=True)
-        
-    def __str__(self):
 
+    def __str__(self):
         return f"{self.user.username} ({self.role})"
-    
-    
