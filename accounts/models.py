@@ -1,5 +1,6 @@
 # accounts/models.py
 from django.db import models
+from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -34,3 +35,16 @@ class StudentAccount(models.Model):
 
     def __str__(self):
         return f"{self.username} ({self.student_id})"
+    
+
+class Staff(models.Model):
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    role = models.CharField(max_length = 100)
+    department = models.CharField(max_length=100, blank=True, null=True)
+        
+    def __str__(self):
+
+        return f"{self.user.username} ({self.role})"
+    
+    
