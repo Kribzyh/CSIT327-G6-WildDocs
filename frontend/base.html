@@ -1,0 +1,134 @@
+{% extends "layouts/base.html" %}<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}
+        WildDocs | CIT-U Document Requests
+      {% endblock %}
+    </title>
+    <meta name="description" content="WildDocs streamlines CIT-U official document requests with online submissions, payment uploads, and real-time tracking." />
+    
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+    
+    <!-- Custom CSS for modern styling -->
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        min-height: 100vh;
+        background-color: #f8f9fa;
+        color: #212529;
+      }
+      
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.5rem;
+      }
+      
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+      }
+      
+      .toast {
+        min-width: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation Component (WildNav equivalent) -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+      <div class="container">
+        <a class="navbar-brand text-primary" href="{% url 'home' %}">WildDocs</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'home' %}">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'login' %}">Login</a>
+            </li>
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="#">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'admin:logout' %}">Logout</a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Error Reporter (Django Messages equivalent) -->
+    {% if messages %}
+      <div class="toast-container">
+        {% for message in messages %}
+          <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+            <div class="toast-header">
+              <strong class="mr-auto">
+                {% if message.tags == 'error' %}Error{% elif message.tags == 'warning' %}Warning{% elif message.tags == 'success' %}Success{% else %}Info{% endif %}
+              </strong>
+              <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="toast-body">
+              {{ message }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="container-fluid px-0">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Route tracking script (converted from Next.js Script component) -->
+    <script
+      src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts//route-messenger.js"
+      data-target-origin="*"
+      data-message-type="ROUTE_CHANGE"
+      data-include-search-params="true"
+      data-only-in-iframe="true"
+      data-debug="true"
+      data-custom-data='{"appName": "WildDocs", "version": "1.0.0", "greeting": "hi"}'
+    ></script>
+    
+    <!-- Auto-hide toasts (Toaster equivalent) -->
+    <script>
+      $(document).ready(function(){
+        $('.toast').toast('show');
+        setTimeout(function() {
+          $('.toast').toast('hide');
+        }, 5000);
+      });
+    </script>
+  </body>
+</html>
