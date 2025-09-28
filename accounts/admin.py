@@ -4,7 +4,7 @@ from .models import StudentAccount, Staff
 @admin.register(StudentAccount)
 class StudentAccountAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'email', 'student_id', 'course', 'year_level')
-    search_fields = ('full_name', 'email', 'student_id')
+    search_fields = ('first_name', 'last_name', 'email', 'student_id')
 
     def full_name(self, obj):
         return f"{obj.last_name}, {obj.first_name}"
