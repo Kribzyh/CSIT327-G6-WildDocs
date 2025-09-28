@@ -9,16 +9,15 @@ id_validator = RegexValidator(
 )
 
 class StudentAccount(models.Model):
-    username = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)  # hashed password
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
     student_id = models.CharField(
         max_length=20,
         unique=True,
         validators=[id_validator]
     )
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=255)  # hashed password
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
     course = models.CharField(max_length=100, blank=True, null=True)
     year_level = models.IntegerField(blank=True, null=True)
     contact_number = models.CharField(max_length=15, blank=True, null=True)
@@ -32,7 +31,7 @@ class StudentAccount(models.Model):
         return check_password(raw_password, self.password)
 
     def __str__(self):
-        return f"{self.username} ({self.student_id})"
+        return f"{self.last_name}, {self.first_name} ({self.student_id})"
 
 
 class Staff(models.Model):
