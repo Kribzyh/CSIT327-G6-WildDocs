@@ -24,7 +24,7 @@ def login(request):
                 messages.error(request, 'Invalid password')
         except StudentAccount.DoesNotExist:
             messages.error(request, 'User does not exist')
-    return render(request, 'pages/login.html')
+    return render(request, 'login.html')
 
 def register(request):
     # Redirect to dashboard if already logged in
@@ -44,17 +44,17 @@ def register(request):
         # Validation
         if password != confirm_password:
             messages.error(request, 'Passwords do not match')
-            return render(request, 'pages/register.html')
+            return render(request, 'register.html')
         
         # Check if student ID already exists
         if StudentAccount.objects.filter(student_id=student_id).exists():
             messages.error(request, 'Student ID already registered')
-            return render(request, 'pages/register.html')
+            return render(request, 'register.html')
         
         # Check if email already exists
         if StudentAccount.objects.filter(email=email).exists():
             messages.error(request, 'Email already registered')
-            return render(request, 'pages/register.html')
+            return render(request, 'register.html')
         
         try:
             # Create new student account - use student_id as username
@@ -74,8 +74,8 @@ def register(request):
         except Exception as e:
             messages.error(request, 'An error occurred while creating your account. Please try again.')
     
-    return render(request, 'pages/register.html')
+    return render(request, 'register.html')
 
 def logout(request):
     request.session.flush()
-    return redirect('login') 
+    return redirect('home')  # Changed from 'index/login' to 'home'

@@ -137,6 +137,23 @@ footer {
   }
 }
 
+@media (max-width: 991px) {
+  .hero-section .col-lg-6:last-child {
+    margin-top: 3rem !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .d-flex[style*="gap"] {
+    flex-direction: column;
+    gap: 0.5rem !important;
+  }
+  
+  .hero-section {
+    padding: 3rem 0 !important;
+  }
+}
+
 /* Custom Components */
 .hero-section {
   background: linear-gradient(135deg, var(--primary-color) 0%, #600000 100%);
