@@ -17,6 +17,7 @@ def login(request):
             if user.check_password(password):  # uses model method
                 # Set session
                 request.session['student_id'] = user.id
+                request.session['student_name'] = user.full_name
                 request.session['student_id_number'] = user.student_id
                 request.session['student_name'] = f"{user.first_name} {user.last_name}"
 
@@ -40,6 +41,8 @@ def register(request):
         last_name = request.POST.get('last_name')
         student_id = request.POST.get('student_id')
         email = request.POST.get('email')
+        course = request.POST.get('course')
+        year_level = request.POST.get('year_level')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
         course = request.POST.get('course')

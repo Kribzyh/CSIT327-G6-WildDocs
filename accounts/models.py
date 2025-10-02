@@ -19,8 +19,10 @@ class StudentAccount(models.Model):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     course = models.CharField(max_length=100, blank=True, null=True)
+    program = models.CharField(max_length=50, blank=True, null=True)  # Add this field
     year_level = models.IntegerField(blank=True, null=True)
     contact_number = models.CharField(max_length=15, blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)  # Add this line
 
     def save(self, *args, **kwargs):
         if not self.password.startswith('pbkdf2_'):
@@ -29,6 +31,10 @@ class StudentAccount(models.Model):
 
     def check_password(self, raw_password):
         return check_password(raw_password, self.password)
+
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
 
     def __str__(self):
         return f"{self.last_name}, {self.first_name} ({self.student_id})"
