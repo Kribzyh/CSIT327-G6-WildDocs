@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.contrib.auth.hashers import make_password
 from .models import StudentAccount
+from .forms import StudentProfileForm
 
 
 def login(request):
@@ -19,7 +21,8 @@ def login(request):
                 request.session['student_id'] = user.id
                 request.session['student_name'] = user.full_name
                 request.session['student_id_number'] = user.student_id
-                request.session['student_name'] = f"{user.first_name} {user.last_name}"
+                request.session['student_course'] = user.course
+                request.session['student_year_level'] = user.year_level
 
                 return redirect('dashboard')
             else:
@@ -27,7 +30,7 @@ def login(request):
         except StudentAccount.DoesNotExist:
             messages.error(request, 'User does not exist')
 
-    return render(request, 'pages/login.html')
+    return render(request, 'login.html')
 
 
 def register(request):
@@ -45,41 +48,45 @@ def register(request):
         year_level = request.POST.get('year_level')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
-        course = request.POST.get('course')
 
         # Validation
         if password != confirm_password:
             messages.error(request, 'Passwords do not match')
-            return render(request, 'pages/register.html')
+            return render(request, 'register.html')
 
         if StudentAccount.objects.filter(student_id=student_id).exists():
             messages.error(request, 'Student ID already registered')
-            return render(request, 'pages/register.html')
+            return render(request, 'register.html')
 
         if StudentAccount.objects.filter(email=email).exists():
             messages.error(request, 'Email already registered')
-            return render(request, 'pages/register.html')
+            return render(request, 'register.html')
 
         try:
+            # Auto-determine program based on course
+            program = StudentProfileForm.get_program_from_course(course)
+
             # Create new student account (password will be hashed in model.save())
             student = StudentAccount.objects.create(
                 first_name=first_name,
                 last_name=last_name,
                 student_id=student_id,
                 email=email,
-                password=password,
-                course=course
+                password=make_password(password),
+                course=course,
+                program=program,
+                year_level=int(year_level) if year_level else None,
             )
 
             messages.success(request, 'Account created successfully! Please login.')
             return redirect('login')
 
         except Exception as e:
-            messages.error(request, f'An error occurred while creating your account: {str(e)}')
+            messages.error(request, 'An error occurred while creating your account. Please try again.')
 
-    return render(request, 'pages/register.html')
+    return render(request, 'register.html')
 
 
 def logout(request):
     request.session.flush()
-    return redirect('login')
+    return redirect('home')
