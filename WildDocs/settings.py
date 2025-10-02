@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     "accounts",
     "index",
-    "dashboard", 
+    "dashboard",
 ]
 
 MIDDLEWARE = [
@@ -58,7 +58,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR / "frontend",
+            BASE_DIR / "index/templates",
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -121,7 +121,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
-    BASE_DIR / "frontend/static",
+    BASE_DIR / "index/static",
+    BASE_DIR / "dashboard/static",
 ]
 
 # Default primary key field type

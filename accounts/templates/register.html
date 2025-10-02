@@ -1,41 +1,47 @@
 {% extends "base.html" %}
 
-{% block title %}Register - WildDocs | CIT-U Document Requests{% endblock %}
+{% block title %}Register - WildDocs{% endblock %}
 
 {% block content %}
 <div class="container-fluid p-0" style="height: calc(100vh - 60px);">
   <div class="row h-100 no-gutters">
-    <!-- Left Side - Info Panel -->
-    <div class="col-lg-5 d-flex align-items-center justify-content-center text-white" style="background-color: #800000;">
+    <!-- Left Side - Welcome Panel -->
+    <div class="col-lg-6 d-flex align-items-center justify-content-center text-white" style="background-color: #800000;">
       <div class="text-center px-4">
-        <i class="fas fa-user-plus fa-4x mb-3 opacity-75"></i>
-        <h2 class="font-weight-bold mb-2">Join WildDocs</h2>
-        <p class="mb-0" style="font-style: italic; font-size: 0.9rem;">Create your account to access CIT-U document requests</p>
-        <div class="row text-center">
-          <div class="col-6">
-          </div>
-          <div class="col-6">
-    
-          </div>
-        </div>
+        <i class="fas fa-user-plus fa-3x mb-2 opacity-75"></i>
+        <h2 class="font-weight-bold mb-1">Join WildDocs</h2>
+        <p class="mb-0" style="font-style: italic; font-size: 0.85rem;">Create your account to access CIT-U document requests.</p>
       </div>
     </div>
     
-    <!-- Right Side - Registration Form -->
-    <div class="col-lg-7 d-flex align-items-center justify-content-center py-3">
-      <div class="w-100 px-4" style="max-width: 600px;">
-        <div class="text-center mb-3">
-          <h4 class="font-weight-bold mb-1" style="color: #800000;">Create Account</h4>
-          <p class="text-muted small">Fill out the form to get started</p>
+    <!-- Right Side - Register Form -->
+    <div class="col-lg-6 d-flex align-items-center justify-content-center">
+      <div class="w-100 px-4" style="max-width: 520px;">
+        <div class="text-center mb-2">
+          <h4 class="font-weight-bold mb-1" style="color: #800000; font-size: 1.4rem;">Create Account</h4>
+          <p class="text-muted small mb-0" style="font-size: 0.8rem;">Fill in your details to get started</p>
         </div>
-          
+        
         <form method="post" class="needs-validation" novalidate>
           {% csrf_token %}
           
+          <!-- Display any messages -->
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show py-1" role="alert" style="font-size: 0.8rem;">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert">
+                  <span>&times;</span>
+                </button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          
+          <!-- Row 1: Name Fields -->
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-6">
               <div class="form-group mb-2">
-                <label for="first_name" class="font-weight-medium small">First Name</label>
+                <label for="first_name" class="font-weight-medium" style="font-size: 0.8rem;">First Name</label>
                 <input 
                   type="text" 
                   class="form-control form-control-sm" 
@@ -44,14 +50,12 @@
                   placeholder="Juan"
                   required
                 >
-                <div class="invalid-feedback">
-                  Please provide your first name.
-                </div>
+                <div class="invalid-feedback">Please provide your first name.</div>
               </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-6">
               <div class="form-group mb-2">
-                <label for="last_name" class="font-weight-medium small">Last Name</label>
+                <label for="last_name" class="font-weight-medium" style="font-size: 0.8rem;">Last Name</label>
                 <input 
                   type="text" 
                   class="form-control form-control-sm" 
@@ -60,62 +64,147 @@
                   placeholder="Dela Cruz"
                   required
                 >
-                <div class="invalid-feedback">
-                  Please provide your last name.
-                </div>
+                <div class="invalid-feedback">Please provide your last name.</div>
               </div>
             </div>
           </div>
           
+          <!-- Row 2: Student ID and Email -->
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-6">
               <div class="form-group mb-2">
-                <label for="student_id" class="font-weight-medium small">Student ID</label>
+                <label for="student_id" class="font-weight-medium" style="font-size: 0.8rem;">Student ID</label>
                 <input 
                   type="text" 
                   class="form-control form-control-sm" 
                   id="student_id" 
                   name="student_id" 
-                  placeholder="22-1234-567"
+                  placeholder="23-6385-642"
+                  pattern="^\d{2}-\d{4}-\d{3}$"
                   required
                 >
-                <div class="invalid-feedback">
-                  Please provide a valid Student ID.
-                </div>
+                <small class="form-text text-muted" style="font-size: 0.65rem;">Format: XX-XXXX-XXX</small>
+                <div class="invalid-feedback">Please provide a valid Student ID.</div>
               </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-6">
               <div class="form-group mb-2">
-                <label for="email" class="font-weight-medium small">School Email</label>
+                <label for="email" class="font-weight-medium" style="font-size: 0.8rem;">Email</label>
                 <input 
                   type="email" 
                   class="form-control form-control-sm" 
                   id="email" 
                   name="email" 
-                  placeholder="your.name@cit.edu"
+                  placeholder="yourname@cit.edu"
                   required
-                  pattern=".*@cit\.edu$"
                 >
-                <div class="invalid-feedback">
-                  Must end with @cit.edu
-                </div>
+                <div class="invalid-feedback">Please provide a valid email address.</div>
               </div>
             </div>
           </div>
-            
+          
+          <!-- Row 3: Course and Year Level -->
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-8">
               <div class="form-group mb-2">
-                <label for="password" class="font-weight-medium small">Password</label>
+                <label for="course" class="font-weight-medium" style="font-size: 0.8rem;">Course/Degree</label>
+                <select id="course" name="course" class="form-control form-control-sm" required>
+                  <option value="">Select your course</option>
+                  <!-- Engineering Courses -->
+                  <optgroup label="College of Engineering and Architecture">
+                    <option value="BS Architecture">BS Architecture</option>
+                    <option value="BS Chemical Engineering">BS Chemical Engineering</option>
+                    <option value="BS Civil Engineering">BS Civil Engineering</option>
+                    <option value="BS Computer Engineering">BS Computer Engineering</option>
+                    <option value="BS Electrical Engineering">BS Electrical Engineering</option>
+                    <option value="BS Electronics Engineering">BS Electronics Engineering</option>
+                    <option value="BS Industrial Engineering">BS Industrial Engineering</option>
+                    <option value="BS Mechanical Engineering">BS Mechanical Engineering</option>
+                    <option value="BS Mechanical Engineering with Computational Science">BS Mechanical Engineering with Computational Science</option>
+                    <option value="BS Mechanical Engineering with Mechatronics">BS Mechanical Engineering with Mechatronics</option>
+                    <option value="BS Mining Engineering">BS Mining Engineering</option>
+                  </optgroup>
+                  <!-- Business & Accountancy Courses -->
+                  <optgroup label="College of Management, Business & Accountancy">
+                    <option value="BS Accountancy">BS Accountancy</option>
+                    <option value="BS Accounting Information Systems">BS Accounting Information Systems</option>
+                    <option value="BS Management Accounting">BS Management Accounting</option>
+                    <option value="BS Business Administration - Banking & Financial Management">BS Business Administration - Banking & Financial Management</option>
+                    <option value="BS Business Administration - Business Analytics">BS Business Administration - Business Analytics</option>
+                    <option value="BS Business Administration - General Business Management">BS Business Administration - General Business Management</option>
+                    <option value="BS Business Administration - Human Resource Management">BS Business Administration - Human Resource Management</option>
+                    <option value="BS Business Administration - Marketing Management">BS Business Administration - Marketing Management</option>
+                    <option value="BS Business Administration - Operations Management">BS Business Administration - Operations Management</option>
+                    <option value="BS Business Administration - Quality Management">BS Business Administration - Quality Management</option>
+                    <option value="BS Hospitality Management">BS Hospitality Management</option>
+                    <option value="BS Tourism Management">BS Tourism Management</option>
+                    <option value="BS Office Administration">BS Office Administration</option>
+                    <option value="Associate in Office Administration">Associate in Office Administration</option>
+                    <option value="Bachelor in Public Administration">Bachelor in Public Administration</option>
+                  </optgroup>
+                  <!-- Arts, Sciences & Education -->
+                  <optgroup label="College of Arts, Sciences & Education">
+                    <option value="AB Communication">AB Communication</option>
+                    <option value="AB English with Applied Linguistics">AB English with Applied Linguistics</option>
+                    <option value="Bachelor of Elementary Education">Bachelor of Elementary Education</option>
+                    <option value="Bachelor of Secondary Education - Major in English">Bachelor of Secondary Education - Major in English</option>
+                    <option value="Bachelor of Secondary Education - Major in Filipino">Bachelor of Secondary Education - Major in Filipino</option>
+                    <option value="Bachelor of Secondary Education - Major in Mathematics">Bachelor of Secondary Education - Major in Mathematics</option>
+                    <option value="Bachelor of Secondary Education - Major in Science">Bachelor of Secondary Education - Major in Science</option>
+                    <option value="Bachelor of Multimedia Arts">Bachelor of Multimedia Arts</option>
+                    <option value="BS Biology">BS Biology</option>
+                    <option value="BS Math with Applied Industrial Mathematics">BS Math with Applied Industrial Mathematics</option>
+                    <option value="BS Psychology">BS Psychology</option>
+                  </optgroup>
+                  <!-- Nursing & Health Sciences -->
+                  <optgroup label="College of Nursing & Allied Health Sciences">
+                    <option value="BS Nursing">BS Nursing</option>
+                    <option value="BS Pharmacy">BS Pharmacy</option>
+                    <option value="BS Medical Technology">BS Medical Technology</option>
+                  </optgroup>
+                  <!-- Computer Studies -->
+                  <optgroup label="College of Computer Studies">
+                    <option value="BS Information Technology">BS Information Technology</option>
+                    <option value="BS Computer Science">BS Computer Science</option>
+                    <option value="BS Information Systems">BS Information Systems</option>
+                  </optgroup>
+                  <!-- Criminal Justice -->
+                  <optgroup label="College of Criminal Justice">
+                    <option value="BS Criminology">BS Criminology</option>
+                  </optgroup>
+                </select>
+                <div class="invalid-feedback">Please select your course.</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="form-group mb-2">
+                <label for="year_level" class="font-weight-medium" style="font-size: 0.8rem;">Year</label>
+                <select id="year_level" name="year_level" class="form-control form-control-sm" required>
+                  <option value="">Year</option>
+                  <option value="1">1st</option>
+                  <option value="2">2nd</option>
+                  <option value="3">3rd</option>
+                  <option value="4">4th</option>
+                  <option value="5">5th</option>
+                </select>
+                <div class="invalid-feedback">Please select your year level.</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Row 4: Password Fields with Toggle -->
+          <div class="row">
+            <div class="col-6">
+              <div class="form-group mb-2">
+                <label for="password" class="font-weight-medium" style="font-size: 0.8rem;">Password</label>
                 <div class="input-group">
                   <input 
                     type="password" 
                     class="form-control form-control-sm" 
                     id="password" 
                     name="password" 
-                    placeholder="Create a password"
+                    placeholder="Password"
                     required
-                    minlength="8"
                   >
                   <div class="input-group-append">
                     <button class="btn btn-outline-secondary btn-sm" type="button" id="togglePassword">
@@ -123,14 +212,12 @@
                     </button>
                   </div>
                 </div>
-                <div class="invalid-feedback">
-                  Password must be at least 8 characters long.
-                </div>
+                <div class="invalid-feedback">Please provide a password.</div>
               </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-6">
               <div class="form-group mb-2">
-                <label for="confirm_password" class="font-weight-medium small">Confirm Password</label>
+                <label for="confirm_password" class="font-weight-medium" style="font-size: 0.8rem;">Confirm Password</label>
                 <div class="input-group">
                   <input 
                     type="password" 
@@ -146,51 +233,20 @@
                     </button>
                   </div>
                 </div>
-                <div class="invalid-feedback">
-                  Passwords do not match.
-                </div>
+                <div class="invalid-feedback">Please confirm your password.</div>
               </div>
             </div>
           </div>
           
-          <div class="form-group mb-2">
-            <label for="course" class="font-weight-medium small">Course/Program</label>
-            <select class="form-control form-control-sm" id="course" name="course" required>
-              <option value="">Select your course</option>
-              <option value="BSIT">BS Information Technology</option>
-              <option value="BSCS">BS Computer Science</option>
-              <option value="BSCE">BS Computer Engineering</option>
-              <option value="BSEE">BS Electrical Engineering</option>
-              <option value="BSME">BS Mechanical Engineering</option>
-              <option value="BSIE">BS Industrial Engineering</option>
-              <option value="BSBA">BS Business Administration</option>
-              <option value="BSA">BS Accountancy</option>
-              <option value="other">Other</option>
-            </select>
-            <div class="invalid-feedback">
-              Please select your course.
-            </div>
-          </div>
-          
-          <div class="form-group form-check mb-3">
-            <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
-            <label class="form-check-label small" for="terms">
-              I agree to the <a href="#" style="color: #800000;">Terms</a> and <a href="#" style="color: #800000;">Privacy Policy</a>
-            </label>
-            <div class="invalid-feedback">
-              You must agree to the terms and conditions.
-            </div>
-          </div>
-          
-          <button type="submit" class="btn btn-block mb-3" style="background-color: #800000; border-color: #800000; color: white;">
+          <button type="submit" class="btn btn-block mb-2 mt-2" style="background-color: #800000; border-color: #800000; color: white; padding: 0.5rem;">
             Create Account
           </button>
           
           <hr class="my-2">
           
           <div class="text-center">
-            <p class="text-muted small mb-2">Already have an account?</p>
-            <a href="{% url 'login' %}" class="btn btn-sm" style="border-color: #800000; color: #800000;">Sign In</a>
+            <p class="text-muted mb-1" style="font-size: 0.8rem;">Already have an account?</p>
+            <a href="{% url 'login' %}" class="btn btn-sm py-1" style="border-color: #800000; color: #800000; font-size: 0.8rem;">Sign In</a>
           </div>
         </form>
       </div>
@@ -202,6 +258,10 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <style>
+  .opacity-75 {
+    opacity: 0.75;
+  }
+  
   .min-vh-100 {
     min-height: 100vh;
   }
@@ -209,13 +269,46 @@
   .font-weight-medium {
     font-weight: 500;
   }
-  
-  .form-control:invalid {
-    border-color: #dc3545;
+
+  /* Custom select styling */
+  select.form-control {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1em 1em;
+    padding-right: 2rem;
+    appearance: none;
   }
-  
-  .form-control:valid {
-    border-color: #28a745;
+
+  optgroup {
+    font-weight: bold;
+    color: #333;
+  }
+
+  option {
+    font-weight: normal;
+    color: #666;
+  }
+
+  /* Compact form styling */
+  .form-control-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    line-height: 1.3;
+  }
+
+  .form-group {
+    margin-bottom: 0.5rem;
+  }
+
+  .invalid-feedback {
+    font-size: 0.7rem;
+  }
+
+  /* Input group button styling */
+  .input-group-append .btn {
+    border-left: 0;
+    padding: 0.25rem 0.5rem;
   }
 </style>
 {% endblock %}
@@ -223,7 +316,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle password visibility
+    // Toggle password visibility for password field
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
     
@@ -235,8 +328,8 @@ document.addEventListener('DOMContentLoaded', function() {
         icon.classList.toggle('fa-eye');
         icon.classList.toggle('fa-eye-slash');
     });
-    
-    // Toggle confirm password visibility
+
+    // Toggle password visibility for confirm password field
     const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
     const confirmPasswordInput = document.getElementById('confirm_password');
     
@@ -248,35 +341,18 @@ document.addEventListener('DOMContentLoaded', function() {
         icon.classList.toggle('fa-eye');
         icon.classList.toggle('fa-eye-slash');
     });
-    
+
     // Password confirmation validation
-    const form = document.querySelector('.needs-validation');
-    form.addEventListener('submit', function(event) {
-        const password = passwordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
-        
-        if (password !== confirmPassword) {
-            event.preventDefault();
-            event.stopPropagation();
-            confirmPasswordInput.setCustomValidity('Passwords do not match');
+    function validatePassword() {
+        if (passwordInput.value !== confirmPasswordInput.value) {
+            confirmPasswordInput.setCustomValidity("Passwords don't match");
         } else {
             confirmPasswordInput.setCustomValidity('');
         }
-        
-        form.classList.add('was-validated');
-    });
+    }
     
-    // Real-time password matching validation
-    confirmPasswordInput.addEventListener('input', function() {
-        const password = passwordInput.value;
-        const confirmPassword = this.value;
-        
-        if (password !== confirmPassword) {
-            this.setCustomValidity('Passwords do not match');
-        } else {
-            this.setCustomValidity('');
-        }
-    });
+    passwordInput.addEventListener('change', validatePassword);
+    confirmPasswordInput.addEventListener('keyup', validatePassword);
 });
 </script>
 {% endblock %}

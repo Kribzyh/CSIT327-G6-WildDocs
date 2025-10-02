@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
-from .models import StudentAccount
+from accounts.models import StudentAccount
 
 def login(request):
     # Redirect to dashboard if already logged in
@@ -17,7 +17,10 @@ def login(request):
             if user.check_password(password):
                 # Set session
                 request.session['student_id'] = user.id
+                request.session['student_name'] = user.full_name
                 request.session['student_id_number'] = user.student_id
+                request.session['student_course'] = user.course
+                request.session['student_year_level'] = user.year_level
                 
                 return redirect('dashboard')
             else:
@@ -37,9 +40,10 @@ def register(request):
         last_name = request.POST.get('last_name')
         student_id = request.POST.get('student_id')
         email = request.POST.get('email')
+        course = request.POST.get('course')
+        year_level = request.POST.get('year_level')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
-        course = request.POST.get('course')
         
         # Validation
         if password != confirm_password:
@@ -57,15 +61,21 @@ def register(request):
             return render(request, 'register.html')
         
         try:
+            # Auto-determine program based on course
+            from accounts.forms import StudentProfileForm
+            program = StudentProfileForm.get_program_from_course(course)
+            
             # Create new student account - use student_id as username
             student = StudentAccount.objects.create(
                 first_name=first_name,
                 last_name=last_name,
                 student_id=student_id,
                 email=email,
-                username=student_id,  # Use student_id as username
+                username=student_id,
                 password=make_password(password),
-                course=course
+                course=course,
+                program=program,  # Auto-determined
+                year_level=int(year_level) if year_level else None,
             )
             
             messages.success(request, 'Account created successfully! Please login.')
@@ -78,4 +88,4 @@ def register(request):
 
 def logout(request):
     request.session.flush()
-    return redirect('home')  # Changed from 'index/login' to 'home'
+    return redirect('home')

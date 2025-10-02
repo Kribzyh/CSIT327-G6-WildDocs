@@ -20,17 +20,23 @@ class StudentAccount(models.Model):
         validators=[student_id_validator]
     )
     course = models.CharField(max_length=100, blank=True, null=True)
+    program = models.CharField(max_length=50, blank=True, null=True)  # Add this field
     year_level = models.IntegerField(blank=True, null=True)
     contact_number = models.CharField(max_length=15, blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)  # Add this line
 
     def save(self, *args, **kwargs):
-        # hash the password if it’s not already hashed
+        # hash the password if it's not already hashed
         if not self.password.startswith('pbkdf2_'):
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
     def check_password(self, raw_password):
         return check_password(raw_password, self.password)
+
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
 
     def __str__(self):
         return f"{self.username} ({self.student_id})"
