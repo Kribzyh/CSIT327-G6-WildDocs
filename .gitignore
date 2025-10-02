@@ -2,20 +2,31 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
 # Django stuff:
 *.log
-*.pot
-*.pyc
-*.pyo
-*.db
-*.sqlite3
-media/
-staticfiles/
 local_settings.py
+db.sqlite3
+db.sqlite3-journal
 
 # Virtual environments
 .env
@@ -29,6 +40,7 @@ venv.bak/
 
 # VS Code
 .vscode/
+.idea/
 
 # macOS
 .DS_Store
@@ -42,8 +54,3 @@ venv.bak/
 # Coverage reports
 .coverage
 htmlcov/
-
-# Egg info
-*.egg-info/
-dist/
-build/
