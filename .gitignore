@@ -9,14 +9,9 @@ __pycache__/
 
 # Django stuff:
 *.log
-*.pot
-*.pyc
-*.pyo
-*.db
-*.sqlite3
-media/
-staticfiles/
 local_settings.py
+db.sqlite3
+db.sqlite3-journal
 
 # Virtual environments
 .env
@@ -30,6 +25,7 @@ venv.bak/
 
 # VS Code
 .vscode/
+.idea/
 
 # macOS
 .DS_Store
@@ -43,8 +39,3 @@ venv.bak/
 # Coverage reports
 .coverage
 htmlcov/
-
-# Egg info
-*.egg-info/
-dist/
-build/

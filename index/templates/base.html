@@ -16,16 +16,21 @@
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     />
     
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <!-- Custom CSS -->
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'main.css' %}">
     {% block extra_css %}{% endblock %}
   </head>
   <body>
-    <!-- Navigation Component (WildNav equivalent) -->
+    <!-- Navigation - Only show if user is NOT logged in -->
+    {% if not request.session.student_id %}
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
       <div class="container">
         <a class="navbar-brand" href="{% url 'home' %}" style="color: #800000;">
+          <i class="fas fa-file-alt me-2"></i>
           <span class="font-weight-bold">WildDocs</span>
           <span class="text-muted">|</span>
           <span class="font-weight-bold text-dark">CIT-U</span>
@@ -43,24 +48,17 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ml-auto">
+            </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'home' %}">Home</a>
-            </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'login' %}">Login</a>
             </li>
-            {% if user.is_authenticated %}
-            <li class="nav-item">
-              <a class="nav-link" href="#">Dashboard</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'admin:logout' %}">Logout</a>
-            </li>
-            {% endif %}
           </ul>
         </div>
       </div>
     </nav>
+    {% endif %}
 
     <!-- Error Reporter (Django Messages equivalent) -->
     {% if messages %}
@@ -88,15 +86,15 @@
       {% block content %}{% endblock %}
     </main>
 
-
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JS -->
-    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'main.js' %}"></script>
     
-    <!-- Navbar transparency on scroll -->
+    <!-- Navbar transparency on scroll - Only apply if navbar exists -->
+    {% if not request.session.student_id %}
     <style>
       .navbar-transparent {
         background-color: rgba(255, 255, 255, 0.9) !important;
@@ -108,15 +106,16 @@
     <script>
       window.addEventListener('scroll', function() {
         const navbar = document.querySelector('.navbar');
-        if (window.scrollY > 50) {
+        if (navbar && window.scrollY > 50) {
           navbar.classList.add('navbar-transparent');
-        } else {
+        } else if (navbar) {
           navbar.classList.remove('navbar-transparent');
         }
       });
     </script>
+    {% endif %}
     
-    <!-- Route tracking script (converted from Next.js Script component) -->
+    <!-- Route tracking script -->
     <script
       src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts//route-messenger.js"
       data-target-origin="*"

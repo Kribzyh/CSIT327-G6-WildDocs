@@ -2,25 +2,6 @@
 
 This document explains the organized frontend structure for the WildDocs Django application.
 
-## 📁 Directory Structure
-
-```
-frontend/
-├── layouts/          # Base layout templates
-│   └── base.html     # Main layout with navigation, footer, scripts
-├── pages/            # Page-specific templates
-│   ├── home.html     # Homepage template
-│   └── login.html    # Login page template
-├── static/           # Static assets
-│   ├── css/
-│   │   └── main.css  # Main stylesheet
-│   ├── js/
-│   │   └── main.js   # Main JavaScript file
-│   ├── images/       # Image assets
-│   └── fonts/        # Custom fonts
-└── base.html         # Simple base extending layouts/base.html
-```
-
 ## 🎨 Layouts
 
 ### `layouts/base.html`
