@@ -1,92 +1,88 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.models import User
 from .models import StudentAccount
-from .forms import StudentProfileForm
+
+
+
 
 
 def login(request):
-    # Redirect to dashboard if already logged in
-    if request.session.get('student_id'):
+    if request.user.is_authenticated:
         return redirect('dashboard')
 
     if request.method == 'POST':
-        student_id = request.POST.get('student_id')
+        student_number = request.POST.get('student_id')
         password = request.POST.get('password')
 
-        try:
-            user = StudentAccount.objects.get(student_id=student_id)
-            if user.check_password(password):  # uses model method
-                # Set session
-                request.session['student_id'] = user.id
-                request.session['student_name'] = user.full_name
-                request.session['student_id_number'] = user.student_id
-                request.session['student_course'] = user.course
-                request.session['student_year_level'] = user.year_level
-
-                return redirect('dashboard')
-            else:
-                messages.error(request, 'Invalid password')
-        except StudentAccount.DoesNotExist:
-            messages.error(request, 'User does not exist')
+        user = authenticate(request, username=student_number, password=password)
+        if user is not None:
+            auth_login(request, user)
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Invalid student number or password.')
 
     return render(request, 'login.html')
 
-
 def register(request):
-    # Redirect to dashboard if already logged in
-    if request.session.get('student_id'):
-        return redirect('dashboard')
-
     if request.method == 'POST':
-        # Get form data
+        student_number = request.POST.get('student_id')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
-        student_id = request.POST.get('student_id')
-        email = request.POST.get('email')
         course = request.POST.get('course')
         year_level = request.POST.get('year_level')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
 
-        # Validation
-        if password != confirm_password:
-            messages.error(request, 'Passwords do not match')
-            return render(request, 'register.html')
+        # ✅ Step 1: Validate required fields
+        if not all([student_number, email, password, first_name, last_name]):
+            messages.error(request, "All fields are required.")
+            return redirect('register')
 
-        if StudentAccount.objects.filter(student_id=student_id).exists():
-            messages.error(request, 'Student ID already registered')
-            return render(request, 'register.html')
-
-        if StudentAccount.objects.filter(email=email).exists():
-            messages.error(request, 'Email already registered')
-            return render(request, 'register.html')
-
+        # ✅ Step 2: Default year_level to 1 if empty or invalid
         try:
-            # Auto-determine program based on course
-            program = StudentProfileForm.get_program_from_course(course)
+            year_level = int(year_level) if year_level else 1
+        except ValueError:
+            year_level = 1
 
-            # Create new student account (password will be hashed in model.save())
-            student = StudentAccount.objects.create(
-                first_name=first_name,
-                last_name=last_name,
-                student_id=student_id,
-                email=email,
-                password=make_password(password),
-                course=course,
-                program=program,
-                year_level=int(year_level) if year_level else None,
-            )
+        # ✅ Step 3: Check if student_number or email already exists
+        if User.objects.filter(username=student_number).exists():
+            messages.error(request, "A user with that Student ID already exists.")
+            return redirect('register')
 
-            messages.success(request, 'Account created successfully! Please login.')
-            return redirect('login')
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "A user with that email already exists.")
+            return redirect('register')
 
-        except Exception as e:
-            messages.error(request, 'An error occurred while creating your account. Please try again.')
+        # ✅ Step 4: Create the User
+        user = User.objects.create_user(
+            username=student_number,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+
+        # ✅ Step 5: Create linked StudentAccount
+        StudentAccount.objects.create(
+            user=user,
+            student_number=student_number,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            course=course if course else '',
+            year_level=year_level
+        )
+
+        # ✅ Step 6: Log the user in and redirect
+        auth_login(request, user)
+        messages.success(request, f"Welcome, {first_name}!")
+        return redirect('dashboard')
 
     return render(request, 'register.html')
 
 
 def logout(request):
-    request.session.flush()
-    return redirect('home')
+    auth_logout(request)
+    return redirect('login')

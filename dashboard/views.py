@@ -2,34 +2,22 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from accounts.models import StudentAccount
 from accounts.forms import StudentProfileForm
+from django.contrib.auth.decorators import login_required
 
+
+@login_required
 def dashboard(request):
-    # Check if user is logged in
-    if not request.session.get('student_id'):
-        return redirect('login')
-    
-    # Get student information from database
     try:
-        student_id = request.session.get('student_id')
-        student = StudentAccount.objects.get(id=student_id)
-        
-        # Determine college from program
-        college = student.program if student.program else 'Computer Studies'
-        
-        context = {
-            'student_name': student.full_name,
-            'student_id_number': student.student_id,
-            'student_course': student.course or 'BSIT',
-            'student_college': college,
-            'student_year': f"Year {student.year_level or 1} of 4",
-            'student_status': 'Regular Student',
-            'student': student,
-        }
+        student = StudentAccount.objects.get(user=request.user)
+        student_name = str(student)
     except StudentAccount.DoesNotExist:
-        # If student not found, clear session and redirect to login
-        request.session.flush()
-        messages.error(request, 'Session expired. Please log in again.')
-        return redirect('login')
+        student = None  # or redirect to registration step if needed
+        
+        
+    context = {
+        'student': student,
+        'student_name': student_name,
+    }
     
     return render(request, 'dashboard.html', context)
 
