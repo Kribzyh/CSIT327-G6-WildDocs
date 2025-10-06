@@ -71,8 +71,6 @@ To stop the Django development server, press `Ctrl + C` in the terminal.
 
 🚧 **Deployment Status:** Not yet deployed
 
-*The deployed link will be updated once the application is hosted on a production server.*
-
 ## 📱 Features
 
 - **User Authentication:** Secure student login and registration system
