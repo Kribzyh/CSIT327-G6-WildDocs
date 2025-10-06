@@ -1,100 +1,117 @@
-📄 `WildDocs_Project_Documentation.md`
+# WildDocs 📚
 
-# WildDocs - Project Documentation
+A comprehensive student document management system built with Django, designed to streamline document handling and profile management for academic institutions.
 
-## 🛠️ Project Setup
+## 🛠️ Tech Stack
 
-### 1. Environment Setup
+- **Backend Framework:** Django 5.2.6
+- **Programming Language:** Python 3.13
+- **Database:** SQLite3 (Development)
+- **Frontend:** HTML5, CSS3, JavaScript
+- **Package Management:** Pipenv
+- **Authentication:** Django's built-in authentication system
 
-#### ✅ Install Python
+## 🚀 Setup & Run Instructions
 
-Make sure the latest version of Python is installed.
+### Prerequisites
 
-Verify installation:
+- Python 3.13 or higher
+- Pipenv (for virtual environment and dependency management)
 
-```bash
-python --version
-````
+### Installation Steps
 
----
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Kribzyh/WildDocs.git
+   cd WildDocs
+   ```
 
-#### ✅ Create Project Directory
+2. **Install Pipenv (if not already installed)**
+   ```bash
+   pip install pipenv
+   ```
 
-```bash
-mkdir WildDocs
-cd WildDocs
-```
+3. **Install dependencies and activate virtual environment**
+   ```bash
+   pipenv install
+   pipenv shell
+   ```
 
-#### ✅ Install Pipenv (if not installed yet)
+4. **Apply database migrations**
+   ```bash
+   python manage.py migrate
+   ```
 
-```bash
-pip install pipenv
-```
+5. **Create a superuser (optional)**
+   ```bash
+   python manage.py createsuperuser
+   ```
 
-#### ✅ Create and Activate Virtual Environment with Pipenv
-```bash
-pipenv install django
-pipenv shell
-```
+6. **Run the development server**
+   ```bash
+   python manage.py runserver
+   ```
 
-#### ✅ Start Django Project
-```bash
-django-admin startproject WildDocs .
-```
+7. **Access the application**
+   Open your browser and navigate to `http://127.0.0.1:8000/`
 
-> **Note:** The `.` at the end prevents Django from creating an extra subdirectory.
+### � Stopping the Server
 
----
+To stop the Django development server, press `Ctrl + C` in the terminal.
 
-##### 🔍 What it does:
+## 👥 Team Members
 
-* `django-admin startproject WildDocs` creates a new Django project named **WildDocs**.
-* Normally, this creates a subdirectory with the same name as the project.
+| Name | Role | CIT-U Email |
+|------|------|-------------|
+| [Team Member 1] | [Role] | [email@cit.edu] |
+| [Team Member 2] | [Role] | [email@cit.edu] |
+| [Team Member 3] | [Role] | [email@cit.edu] |
+| [Team Member 4] | [Role] | [email@cit.edu] |
 
-**Without the period (`.`), your folder structure would look like:**
+*Please update the team member information above with actual details.*
+
+## 🌐 Deployed Link
+
+🚧 **Deployment Status:** Not yet deployed
+
+*The deployed link will be updated once the application is hosted on a production server.*
+
+## 📱 Features
+
+- **User Authentication:** Secure student login and registration system
+- **Dashboard:** Personalized student dashboard with profile management
+- **Profile Management:** Edit and update student profile information
+- **Document Management:** Comprehensive document handling system
+- **Responsive Design:** Mobile-friendly interface
+
+## 📁 Project Structure
 
 ```
 WildDocs/
-└── WildDocs/
-    └── WildDocs/   # parent folder / project folder / inner Django module
+├── accounts/          # User authentication and account management
+├── dashboard/         # Student dashboard functionality
+├── index/            # Home page and main navigation
+├── profile_pictures/ # User profile image storage
+├── WildDocs/         # Main Django project settings
+├── manage.py         # Django management script
+├── db.sqlite3        # SQLite database
+├── Pipfile           # Python dependencies
+└── README.md         # Project documentation
 ```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## � License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-### 2. ✅ Test Django
-
-Start the development server:
-
-```bash
-python manage.py runserver
-```
-
-After running the command, you should see something like:
-
-```
-Watching for file changes with StatReloader
-Performing system checks...
-
-System check identified no issues (0 silenced).
-
-You have 18 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): admin, auth, contenttypes, sessions.
-Run 'python manage.py migrate' to apply them.
-
-September 22, 2025 - 22:10:24
-Django version 5.2.6, using settings 'WildDocs.settings'
-Starting development server at http://127.0.0.1:8000/   <<<<<<-----------!!!!!!!!!   (EYES HERE!!!) --> ctrl + click this link
-Quit the server with CTRL-BREAK.
-
-WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
-```
-
----
-
-### 🛑 Stopping the Server
-
-To stop the Django development server:
-
-```bash
-ctrl + c
-```
+*Last updated: October 2025*
 
