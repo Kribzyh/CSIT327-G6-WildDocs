@@ -64,9 +64,8 @@ To stop the Django development server, press `Ctrl + C` in the terminal.
 | Name | Role | CIT-U Email |
 |------|------|-------------|
 | Cordero, Camila Rose A. | Frontend | camilarose.cordero@cit.edu |
-| Delposo, Kerby | Frontend | [email@cit.edu] |
-| Cayacap, Denn | [Role] | [email@cit.edu] |
-
+| Delposo, Kerby | Backend | kerby.delposo@cit.edu |
+| Cayacap, Denn Anton Marc | Backend | dennantonmarc.cayacap@cit.edu |
 
 ## 🌐 Deployed Link
 
