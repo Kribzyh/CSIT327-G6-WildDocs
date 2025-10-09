@@ -119,7 +119,11 @@
         </div>
         
         <nav class="sidebar-nav">
-            <a href="/dashboard/" class="nav-item">
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="nav-item">
+            {% else %}
+            <a href="{% url 'login' %}?next={% url 'dashboard' %}" class="nav-item">
+            {% endif %}
                 <i class="fas fa-tachometer-alt"></i>
                 Dashboard
             </a>

@@ -1,5 +1,7 @@
 # WildDocs - Developer Setup Guide
 
+IMPORTANT: Do NOT commit your `.env` file. Use `.env.example` as a template and keep real secrets local only.
+
 ## Setting up the Supabase Integration
 
 This project uses Supabase for:

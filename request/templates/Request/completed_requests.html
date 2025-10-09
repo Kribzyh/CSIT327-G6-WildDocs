@@ -83,7 +83,11 @@
                 <i class="fas fa-check-double"></i>
                 Completed Requests
             </a>
-            <a href="/dashboard/" class="nav-item back-to-dashboard">
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="nav-item back-to-dashboard">
+            {% else %}
+            <a href="{% url 'login' %}?next={% url 'dashboard' %}" class="nav-item back-to-dashboard">
+            {% endif %}
                 <i class="fas fa-arrow-left"></i>
                 Back to Dashboard
             </a>

@@ -15,6 +15,8 @@ A comprehensive student document management system built with Django and Supabas
 
 ## 🚀 Setup & Run Instructions
 
+> IMPORTANT: Do NOT commit your `.env` file. Copy `.env.example` to `.env` and fill in secrets locally. The repository should never contain live keys.
+
 ### Prerequisites
 
 - Python 3.13 or higher

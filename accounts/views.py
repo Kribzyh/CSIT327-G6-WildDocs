@@ -6,11 +6,13 @@ from .models import StudentAccount
 from .forms import StudentProfileForm
 import requests
 from django.conf import settings
+from django.views.decorators.cache import never_cache
 
 
 
 
 
+@never_cache
 def login(request):
     if request.user.is_authenticated:
         # If there's a 'next' parameter, redirect there instead of dashboard
@@ -43,7 +45,14 @@ def login(request):
 
     return render(request, 'login.html')
 
+@never_cache
 def register(request):
+    # If already authenticated, don't allow access to registration page
+    if request.user.is_authenticated:
+        next_url = request.GET.get('next')
+        if next_url:
+            return redirect(next_url)
+        return redirect('dashboard')
     if request.method == 'POST':
         student_number = request.POST.get('student_id')
         email = request.POST.get('email')
@@ -116,6 +125,8 @@ def register(request):
     return render(request, 'register.html')
 
 
+
+@never_cache
 def logout(request):
     auth_logout(request)
     return redirect('login')

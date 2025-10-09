@@ -8,8 +8,10 @@ from accounts.forms import StudentProfileForm
 import json
 import uuid
 import os
+from django.views.decorators.cache import never_cache
 
 
+@never_cache
 @login_required
 def dashboard(request):
     # Extra guard: if the user is not authenticated ensure we redirect to login.
@@ -163,6 +165,7 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 
+@never_cache
 @login_required
 def student_profile(request):
     try:
@@ -269,6 +272,7 @@ def student_profile(request):
     return render(request, 'student_profile.html', context)
 
 
+@never_cache
 @login_required
 def requested_documents(request):
     try:
@@ -299,6 +303,7 @@ def requested_documents(request):
     return render(request, 'requested_documents.html', context)
 
 
+@never_cache
 @login_required
 def history(request):
     try:
@@ -325,6 +330,7 @@ def history(request):
     return render(request, 'history.html', context)
 
 
+@never_cache
 @login_required
 def about_us(request):
     try:
@@ -345,6 +351,7 @@ def about_us(request):
     return render(request, 'about_us.html', context)
 
 
+@never_cache
 @login_required
 def faqs(request):
     try:

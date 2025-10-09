@@ -243,7 +243,11 @@
                 <i class="fas fa-check-double"></i>
                 Completed Requests
             </a>
-            <a href="/dashboard/" class="nav-item back-to-dashboard">
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="nav-item back-to-dashboard">
+            {% else %}
+            <a href="{% url 'login' %}?next={% url 'dashboard' %}" class="nav-item back-to-dashboard">
+            {% endif %}
                 <i class="fas fa-arrow-left"></i>
                 Back to Dashboard
             </a>
@@ -375,7 +379,11 @@
                     <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
                     <h4>Request Not Found</h4>
                     <p class="mb-4">The requested document could not be found or you don't have permission to view it.</p>
-                    <a href="/dashboard/" class="btn btn-maroon">
+                    {% if request.user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-maroon">
+                    {% else %}
+                    <a href="{% url 'login' %}?next={% url 'dashboard' %}" class="btn btn-maroon">
+                    {% endif %}
                         <i class="fas fa-home mr-2"></i>Go to Dashboard
                     </a>
                 </div>
