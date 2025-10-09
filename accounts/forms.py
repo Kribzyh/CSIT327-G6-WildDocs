@@ -4,7 +4,7 @@ from .models import StudentAccount
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentAccount
-        fields = ['first_name', 'last_name', 'email', 'course', 'year_level', 'contact_number', 'profile_picture']
+        fields = ['first_name', 'last_name', 'email', 'course', 'year_level', 'contact_number']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
@@ -71,7 +71,6 @@ class StudentProfileForm(forms.ModelForm):
                 (5, '5th Year'),
             ]),
             'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact Number'}),
-            'profile_picture': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
         labels = {
             'first_name': 'First Name',
@@ -80,7 +79,6 @@ class StudentProfileForm(forms.ModelForm):
             'course': 'Course/Degree',
             'year_level': 'Year Level',
             'contact_number': 'Contact Number',
-            'profile_picture': 'Profile Picture',
         }
 
     def save(self, commit=True):

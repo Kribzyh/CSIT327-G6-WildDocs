@@ -3,6 +3,9 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.models import User
 from .models import StudentAccount
+from .forms import StudentProfileForm
+import requests
+from django.conf import settings
 
 
 
@@ -10,6 +13,10 @@ from .models import StudentAccount
 
 def login(request):
     if request.user.is_authenticated:
+        # If there's a 'next' parameter, redirect there instead of dashboard
+        next_url = request.GET.get('next')
+        if next_url:
+            return redirect(next_url)
         return redirect('dashboard')
 
     if request.method == 'POST':
@@ -19,6 +26,17 @@ def login(request):
         user = authenticate(request, username=student_number, password=password)
         if user is not None:
             auth_login(request, user)
+            
+            # Auto-populate student info based on course if program is not set
+            try:
+                student_account = user.studentaccount
+                if student_account.program == "Other" and student_account.course:
+                    student_account.program = StudentProfileForm.get_program_from_course(student_account.course)
+                    student_account.save()
+            except StudentAccount.DoesNotExist:
+                pass
+            
+            messages.success(request, 'Successfully logged in!')
             return redirect('dashboard')
         else:
             messages.error(request, 'Invalid student number or password.')
@@ -55,7 +73,7 @@ def register(request):
             messages.error(request, "A user with that email already exists.")
             return redirect('register')
 
-        # ✅ Step 4: Create the User
+        # ✅ Step 4: Create the User in Django
         user = User.objects.create_user(
             username=student_number,
             email=email,
@@ -64,7 +82,21 @@ def register(request):
             last_name=last_name
         )
 
+        # ✅ Step 4.5: Also create user in Supabase Auth
+        user_metadata = {
+            "student_number": student_number,
+            "first_name": first_name,
+            "last_name": last_name,
+            "course": course if course else '',
+            "year_level": year_level
+        }
+        
+        # NOTE: Supabase integration removed in this branch. Registration will only create a local Django user.
+
         # ✅ Step 5: Create linked StudentAccount
+        # Automatically determine program based on course
+        program = StudentProfileForm.get_program_from_course(course if course else '')
+        
         StudentAccount.objects.create(
             user=user,
             student_number=student_number,
@@ -72,6 +104,7 @@ def register(request):
             last_name=last_name,
             email=email,
             course=course if course else '',
+            program=program,
             year_level=year_level
         )
 
@@ -86,3 +119,18 @@ def register(request):
 def logout(request):
     auth_logout(request)
     return redirect('login')
+
+def create_supabase_user(email, password, user_metadata=None):
+    url = f"{settings.SUPABASE_URL}/auth/v1/admin/users"
+    headers = {
+        "apikey": settings.SUPABASE_SERVICE_KEY,
+        "Authorization": f"Bearer {settings.SUPABASE_SERVICE_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {"email": email, "password": password}
+    if user_metadata:
+        payload["user_metadata"] = user_metadata
+
+    resp = requests.post(url, json=payload, headers=headers, timeout=10)
+    resp.raise_for_status()  # raises requests.HTTPError for 4xx/5xx
+    return resp.json()

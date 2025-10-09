@@ -122,6 +122,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle stat card clicks for navigation
     const statCards = document.querySelectorAll('.stat-card');
     statCards.forEach(card => {
+        // Skip navigation for recent requests card - it's display only
+        if (card.classList.contains('recent-requests-card')) {
+            return;
+        }
+        
         card.style.cursor = 'pointer';
         card.addEventListener('click', function() {
             const header = this.querySelector('.stat-header').textContent;
@@ -136,15 +141,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 case 'Completed Requests':
                     window.location.href = '/requests/completed/';
                     break;
-                case 'Recent Requests':
-                    window.location.href = '/requests/recent/';
-                    break;
             }
         });
     });
     
     // Add hover effects
     statCards.forEach(card => {
+        // Recent requests card has different hover behavior defined in CSS
+        if (card.classList.contains('recent-requests-card')) {
+            return;
+        }
+        
         card.addEventListener('mouseenter', function() {
             this.style.transform = 'translateY(-2px)';
             this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.15)';

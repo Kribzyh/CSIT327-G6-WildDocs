@@ -9,6 +9,7 @@ urlpatterns = [
     path('', include('index.urls')),
     path('accounts/', include('accounts.urls')),
     path('dashboard/', include('dashboard.urls')),
+    path('requests/', include('request.urls')),
 ]
 
 # Serve media files in development

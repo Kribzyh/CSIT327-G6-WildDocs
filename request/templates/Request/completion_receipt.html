@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Completion Receipt - Request #{{ request.id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 15px;
+        }
+        .header h1 {
+            color: #28a745;
+            margin: 0;
+        }
+        .success-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        .details {
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .detail-label {
+            font-weight: bold;
+            min-width: 150px;
+        }
+        .detail-value {
+            flex: 1;
+        }
+        .summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        @media print {
+            body { margin: 0; padding: 15px; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CIT-U Document Request Completion Receipt</h1>
+        <div class="success-badge">✓ COMPLETED</div>
+        <p>Request #{{ request.id }}</p>
+    </div>
+    
+    <div class="details">
+        <div class="detail-row">
+            <div class="detail-label">Student Name:</div>
+            <div class="detail-value">{{ student.first_name }} {{ student.last_name }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Student Number:</div>
+            <div class="detail-value">{{ student.student_number }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Document Type:</div>
+            <div class="detail-value">{{ request.document.name }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Number of Copies:</div>
+            <div class="detail-value">{{ request.copies }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Purpose:</div>
+            <div class="detail-value">{{ request.purpose }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Date Requested:</div>
+            <div class="detail-value">{{ request.date_requested|date:"F d, Y" }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Date Completed:</div>
+            <div class="detail-value">{{ completion_date|date:"F d, Y \a\t g:i A" }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Document Fee:</div>
+            <div class="detail-value">₱{{ request.document.fee }}</div>
+        </div>
+    </div>
+    
+    <div class="summary">
+        <h3>Request Summary:</h3>
+        <p><strong>{{ request.document.name }}</strong> ({{ request.copies }} cop{{ request.copies|pluralize:"y,ies" }}) has been successfully processed and delivered.</p>
+        <p><strong>Total Processing Time:</strong> 3 business days</p>
+        <p><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">COMPLETED</span></p>
+    </div>
+    
+    <div class="footer">
+        <p>This receipt confirms the successful completion of your document request</p>
+        <p>Thank you for using the WildDocs system</p>
+        <p><small>Generated on {{ completion_date|date:"F d, Y \a\t g:i A" }}</small></p>
+    </div>
+    
+    <div class="no-print" style="text-align: center; margin-top: 30px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Print Receipt
+        </button>
+        <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+            Close
+        </button>
+    </div>
+</body>
+</html>

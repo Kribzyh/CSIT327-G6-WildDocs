@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}History - WildDocs{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="d-flex align-items-center">
+        <h4 class="text-white mb-0">User</h4>
+      </div>
+      <hr class="sidebar-separator">
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a href="{% url 'dashboard' %}" class="nav-item">
+        <i class="fas fa-tachometer-alt"></i>
+        Dashboard
+      </a>
+      <a href="{% url 'student_profile' %}" class="nav-item">
+        <i class="fas fa-user"></i>
+        Student Profile
+      </a>
+      <a href="{% url 'requested_documents' %}" class="nav-item">
+        <i class="fas fa-file-alt"></i>
+        Requested Documents
+      </a>
+      <a href="{% url 'history' %}" class="nav-item active">
+        <i class="fas fa-history"></i>
+        History
+      </a>
+      <a href="{% url 'about_us' %}" class="nav-item">
+        <i class="fas fa-info-circle"></i>
+        About Us
+      </a>
+      <a href="{% url 'faqs' %}" class="nav-item">
+        <i class="fas fa-question-circle"></i>
+        FAQs
+      </a>
+      <a href="#" class="nav-item logout" onclick="confirmLogout(event)">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+      </a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <div class="welcome-content">
+        <div class="welcome-left">
+          <div class="date-display-welcome">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="welcomeDate">Loading...</span>
+          </div>
+          <div class="welcome-text">
+            <h3>Request History</h3>
+            <p>View your complete request history</p>
+          </div>
+        </div>
+        <div class="welcome-right">
+          <h1 class="welcome-title">WildDocs</h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Content -->
+    <div class="dashboard-content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                  <i class="fas fa-history me-2"></i>
+                  Completed Request History
+                </h5>
+              
+                {% if completed_requests %}
+                <div class="table-responsive">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Document</th>
+                        <th>Purpose</th>
+                        <th>Status</th>
+                        <th>Date Requested</th>
+                        <th>Date Completed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in completed_requests %}
+                      <tr>
+                        <td>{{ request.document.name }}</td>
+                        <td>{{ request.purpose }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ request.status }}</span>
+                        </td>
+                        <td>{{ request.date_requested|date:"F j, Y" }}</td>
+                        <td>
+                            {{ request.date_requested|date:"F j, Y" }}
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                {% else %}
+                  <div class="text-center py-5">
+                    <i class="fas fa-history fa-4x text-muted mb-3"></i>
+                    <h5>No Completed Requests</h5>
+                    <p class="text-muted">You don't have any completed requests yet.</p>
+                  </div>
+                {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmLogout(event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+        window.location.href = '{% url "logout" %}';
+    }
+}
+
+// Set current date
+document.addEventListener('DOMContentLoaded', function() {
+    const dateElement = document.getElementById('welcomeDate');
+    if (dateElement) {
+        const today = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        dateElement.textContent = today.toLocaleDateString('en-US', options);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pickup Slip - Request #{{ request.id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 15px;
+        }
+        .header h1 {
+            color: #007bff;
+            margin: 0;
+        }
+        .details {
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .detail-label {
+            font-weight: bold;
+            min-width: 150px;
+        }
+        .detail-value {
+            flex: 1;
+        }
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        @media print {
+            body { margin: 0; padding: 15px; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CIT-U Document Pickup Slip</h1>
+        <p>Request #{{ request.id }}</p>
+    </div>
+    
+    <div class="details">
+        <div class="detail-row">
+            <div class="detail-label">Student Name:</div>
+            <div class="detail-value">{{ student.first_name }} {{ student.last_name }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Student Number:</div>
+            <div class="detail-value">{{ student.student_number }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Document Type:</div>
+            <div class="detail-value">{{ request.document.name }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Number of Copies:</div>
+            <div class="detail-value">{{ request.copies }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Date Approved:</div>
+            <div class="detail-value">{{ request.date_requested|date:"F d, Y" }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Generated:</div>
+            <div class="detail-value">{{ generated_date|date:"F d, Y \a\t g:i A" }}</div>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <h3>Pickup Instructions:</h3>
+        <ul>
+            <li>Present this slip along with a valid student ID or government-issued ID</li>
+            <li>Office Hours: Monday to Friday, 8:00 AM - 5:00 PM</li>
+            <li>Location: Registrar's Office</li>
+            <li>Payment may be required upon pickup (if not yet paid)</li>
+            <li>Documents not claimed within 30 days will be returned to archive</li>
+        </ul>
+    </div>
+    
+    <div class="footer">
+        <p>This slip is valid for document pickup at CIT-U Registrar's Office</p>
+        <p>For inquiries, please contact the Registrar's Office</p>
+    </div>
+    
+    <div class="no-print" style="text-align: center; margin-top: 30px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Print Slip
+        </button>
+        <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+            Close
+        </button>
+    </div>
+</body>
+</html>

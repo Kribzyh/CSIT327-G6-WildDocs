@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
+from django.core.files.storage import default_storage
+import uuid
+import os
 
 # --- Validator for standardized student IDs ---
 id_validator = RegexValidator(
@@ -8,9 +11,15 @@ id_validator = RegexValidator(
     message="ID must be in the format YY-NNNN-NNN (e.g., 23-6385-642)."
 )
 
+def upload_to_supabase(instance, filename):
+    """Upload profile pictures to Supabase Storage"""
+    # Generate unique filename to avoid conflicts
+    file_extension = os.path.splitext(filename)[1]
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    return f'profile_pictures/{instance.student_number}/{unique_filename}'
+
 # --- Student account linked to Django's User model ---
 class StudentAccount(models.Model):
-    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     student_number = models.CharField(
         max_length=20,
@@ -21,8 +30,9 @@ class StudentAccount(models.Model):
     last_name = models.CharField(max_length=50, default="")
     email = models.EmailField(max_length=100, default="")
     contact_number = models.CharField(max_length=20, blank=True, null=True)
-    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
+    profile_picture = models.URLField(max_length=500, blank=True, null=True)  # Store Supabase URL
     course = models.CharField(max_length=100, default="Undeclared")
+    program = models.CharField(max_length=100, default="Other")
     year_level = models.PositiveIntegerField(default=1)
 
     def __str__(self):

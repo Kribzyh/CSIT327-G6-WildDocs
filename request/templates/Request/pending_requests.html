@@ -1,0 +1,168 @@
+{% extends "Request/requests_list.html" %}
+
+{% block title %}Pending Requests - WildDocs{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.pending-alert {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    border: 1px solid #ffc107;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #856404;
+}
+
+.pending-header {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #333;
+}
+
+.table tbody tr:hover {
+    background-color: #fff3cd;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.8rem;
+}
+
+.btn-cancel:hover {
+    background-color: #c82333;
+    border-color: #c82333;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.sidebar-separator {
+    border-top: 1px solid rgba(255,255,255,0.2);
+    margin: 15px 0 0 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="request-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="d-flex align-items-center">
+                <h4 class="text-white mb-0">Document Status</h4>
+            </div>
+            <hr class="sidebar-separator">
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/requests/pending/" class="nav-item active">
+                <i class="fas fa-clock"></i>
+                Pending Requests
+            </a>
+            <a href="/requests/approved/" class="nav-item">
+                <i class="fas fa-check-circle"></i>
+                Approved Requests
+            </a>
+            <a href="/requests/completed/" class="nav-item">
+                <i class="fas fa-check-double"></i>
+                Completed Requests
+            </a>
+            <a href="/dashboard/" class="nav-item back-to-dashboard">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="request-content">
+        <div class="pending-header request-header">
+            <h2 class="mb-0">
+                <i class="fas fa-clock mr-3"></i>Pending Requests
+            </h2>
+            <p class="mb-0 mt-2">Requests awaiting admin review and approval</p>
+        </div>
+
+        {% if requests %}
+            <div class="pending-alert">
+                <i class="fas fa-info-circle mr-2"></i>
+                <strong>{{ requests|length }}</strong> pending request{{ requests|length|pluralize }} found. 
+                These requests are currently being reviewed by the administration.
+            </div>
+        {% endif %}
+
+        <div class="request-card">
+            <div class="card-body p-0">
+                {% if requests %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Request ID</th>
+                                    <th>Document Type</th>
+                                    <th>Date Requested</th>
+                                    <th>Copies</th>
+                                    <th>Purpose</th>
+                                    <th>Expected Processing</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in requests %}
+                                <tr>
+                                    <td>
+                                        <span class="badge badge-warning">#{{ request.id }}</span>
+                                    </td>
+                                    <td>{{ request.document.name }}</td>
+                                    <td>{{ request.date_requested|date:"M d, Y" }}</td>
+                                    <td>{{ request.copies }}</td>
+                                    <td>{{ request.purpose|truncatewords:8 }}</td>
+                                    <td>
+                                        <small class="text-muted">3-5 business days</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'Request:detail' request.id %}" 
+                                               class="btn btn-sm btn-outline-primary mr-1">
+                                                <i class="fas fa-eye mr-1"></i>View
+                                            </a>
+                                            <button class="btn btn-sm btn-cancel" 
+                                                    data-action="cancel" data-id="{{ request.id }}">
+                                                <i class="fas fa-times mr-1"></i>Cancel
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-clock fa-4x"></i>
+                        <h4>No Pending Requests</h4>
+                        <p class="mb-0">
+                            You don't have any pending requests at the moment.<br>
+                            All your requests have been processed or you haven't submitted any yet.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function cancelRequest(requestId) {
+    if (confirm('Are you sure you want to cancel this pending request? This action cannot be undone.')) {
+        // Add AJAX call to cancel request
+        alert('Request #' + requestId + ' cancellation functionality would be implemented here.');
+        // You would typically make an AJAX call here to cancel the request
+    }
+}
+</script>
+{% endblock %}

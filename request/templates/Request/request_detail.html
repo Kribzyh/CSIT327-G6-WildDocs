@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Request Details - WildDocs{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+.request-detail-container {
+    display: flex;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+}
+
+.sidebar {
+    width: 260px;
+    background: linear-gradient(135deg, #800000, #600000);
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.sidebar-nav {
+    padding: 20px 0;
+}
+
+.nav-item {
+    display: block;
+    padding: 12px 25px;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-item:hover, .nav-item.active {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    text-decoration: none;
+    transform: translateX(5px);
+}
+
+.nav-item i {
+    width: 20px;
+    margin-right: 10px;
+}
+
+.detail-content {
+    margin-left: 260px;
+    padding: 2rem;
+    width: calc(100% - 260px);
+}
+
+.detail-header {
+    background: linear-gradient(135deg, #800000, #600000);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 15px 15px 0 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.detail-card {
+    background: white;
+    border-radius: 0 0 15px 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.status-pending {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #856404;
+}
+
+.status-approved {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+}
+
+.status-completed {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    color: white;
+}
+
+.info-section {
+    padding: 2rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.info-section:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.info-value {
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.action-buttons {
+    padding: 2rem;
+    background: #f8f9fa;
+    text-align: center;
+}
+
+.btn-maroon {
+    background: linear-gradient(135deg, #800000, #600000);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    margin: 0 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-maroon:hover {
+    background: linear-gradient(135deg, #600000, #400000);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(128,0,0,0.3);
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #800000, #600000);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #800000;
+    border: 3px solid white;
+    box-shadow: 0 0 0 1px #800000;
+}
+
+.timeline-content {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    border-left: 4px solid #800000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-separator {
+    border-top: 1px solid rgba(255,255,255,0.2);
+    margin: 15px 0 0 0;
+}
+
+/* PAGE-SPECIFIC: hide global navbar and sidebar for a focused detail view */
+.navbar, .sidebar { display: none !important; }
+
+/* Make content take full width when sidebar is hidden */
+.detail-content { margin-left: 0; width: 100%; padding: 2rem 3rem; }
+
+/* Add a left-side fixed back button to return to pending requests */
+.back-to-pending {
+        position: fixed;
+        left: 18px;
+        top: 120px;
+        z-index: 1100;
+        background: #fff;
+        color: #6b1b1b;
+        border: 1px solid rgba(0,0,0,0.06);
+        padding: 10px 14px;
+        border-radius: 10px;
+        box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-weight: 600;
+}
+
+@media(max-width:900px){
+    .back-to-pending { left: 12px; top: 90px; }
+    .detail-content { padding: 1rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="request-detail-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="d-flex align-items-center">
+                <h4 class="text-white mb-0">Document Status</h4>
+            </div>
+            <hr class="sidebar-separator">
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/requests/pending/" class="nav-item">
+                <i class="fas fa-clock"></i>
+                Pending Requests
+            </a>
+            <a href="/requests/approved/" class="nav-item">
+                <i class="fas fa-check-circle"></i>
+                Approved Requests
+            </a>
+            <a href="/requests/completed/" class="nav-item">
+                <i class="fas fa-check-double"></i>
+                Completed Requests
+            </a>
+            <a href="/dashboard/" class="nav-item back-to-dashboard">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="detail-content">
+        {% if request %}
+            <div class="detail-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-1">
+                            <i class="fas fa-file-alt mr-3"></i>Request #{{ request.id }}
+                        </h2>
+                        <p class="mb-0">{{ request.document.name }}</p>
+                    </div>
+                    <span class="status-badge 
+                        {% if request.status == 'Pending' %}status-pending
+                        {% elif request.status == 'Approved' %}status-approved  
+                        {% elif request.status == 'Completed' %}status-completed
+                        {% endif %}">
+                        {{ request.status }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <div class="info-section">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-label">Document Type</div>
+                            <div class="info-value">{{ request.document.name }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">Number of Copies</div>
+                            <div class="info-value">{{ request.copies }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-label">Date Requested</div>
+                            <div class="info-value">{{ request.date_requested|date:"F d, Y g:i A" }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">Fee</div>
+                            <div class="info-value text-success">₱{{ request.document.fee }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-label">Purpose</div>
+                    <div class="info-value">{{ request.purpose }}</div>
+                </div>
+
+                {% if request.notes %}
+                <div class="info-section">
+                    <div class="info-label">Admin Notes</div>
+                    <div class="info-value">{{ request.notes }}</div>
+                </div>
+                {% endif %}
+
+                <div class="info-section">
+                    <div class="info-label">Request Timeline</div>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Request Submitted</h6>
+                                <small class="text-muted">{{ request.date_requested|date:"F d, Y g:i A" }}</small>
+                                <p class="mb-0 mt-2">Request for {{ request.document.name }} has been submitted successfully.</p>
+                            </div>
+                        </div>
+                        
+                        {% if request.status != 'Pending' %}
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Request Processed</h6>
+                                <small class="text-muted">Processing completed</small>
+                                <p class="mb-0 mt-2">Your request has been reviewed and approved by the registrar's office.</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if request.status == 'Completed' %}
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Document Ready</h6>
+                                <small class="text-muted">Available for pickup</small>
+                                <p class="mb-0 mt-2">Your document is ready and has been claimed successfully.</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    {% if request.status == 'Pending' %}
+                        <button class="btn btn-warning mr-2" data-action="cancel" data-id="{{ request.id }}">
+                            <i class="fas fa-times mr-2"></i>Cancel Request
+                        </button>
+                    {% elif request.status == 'Approved' %}
+                        <button class="btn btn-success mr-2" data-action="print" data-id="{{ request.id }}">
+                            <i class="fas fa-print mr-2"></i>Print Claim Slip
+                        </button>
+                    {% elif request.status == 'Completed' %}
+                        <button class="btn btn-primary mr-2" data-action="download" data-id="{{ request.id }}">
+                            <i class="fas fa-download mr-2"></i>Download Receipt
+                        </button>
+                    {% endif %}
+                    
+                    <a href="/requests/pending/" class="btn btn-maroon">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Pending
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div class="detail-header">
+                <h2 class="mb-0">
+                    <i class="fas fa-exclamation-triangle mr-3"></i>Request Not Found
+                </h2>
+            </div>
+            
+            <div class="detail-card">
+                <div class="info-section text-center py-5">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                    <h4>Request Not Found</h4>
+                    <p class="mb-4">The requested document could not be found or you don't have permission to view it.</p>
+                    <a href="/dashboard/" class="btn btn-maroon">
+                        <i class="fas fa-home mr-2"></i>Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function cancelRequest(requestId) {
+    if (confirm('Are you sure you want to cancel this request? This action cannot be undone.')) {
+        // Make AJAX call to cancel request
+        alert('Cancel request functionality would be implemented here for request #' + requestId);
+    }
+}
+
+function printSlip(requestId) {
+    // Generate printable claim slip
+    window.print();
+}
+
+function downloadReceipt(requestId) {
+    // Generate completion receipt for download
+    alert('Receipt download for request #' + requestId + ' would be implemented here.');
+}
+</script>
+{% endblock %}

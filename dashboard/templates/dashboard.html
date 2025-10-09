@@ -5,6 +5,88 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+  .info-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .info-header .btn {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  #editMode .info-item {
+    margin-bottom: 1rem;
+  }
+  
+  #editMode .form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  #editMode .form-control-sm {
+    font-size: 0.85rem;
+  }
+  
+  #editMode .row {
+    margin: 0;
+  }
+  
+  #editMode .row .col-6 {
+    padding-left: 0;
+    padding-right: 0.5rem;
+  }
+  
+  #editMode .row .col-6:last-child {
+    padding-right: 0;
+    padding-left: 0.5rem;
+  }
+  
+  .profile-avatar {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  #profilePreview {
+    transition: all 0.3s ease;
+  }
+  
+  .content-section {
+    display: none;
+  }
+  
+  .content-section.active {
+    display: block !important;
+  }
+  
+  .section-title {
+    color: #8B1538;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 10px;
+  }
+  
+  .accordion-button {
+    background-color: #f8f9fa;
+    border: none;
+    box-shadow: none;
+  }
+  
+  .accordion-button:not(.collapsed) {
+    background-color: #8B1538;
+    color: white;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -13,35 +95,33 @@
   <div class="sidebar">
     <div class="sidebar-header">
       <div class="d-flex align-items-center">
+        <h4 class="text-white mb-0">User</h4>
       </div>
+      <hr class="sidebar-separator">
     </div>
     
     <nav class="sidebar-nav">
-      <a href="#" class="nav-item active">
+      <a href="{% url 'dashboard' %}" class="nav-item active">
         <i class="fas fa-tachometer-alt"></i>
         Dashboard
       </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'student_profile' %}" class="nav-item">
         <i class="fas fa-user"></i>
         Student Profile
       </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'requested_documents' %}" class="nav-item">
         <i class="fas fa-file-alt"></i>
         Requested Documents
       </a>
-      <a href="#" class="nav-item">
-        <i class="fas fa-history"></i>
-        History
-      </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'about_us' %}" class="nav-item">
         <i class="fas fa-info-circle"></i>
         About Us
       </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'faqs' %}" class="nav-item">
         <i class="fas fa-question-circle"></i>
         FAQs
       </a>
-      <a href="{% url 'logout' %}" class="nav-item logout">
+      <a href="#" class="nav-item logout" onclick="confirmLogout(event)">
         <i class="fas fa-sign-out-alt"></i>
         Logout
       </a>
@@ -71,26 +151,64 @@
 
     <!-- Dashboard Content -->
     <div class="dashboard-content">
-      <div class="row">
-        <!-- Document Request Section -->
-        <div class="col-md-8">
-          <div class="request-section">
-            <h4 class="section-title">Document Request</h4>
+      <!-- Dashboard Section (Default) -->
+      <div id="dashboard-section" class="content-section active">
+        <div class="row">
+          <!-- Document Request Section -->
+          <div class="col-md-8">
+            <div class="request-section">
+              <h4 class="section-title">Document Request</h4>
+            
             <div class="request-form">
-              <div class="request-icon">
-                <i class="fas fa-file-plus"></i>
-              </div>
-              <div class="dropdown-container">
-                <select class="form-select request-select">
-                  <option selected>Select type of document</option>
-                  <option value="transcript">Transcript of Records</option>
-                  <option value="certificate">Certificate of Enrollment</option>
-                  <option value="graduation">Certificate of Graduation</option>
-                  <option value="moral">Certificate of Good Moral</option>
-                  <option value="diploma">Diploma Copy</option>
-                </select>
-              </div>
-              <button class="btn btn-confirm">Confirm</button>
+              <form id="documentRequestForm" method="POST">
+                {% csrf_token %}
+                
+                <div class="row">
+                  <!-- Left Column -->
+                  <div class="col-md-6">
+                    <!-- Document Type -->
+                    <div class="form-group mb-3">
+                      <label for="documentTypeSelect" class="form-label">Document Type</label>
+                      <select class="form-select request-select" id="documentTypeSelect" name="document_type" required>
+                        <option value="">Select document type</option>
+                        <option value="transcript">Transcript of Records (TOR) - ₱150</option>
+                        <option value="enrollment">Certificate of Enrollment - ₱50</option>
+                        <option value="diploma">Diploma Copy - ₱100</option>
+                        <option value="moral">Good Moral Certificate - ₱75</option>
+                        <option value="graduation">Certificate of Graduation - ₱100</option>
+                        <option value="dismissal">Honorable Dismissal - ₱100</option>
+                      </select>
+                    </div>
+
+                    <!-- Number of Copies -->
+                    <div class="form-group mb-3">
+                      <label for="copies" class="form-label">Number of Copies</label>
+                      <input type="number" class="form-control" id="copies" name="copies" min="1" max="10" value="1" required>
+                      <small class="form-text text-muted">Maximum of 10 copies allowed per request.</small>
+                    </div>
+                  </div>
+
+                  <!-- Right Column -->
+                  <div class="col-md-6">
+                    <!-- Purpose -->
+                    <div class="form-group mb-3">
+                      <label for="purpose" class="form-label">Purpose</label>
+                      <textarea class="form-control" id="purpose" name="purpose" rows="5" placeholder="State the purpose of request" required></textarea>
+                      <small class="form-text text-muted">Please provide a clear explanation of why you need this document.</small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-group mt-3">
+                  <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
+                    <span id="submitText">Submit Request</span>
+                    <div id="loadingSpinner" class="spinner-border spinner-border-sm ms-2" role="status" style="display: none;">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
 
@@ -98,79 +216,235 @@
           <div class="stats-grid">
             <div class="stat-card">
               <div class="stat-header">Pending Requests</div>
-              <div class="stat-number">1</div>
+              <div id="pendingCount" class="stat-number">{{ pending_count }}</div>
             </div>
             <div class="stat-card">
               <div class="stat-header">Approved Requests</div>
-              <div class="stat-number">2</div>
+              <div id="approvedCount" class="stat-number">{{ approved_count }}</div>
             </div>
             <div class="stat-card">
               <div class="stat-header">Completed Requests</div>
-              <div class="stat-number">0</div>
+              <div id="completedCount" class="stat-number">{{ completed_count }}</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card recent-requests-card">
               <div class="stat-header">Recent Requests</div>
-              <div class="recent-item">
-                <div class="recent-title">Transcript of Records (TOR)</div>
-                <div class="recent-status">Pending Review</div>
-                <div class="recent-date">Submitted October 3, 2025</div>
+              <div id="recentRequestsContainer">
+              {% if recent_requests %}
+                {% for request in recent_requests %}
+                <div class="recent-item">
+                  <div class="recent-title">{{ request.document.name }}</div>
+                  <div class="recent-status">
+                    {% if request.status == 'Pending' %}
+                      <span class="text-warning">{{ request.status }} Review</span>
+                    {% elif request.status == 'Approved' %}
+                      <span class="text-info">Ready for Pickup</span>
+                    {% elif request.status == 'Completed' %}
+                      <span class="text-success">{{ request.status }}</span>
+                    {% else %}
+                      {{ request.status }}
+                    {% endif %}
+                  </div>
+                  <div class="recent-date">Submitted {{ request.date_requested|date:"F j, Y" }}</div>
+                </div>
+                {% endfor %}
+              {% else %}
+                <div class="recent-item" id="noRecentRequests">
+                  <div class="recent-title">No recent requests</div>
+                  <div class="recent-status">Submit your first request above</div>
+                  <div class="recent-date">Get started today</div>
+                </div>
+              {% endif %}
               </div>
             </div>
           </div>
         </div>
 
         <!-- Student Information Sidebar -->
-        <div class="col-md-4">
+        <div class="col-md-4" id="student-info-section">
           <div class="student-info-card">
             <div class="info-header">
               <i class="fas fa-user me-2"></i>
               Student Information
+              <button type="button" id="editInfoBtn" class="btn btn-sm btn-outline-light ms-auto">
+                <i class="fas fa-edit me-1"></i> Edit Info
+              </button>
+              <button type="button" id="saveInfoBtn" class="btn btn-sm btn-success ms-auto" style="display: none;">
+                <i class="fas fa-save me-1"></i> Save Changes
+              </button>
+              <button type="button" id="cancelEditBtn" class="btn btn-sm btn-secondary ms-auto" style="display: none;">
+                <i class="fas fa-times me-1"></i> Cancel
+              </button>
             </div>
-            <div class="student-profile">
-              <div class="profile-avatar">
-                {% if student.profile_picture %}
-                  <img src="{{ student.profile_picture.url }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-                {% else %}
-                  <i class="fas fa-user"></i>
-                {% endif %}
+            
+            <!-- View Mode -->
+            <div id="viewMode">
+              <div class="student-profile">
+                <div class="profile-avatar">
+                  {% if student.profile_picture %}
+                    <img src="{{ student.profile_picture }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                  {% else %}
+                    <i class="fas fa-user"></i>
+                  {% endif %}
+                </div>
+                
+                <div class="profile-details">
+                  <div class="profile-name">{{ student_name }}</div>
+                  <div class="profile-id">{{ student_id_number }}</div>
+                </div>
               </div>
-              
-              <div class="profile-details">
-                <div class="profile-name">{{ student_name }}</div>
-                <div class="profile-id">{{ student_id_number }}</div>
+              <div class="info-details">
+                <div class="info-item">
+                  <i class="fas fa-graduation-cap me-2"></i>
+                  <div class="info-content">
+                    <strong>Course:</strong>
+                    <span id="courseDisplay">{{ student.course|default:"Not specified" }}</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-building me-2"></i>
+                  <div class="info-content">
+                    <strong>Program:</strong>
+                    <span id="programDisplay">{{ student.program|default:"Not specified" }}</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-calendar me-2"></i>
+                  <div class="info-content">
+                    <strong>Year Level:</strong>
+                    <span id="yearLevelDisplay">{{ student.year_level|default:"Not specified" }}</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-envelope me-2"></i>
+                  <div class="info-content">
+                    <strong>Email:</strong>
+                    <span id="emailDisplay">{{ student.email|default:"Not specified" }}</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-phone me-2"></i>
+                  <div class="info-content">
+                    <strong>Contact:</strong>
+                    <span id="contactDisplay">{{ student.contact_number|default:"Not specified" }}</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="info-details">
-              <div class="info-item">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <div class="info-content">
-                  <strong>Course:</strong>
-                  <span>{{ student.course|default:"Not specified" }}</span>
+
+            <!-- Edit Mode -->
+            <div id="editMode" style="display: none;">
+              <form id="studentProfileForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="student-profile mb-3">
+                  <div class="profile-avatar">
+                    {% if student.profile_picture %}
+                      <img id="profilePreview" src="{{ student.profile_picture }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    {% else %}
+                      <img id="profilePreview" src="" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: none;">
+                      <i id="defaultAvatar" class="fas fa-user"></i>
+                    {% endif %}
+                  </div>
+                  <div class="mt-2">
+                    <input type="file" class="form-control form-control-sm" id="profilePicture" name="profile_picture" accept="image/*">
+                  </div>
+                  
+                  <div class="profile-details mt-3">
+                    <div class="row">
+                      <div class="col-6">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-control form-control-sm" id="firstName" name="first_name" value="{{ student.first_name }}" required>
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-control form-control-sm" id="lastName" name="last_name" value="{{ student.last_name }}" required>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div class="info-item">
-                <i class="fas fa-building me-2"></i>
-                <div class="info-content">
-                  <strong>Program:</strong>
-                  <span>{{ student.program|default:"Not specified" }}</span>
+                
+                <div class="info-details">
+                  <div class="info-item">
+                    <label class="form-label">
+                      <i class="fas fa-graduation-cap me-2"></i>Course:
+                    </label>
+                    <select class="form-control form-control-sm" id="course" name="course" required>
+                      <option value="">Select your course</option>
+                      <!-- Engineering & Architecture Courses -->
+                      <option value="BS Architecture" {% if student.course == "BS Architecture" %}selected{% endif %}>BS Architecture</option>
+                      <option value="BS Chemical Engineering" {% if student.course == "BS Chemical Engineering" %}selected{% endif %}>BS Chemical Engineering</option>
+                      <option value="BS Civil Engineering" {% if student.course == "BS Civil Engineering" %}selected{% endif %}>BS Civil Engineering</option>
+                      <option value="BS Computer Engineering" {% if student.course == "BS Computer Engineering" %}selected{% endif %}>BS Computer Engineering</option>
+                      <option value="BS Electrical Engineering" {% if student.course == "BS Electrical Engineering" %}selected{% endif %}>BS Electrical Engineering</option>
+                      <option value="BS Electronics Engineering" {% if student.course == "BS Electronics Engineering" %}selected{% endif %}>BS Electronics Engineering</option>
+                      <option value="BS Industrial Engineering" {% if student.course == "BS Industrial Engineering" %}selected{% endif %}>BS Industrial Engineering</option>
+                      <option value="BS Mechanical Engineering" {% if student.course == "BS Mechanical Engineering" %}selected{% endif %}>BS Mechanical Engineering</option>
+                      <option value="BS Mechanical Engineering with Computational Science" {% if student.course == "BS Mechanical Engineering with Computational Science" %}selected{% endif %}>BS Mechanical Engineering with Computational Science</option>
+                      <option value="BS Mechanical Engineering with Mechatronics" {% if student.course == "BS Mechanical Engineering with Mechatronics" %}selected{% endif %}>BS Mechanical Engineering with Mechatronics</option>
+                      <option value="BS Mining Engineering" {% if student.course == "BS Mining Engineering" %}selected{% endif %}>BS Mining Engineering</option>
+                      <!-- Computer Studies Courses -->
+                      <option value="BS Information Technology" {% if student.course == "BS Information Technology" %}selected{% endif %}>BS Information Technology</option>
+                      <option value="BS Computer Science" {% if student.course == "BS Computer Science" %}selected{% endif %}>BS Computer Science</option>
+                      <option value="BS Information Systems" {% if student.course == "BS Information Systems" %}selected{% endif %}>BS Information Systems</option>
+                      <!-- Business & Accountancy Courses -->
+                      <option value="BS Accountancy" {% if student.course == "BS Accountancy" %}selected{% endif %}>BS Accountancy</option>
+                      <option value="BS Accounting Information Systems" {% if student.course == "BS Accounting Information Systems" %}selected{% endif %}>BS Accounting Information Systems</option>
+                      <option value="BS Management Accounting" {% if student.course == "BS Management Accounting" %}selected{% endif %}>BS Management Accounting</option>
+                      <option value="BS Business Administration - Banking & Financial Management" {% if student.course == "BS Business Administration - Banking & Financial Management" %}selected{% endif %}>BS Business Administration - Banking & Financial Management</option>
+                      <option value="BS Business Administration - Business Analytics" {% if student.course == "BS Business Administration - Business Analytics" %}selected{% endif %}>BS Business Administration - Business Analytics</option>
+                      <option value="BS Business Administration - General Business Management" {% if student.course == "BS Business Administration - General Business Management" %}selected{% endif %}>BS Business Administration - General Business Management</option>
+                      <option value="BS Business Administration - Human Resource Management" {% if student.course == "BS Business Administration - Human Resource Management" %}selected{% endif %}>BS Business Administration - Human Resource Management</option>
+                      <option value="BS Business Administration - Marketing Management" {% if student.course == "BS Business Administration - Marketing Management" %}selected{% endif %}>BS Business Administration - Marketing Management</option>
+                      <option value="BS Business Administration - Operations Management" {% if student.course == "BS Business Administration - Operations Management" %}selected{% endif %}>BS Business Administration - Operations Management</option>
+                      <option value="BS Business Administration - Quality Management" {% if student.course == "BS Business Administration - Quality Management" %}selected{% endif %}>BS Business Administration - Quality Management</option>
+                      <option value="BS Hospitality Management" {% if student.course == "BS Hospitality Management" %}selected{% endif %}>BS Hospitality Management</option>
+                      <option value="BS Tourism Management" {% if student.course == "BS Tourism Management" %}selected{% endif %}>BS Tourism Management</option>
+                      <option value="BS Office Administration" {% if student.course == "BS Office Administration" %}selected{% endif %}>BS Office Administration</option>
+                    </select>
+                  </div>
+                  
+                  <div class="info-item">
+                    <label class="form-label">
+                      <i class="fas fa-building me-2"></i>Program:
+                    </label>
+                    <select class="form-control form-control-sm" id="program" name="program">
+                      <option value="">Select your program</option>
+                      <option value="College of Engineering and Architecture" {% if student.program == "College of Engineering and Architecture" %}selected{% endif %}>College of Engineering and Architecture</option>
+                      <option value="College of Computer Studies" {% if student.program == "College of Computer Studies" %}selected{% endif %}>College of Computer Studies</option>
+                      <option value="College of Business and Accountancy" {% if student.program == "College of Business and Accountancy" %}selected{% endif %}>College of Business and Accountancy</option>
+                      <option value="College of Arts, Sciences and Education" {% if student.program == "College of Arts, Sciences and Education" %}selected{% endif %}>College of Arts, Sciences and Education</option>
+                    </select>
+                  </div>
+                  
+                  <div class="info-item">
+                    <label class="form-label">
+                      <i class="fas fa-calendar me-2"></i>Year Level:
+                    </label>
+                    <select class="form-control form-control-sm" id="yearLevel" name="year_level">
+                      <option value="">Select year level</option>
+                      <option value="1" {% if student.year_level == 1 %}selected{% endif %}>1st Year</option>
+                      <option value="2" {% if student.year_level == 2 %}selected{% endif %}>2nd Year</option>
+                      <option value="3" {% if student.year_level == 3 %}selected{% endif %}>3rd Year</option>
+                      <option value="4" {% if student.year_level == 4 %}selected{% endif %}>4th Year</option>
+                      <option value="5" {% if student.year_level == 5 %}selected{% endif %}>5th Year</option>
+                    </select>
+                  </div>
+                  
+                  <div class="info-item">
+                    <label class="form-label">
+                      <i class="fas fa-envelope me-2"></i>Email:
+                    </label>
+                    <input type="email" class="form-control form-control-sm" id="email" name="email" value="{{ student.email }}" required>
+                  </div>
+                  
+                  <div class="info-item">
+                    <label class="form-label">
+                      <i class="fas fa-phone me-2"></i>Contact Number:
+                    </label>
+                    <input type="text" class="form-control form-control-sm" id="contactNumber" name="contact_number" value="{{ student.contact_number }}" placeholder="09XXXXXXXXX">
+                  </div>
                 </div>
-              </div>
-              <div class="info-item">
-                <i class="fas fa-calendar me-2"></i>
-                <div class="info-content">
-                  <strong>Year Level:</strong>
-                  <span>{{ student.year_level|default:"Not specified" }}</span>
-                </div>
-              </div>
-              <div class="info-item">
-                <i class="fas fa-envelope me-2"></i>
-                <div class="info-content">
-                  <strong>Email:</strong>
-                  <span>{{ student.email|default:"Not specified" }}</span>
-                </div>
-              </div>
+              </form>
             </div>
-            <a href="{% url 'edit_profile' %}" class="btn btn-edit-info">Edit Information</a>
           </div>
 
           <!-- Reminders -->
@@ -179,11 +453,21 @@
               <i class="fas fa-bell me-2"></i>
               Reminders
             </div>
-            <div class="reminder-item">
-              <div class="reminder-date">October 3, 2025</div>
-              <div class="reminder-text">Your TOR is ready for pickup!</div>
-              <div class="reminder-desc">Please visit the Registrar's Office to claim your requested document.</div>
-            </div>
+            {% if approved_requests %}
+              {% for request in approved_requests %}
+              <div class="reminder-item">
+                <div class="reminder-date">{{ request.date_requested|date:"F j, Y" }}</div>
+                <div class="reminder-text">Your {{ request.document.name }} is ready for pickup!</div>
+                <div class="reminder-desc">Please visit the Registrar's Office to claim your requested document.</div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="reminder-item">
+                <div class="reminder-date">No reminders</div>
+                <div class="reminder-text">All caught up!</div>
+                <div class="reminder-desc">You have no pending pickups at this time.</div>
+              </div>
+            {% endif %}
           </div>
 
           <!-- Overdue -->
@@ -192,19 +476,874 @@
               <i class="fas fa-exclamation-triangle me-2"></i>
               Overdue
             </div>
-            <div class="overdue-item">
-              <div class="overdue-date">September 20, 2025</div>
-              <div class="overdue-text">Your TOR is ready for pickup!</div>
-              <div class="overdue-desc">Please visit the Registrar's Office to claim your requested document.</div>
+            {% if overdue_requests %}
+              {% for request in overdue_requests %}
+              <div class="overdue-item">
+                <div class="overdue-date">{{ request.date_requested|date:"F j, Y" }}</div>
+                <div class="overdue-text">Your {{ request.document.name }} is overdue for pickup!</div>
+                <div class="overdue-desc">Please visit the Registrar's Office immediately to claim your document.</div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="overdue-item">
+                <div class="overdue-date">No overdue items</div>
+                <div class="overdue-text">Great! You're up to date!</div>
+                <div class="overdue-desc">No documents are currently overdue for pickup.</div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <!-- End Dashboard Section -->
+
+      <!-- Student Profile Section -->
+      <div id="profile-section" class="content-section" style="display: none;">
+        <div class="row">
+          <div class="col-12">
+            <h4 class="section-title">Student Profile</h4>
+            <div class="student-info-card">
+              <div class="info-header">
+                <i class="fas fa-user me-2"></i>
+                Student Information
+                <button type="button" id="editInfoBtn2" class="btn btn-sm btn-outline-light ms-auto">
+                  <i class="fas fa-edit me-1"></i> Edit Info
+                </button>
+                <button type="button" id="saveInfoBtn2" class="btn btn-sm btn-success ms-auto" style="display: none;">
+                  <i class="fas fa-save me-1"></i> Save Changes
+                </button>
+                <button type="button" id="cancelEditBtn2" class="btn btn-sm btn-secondary ms-auto" style="display: none;">
+                  <i class="fas fa-times me-1"></i> Cancel
+                </button>
+              </div>
+              
+              <!-- View Mode -->
+              <div id="viewMode2">
+                <div class="student-profile">
+                  <div class="profile-avatar">
+                    {% if student.profile_picture %}
+                      <img src="{{ student.profile_picture }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    {% else %}
+                      <i class="fas fa-user"></i>
+                    {% endif %}
+                  </div>
+                  
+                  <div class="profile-details">
+                    <div class="profile-name">{{ student_name }}</div>
+                    <div class="profile-id">{{ student_id_number }}</div>
+                  </div>
+                </div>
+                <div class="info-details">
+                  <div class="info-item">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    <div class="info-content">
+                      <strong>Course:</strong>
+                      <span id="courseDisplay2">{{ student.course|default:"Not specified" }}</span>
+                    </div>
+                  </div>
+                  <div class="info-item">
+                    <i class="fas fa-building me-2"></i>
+                    <div class="info-content">
+                      <strong>Program:</strong>
+                      <span id="programDisplay2">{{ student.program|default:"Not specified" }}</span>
+                    </div>
+                  </div>
+                  <div class="info-item">
+                    <i class="fas fa-calendar me-2"></i>
+                    <div class="info-content">
+                      <strong>Year Level:</strong>
+                      <span id="yearLevelDisplay2">{{ student.year_level|default:"Not specified" }}</span>
+                    </div>
+                  </div>
+                  <div class="info-item">
+                    <i class="fas fa-envelope me-2"></i>
+                    <div class="info-content">
+                      <strong>Email:</strong>
+                      <span id="emailDisplay2">{{ student.email|default:"Not specified" }}</span>
+                    </div>
+                  </div>
+                  <div class="info-item">
+                    <i class="fas fa-phone me-2"></i>
+                    <div class="info-content">
+                      <strong>Contact:</strong>
+                      <span id="contactDisplay2">{{ student.contact_number|default:"Not specified" }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Requested Documents Section -->
+      <div id="requests-section" class="content-section" style="display: none;">
+        <div class="row">
+          <div class="col-12">
+            <h4 class="section-title">Requested Documents</h4>
+            <div class="card">
+              <div class="card-body">
+                {% if recent_requests %}
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>Document</th>
+                          <th>Purpose</th>
+                          <th>Copies</th>
+                          <th>Status</th>
+                          <th>Date Requested</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for request in recent_requests %}
+                        <tr>
+                          <td>{{ request.document.name }}</td>
+                          <td>{{ request.purpose }}</td>
+                          <td>{{ request.copies }}</td>
+                          <td>
+                            {% if request.status == 'Pending' %}
+                              <span class="badge bg-warning">{{ request.status }}</span>
+                            {% elif request.status == 'Approved' %}
+                              <span class="badge bg-success">{{ request.status }}</span>
+                            {% elif request.status == 'Completed' %}
+                              <span class="badge bg-primary">{{ request.status }}</span>
+                            {% else %}
+                              <span class="badge bg-secondary">{{ request.status }}</span>
+                            {% endif %}
+                          </td>
+                          <td>{{ request.date_requested|date:"F j, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                {% else %}
+                  <div class="text-center">
+                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                    <h5>No Document Requests</h5>
+                    <p class="text-muted">You haven't submitted any document requests yet.</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Section -->
+      <div id="history-section" class="content-section" style="display: none;">
+        <div class="row">
+          <div class="col-12">
+            <h4 class="section-title">Request History</h4>
+            <div class="card">
+              <div class="card-body">
+                {% if recent_requests %}
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>Document</th>
+                          <th>Purpose</th>
+                          <th>Status</th>
+                          <th>Date Requested</th>
+                          <th>Date Completed</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for request in recent_requests %}
+                        <tr>
+                          <td>{{ request.document.name }}</td>
+                          <td>{{ request.purpose }}</td>
+                          <td>
+                            {% if request.status == 'Pending' %}
+                              <span class="badge bg-warning">{{ request.status }}</span>
+                            {% elif request.status == 'Approved' %}
+                              <span class="badge bg-success">{{ request.status }}</span>
+                            {% elif request.status == 'Completed' %}
+                              <span class="badge bg-primary">{{ request.status }}</span>
+                            {% else %}
+                              <span class="badge bg-secondary">{{ request.status }}</span>
+                            {% endif %}
+                          </td>
+                          <td>{{ request.date_requested|date:"F j, Y" }}</td>
+                          <td>
+                            {% if request.status == 'Completed' %}
+                              {{ request.date_requested|date:"F j, Y" }}
+                            {% else %}
+                              -
+                            {% endif %}
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                {% else %}
+                  <div class="text-center">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h5>No History</h5>
+                    <p class="text-muted">Your request history will appear here once you start submitting requests.</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- About Us Section -->
+      <div id="about-section" class="content-section" style="display: none;">
+        <div class="row">
+          <div class="col-12">
+            <h4 class="section-title">About WildDocs</h4>
+            <div class="card">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-8">
+                    <h5>WildDocs Document Management System</h5>
+                    <p>WildDocs is a comprehensive document request and management system designed specifically for educational institutions. Our platform streamlines the process of requesting and tracking academic documents, making it easier for students to obtain the necessary paperwork for their academic and professional needs.</p>
+                    
+                    <h6>Key Features:</h6>
+                    <ul>
+                      <li>Online document request submission</li>
+                      <li>Real-time status tracking</li>
+                      <li>Automated notifications and reminders</li>
+                      <li>Secure document processing</li>
+                      <li>User-friendly dashboard interface</li>
+                    </ul>
+                    
+                    <h6>Available Documents:</h6>
+                    <ul>
+                      <li>Transcript of Records (TOR)</li>
+                      <li>Certificate of Enrollment</li>
+                      <li>Diploma Copy</li>
+                      <li>Good Moral Certificate</li>
+                      <li>Certificate of Graduation</li>
+                      <li>Honorable Dismissal</li>
+                    </ul>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="text-center">
+                      <i class="fas fa-university fa-4x text-primary mb-3"></i>
+                      <h6>Contact Information</h6>
+                      <p><strong>Registrar's Office</strong><br>
+                      Ground Floor, Admin Building<br>
+                      Mon-Fri: 8:00 AM - 5:00 PM<br>
+                      Tel: (123) 456-7890<br>
+                      Email: registrar@wilddocs.edu</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQs Section -->
+      <div id="faqs-section" class="content-section" style="display: none;">
+        <div class="row">
+          <div class="col-12">
+            <h4 class="section-title">Frequently Asked Questions</h4>
+            <div class="card">
+              <div class="card-body">
+                <div class="accordion" id="faqAccordion">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq1">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true">
+                        How long does it take to process document requests?
+                      </button>
+                    </h2>
+                    <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                      <div class="accordion-body">
+                        Processing times vary by document type:
+                        <ul>
+                          <li>Certificate of Enrollment: 2-3 business days</li>
+                          <li>Good Moral Certificate: 3-5 business days</li>
+                          <li>Transcript of Records: 7-10 business days</li>
+                          <li>Diploma Copy: 10-14 business days</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq2">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                        How can I track my document request status?
+                      </button>
+                    </h2>
+                    <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                      <div class="accordion-body">
+                        You can track your request status in real-time through your dashboard. You'll receive notifications when your status changes, and approved documents will appear in your reminders section.
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq3">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+                        What are the fees for different documents?
+                      </button>
+                    </h2>
+                    <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                      <div class="accordion-body">
+                        Current document fees:
+                        <ul>
+                          <li>Certificate of Enrollment: ₱50</li>
+                          <li>Good Moral Certificate: ₱75</li>
+                          <li>Certificate of Graduation: ₱100</li>
+                          <li>Diploma Copy: ₱100</li>
+                          <li>Honorable Dismissal: ₱100</li>
+                          <li>Transcript of Records: ₱150</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq4">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4">
+                        Where can I pickup my documents?
+                      </button>
+                    </h2>
+                    <div id="collapse4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                      <div class="accordion-body">
+                        All documents can be picked up at the Registrar's Office located on the Ground Floor of the Administration Building. Office hours are Monday to Friday, 8:00 AM to 5:00 PM. Please bring a valid ID when picking up documents.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/dashboard.js' %}"></script>
+<script>
+function confirmLogout(event) {
+    event.preventDefault(); // Prevent the default link behavior
+    
+    // Show confirmation dialog
+    if (confirm('Are you sure you want to logout?')) {
+        // If user confirms, redirect to logout URL
+        window.location.href = "{% url 'logout' %}";
+    }
+}
+
+// Handle document request form submission
+document.getElementById('documentRequestForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const formData = new FormData(form);
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitText.textContent = 'Submitting...';
+    loadingSpinner.style.display = 'inline-block';
+    
+    // Remove any existing alerts
+    const existingAlerts = document.querySelectorAll('.alert');
+    existingAlerts.forEach(alert => alert.remove());
+    
+    fetch('{% url "dashboard" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+    if (data.success) {
+      // Show success message
+      showAlert('success', data.message);
+
+      // Reset form
+      form.reset();
+
+      // Update pending count if provided
+      if (data.pending_count !== undefined) {
+        const pendingEl = document.getElementById('pendingCount');
+        if (pendingEl) pendingEl.textContent = data.pending_count;
+      }
+
+      // Insert the new request into the Recent Requests list if provided
+      if (data.request) {
+        const recentContainer = document.getElementById('recentRequestsContainer');
+        if (recentContainer) {
+          // Remove 'no recent' placeholder if present
+          const noRecent = document.getElementById('noRecentRequests');
+          if (noRecent) noRecent.remove();
+
+          const item = document.createElement('div');
+          item.className = 'recent-item';
+          const statusHtml = data.request.status === 'Pending' ? `<span class="text-warning">${data.request.status} Review</span>` : (data.request.status === 'Approved' ? `<span class="text-info">Ready for Pickup</span>` : `<span class="text-success">${data.request.status}</span>`);
+          item.innerHTML = `
+            <div class="recent-title">${data.request.document_name}</div>
+            <div class="recent-status">${statusHtml}</div>
+            <div class="recent-date">Submitted ${data.request.date_requested}</div>
+          `;
+          // Prepend to the top
+          recentContainer.prepend(item);
+          // Ensure only latest 3 items are visible
+          const recentItems = recentContainer.querySelectorAll('.recent-item');
+          if (recentItems.length > 3) {
+            for (let i = 3; i < recentItems.length; i++) {
+              recentItems[i].remove();
+            }
+          }
+        }
+      }
+    } else {
+            // Show error message
+            showAlert('danger', data.error || 'An error occurred while submitting your request.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Network error. Please try again.');
+    })
+    .finally(() => {
+        // Reset button state
+        submitBtn.disabled = false;
+        submitText.textContent = 'Submit Request';
+        loadingSpinner.style.display = 'none';
+    });
+});
+
+function showAlert(type, message) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    const requestSection = document.querySelector('.request-section h4');
+    requestSection.insertAdjacentHTML('afterend', alertHtml);
+}
+
+// Student Profile Edit Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const editBtn = document.getElementById('editInfoBtn');
+    const saveBtn = document.getElementById('saveInfoBtn');
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    const viewMode = document.getElementById('viewMode');
+    const editMode = document.getElementById('editMode');
+    const profileForm = document.getElementById('studentProfileForm');
+    const profilePictureInput = document.getElementById('profilePicture');
+    const profilePreview = document.getElementById('profilePreview');
+    const defaultAvatar = document.getElementById('defaultAvatar');
+
+    // Store original values for cancel functionality
+    let originalValues = {};
+
+    if (editBtn) {
+        editBtn.addEventListener('click', function() {
+            // Store original values
+            storeOriginalValues();
+            
+            // Toggle visibility
+            viewMode.style.display = 'none';
+            editMode.style.display = 'block';
+            editBtn.style.display = 'none';
+            saveBtn.style.display = 'inline-block';
+            cancelBtn.style.display = 'inline-block';
+        });
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            // Restore original values
+            restoreOriginalValues();
+            
+            // Toggle visibility
+            viewMode.style.display = 'block';
+            editMode.style.display = 'none';
+            editBtn.style.display = 'inline-block';
+            saveBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+        });
+    }
+
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+            saveProfileChanges();
+        });
+    }
+
+    // Profile picture preview
+    if (profilePictureInput) {
+        profilePictureInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profilePreview.src = e.target.result;
+                    profilePreview.style.display = 'block';
+                    if (defaultAvatar) {
+                        defaultAvatar.style.display = 'none';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    function storeOriginalValues() {
+        originalValues = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            course: document.getElementById('course').value,
+            program: document.getElementById('program').value,
+            yearLevel: document.getElementById('yearLevel').value,
+            email: document.getElementById('email').value,
+            contactNumber: document.getElementById('contactNumber').value,
+            profilePicture: profilePreview ? profilePreview.src : ''
+        };
+    }
+
+    function restoreOriginalValues() {
+        document.getElementById('firstName').value = originalValues.firstName;
+        document.getElementById('lastName').value = originalValues.lastName;
+        document.getElementById('course').value = originalValues.course;
+        document.getElementById('program').value = originalValues.program;
+        document.getElementById('yearLevel').value = originalValues.yearLevel;
+        document.getElementById('email').value = originalValues.email;
+        document.getElementById('contactNumber').value = originalValues.contactNumber;
+        
+        // Reset profile picture
+        profilePictureInput.value = '';
+        if (originalValues.profilePicture) {
+            profilePreview.src = originalValues.profilePicture;
+            profilePreview.style.display = 'block';
+            if (defaultAvatar) {
+                defaultAvatar.style.display = 'none';
+            }
+        } else {
+            profilePreview.style.display = 'none';
+            if (defaultAvatar) {
+                defaultAvatar.style.display = 'block';
+            }
+        }
+    }
+
+    function saveProfileChanges() {
+        const formData = new FormData(profileForm);
+        formData.append('action', 'update_profile');
+
+        // Disable save button during request
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the view mode with new values
+                updateViewMode(data.student);
+                
+                // Switch back to view mode
+                viewMode.style.display = 'block';
+                editMode.style.display = 'none';
+                editBtn.style.display = 'inline-block';
+                saveBtn.style.display = 'none';
+                cancelBtn.style.display = 'none';
+                
+                // Show success message
+                showAlert('success', 'Profile updated successfully!');
+            } else {
+                showAlert('danger', data.error || 'Failed to update profile.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('danger', 'An error occurred while updating profile.');
+        })
+        .finally(() => {
+            // Reset button state
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
+        });
+    }
+
+    function updateViewMode(studentData) {
+        // Update profile name
+        const profileName = document.querySelector('.profile-name');
+        if (profileName) {
+            profileName.textContent = `${studentData.first_name} ${studentData.last_name}`;
+        }
+
+        // Update display spans
+        document.getElementById('courseDisplay').textContent = studentData.course || 'Not specified';
+        document.getElementById('programDisplay').textContent = studentData.program || 'Not specified';
+        document.getElementById('yearLevelDisplay').textContent = studentData.year_level ? `${studentData.year_level}` : 'Not specified';
+        document.getElementById('emailDisplay').textContent = studentData.email || 'Not specified';
+        document.getElementById('contactDisplay').textContent = studentData.contact_number || 'Not specified';
+
+        // Update profile picture if changed
+        if (studentData.profile_picture_url) {
+            const viewProfileImg = viewMode.querySelector('.profile-avatar img');
+            if (viewProfileImg) {
+                viewProfileImg.src = studentData.profile_picture_url;
+            } else {
+                // Create img element if it doesn't exist
+                const avatar = viewMode.querySelector('.profile-avatar');
+                const icon = avatar.querySelector('i');
+                if (icon) {
+                    icon.style.display = 'none';
+                }
+                const img = document.createElement('img');
+                img.src = studentData.profile_picture_url;
+                img.alt = 'Profile Picture';
+                img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 8px;';
+                avatar.appendChild(img);
+            }
+        }
+    }
+});
+
+// Navigation Functions
+function scrollToSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+        
+        // Update active nav item
+        updateActiveNavItem('profile');
+    }
+}
+
+function showRequestedDocuments() {
+    // Create a modal or overlay to show requested documents
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.id = 'requestedDocumentsModal';
+    modal.innerHTML = `
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-alt me-2"></i>Requested Documents
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-clock text-warning fa-2x mb-2"></i>
+                                    <h6>Pending Requests</h6>
+                                    <a href="{% url 'Request:pending' %}" class="btn btn-outline-warning btn-sm">View Pending</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-check text-success fa-2x mb-2"></i>
+                                    <h6>Approved Requests</h6>
+                                    <a href="{% url 'Request:approved' %}" class="btn btn-outline-success btn-sm">View Approved</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-download text-info fa-2x mb-2"></i>
+                                    <h6>Completed Requests</h6>
+                                    <a href="{% url 'Request:completed' %}" class="btn btn-outline-info btn-sm">View Completed</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    // Remove modal from DOM when closed
+    modal.addEventListener('hidden.bs.modal', () => {
+        modal.remove();
+    });
+}
+
+function showAboutUs() {
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.id = 'aboutUsModal';
+    modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle me-2"></i>About WildDocs
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>WildDocs - Document Request System</h6>
+                    <p>WildDocs is a comprehensive document request management system designed to streamline the process of requesting and managing academic documents.</p>
+                    
+                    <h6>Features:</h6>
+                    <ul>
+                        <li>Online document request submission</li>
+                        <li>Real-time request status tracking</li>
+                        <li>Student profile management</li>
+                        <li>Secure document processing</li>
+                        <li>Digital receipts and notifications</li>
+                    </ul>
+                    
+                    <h6>Contact Information:</h6>
+                    <p><strong>Registrar's Office</strong><br>
+                    Email: registrar@school.edu<br>
+                    Phone: (123) 456-7890</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    modal.addEventListener('hidden.bs.modal', () => {
+        modal.remove();
+    });
+}
+
+function showFAQs() {
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.id = 'faqsModal';
+    modal.innerHTML = `
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-question-circle me-2"></i>Frequently Asked Questions
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    How long does it take to process document requests?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Processing times vary depending on the document type:
+                                    <ul>
+                                        <li>Certificate of Enrollment: 1-2 business days</li>
+                                        <li>Transcript of Records: 3-5 business days</li>
+                                        <li>Good Moral Certificate: 2-3 business days</li>
+                                        <li>Diploma Copy: 5-7 business days</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    How will I know when my document is ready?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    You will receive notifications in your dashboard and email when your document status changes. Check the "Reminders" section regularly for updates.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    What are the fees for each document?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Document fees are displayed when you select the document type in the request form. Payment is required upon pickup at the Registrar's Office.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                    Can I cancel my request?
+                                </button>
+                            </h2>
+                            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    You can cancel pending requests by going to the "Requested Documents" section and clicking on "Pending Requests". Approved or completed requests cannot be cancelled.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    modal.addEventListener('hidden.bs.modal', () => {
+        modal.remove();
+    });
+}
+
+function updateActiveNavItem(section) {
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to current section
+    const activeItem = document.querySelector(`[data-section="${section}"]`);
+    if (activeItem) {
+        activeItem.classList.add('active');
+    }
+}
+
+function confirmLogout(event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+        window.location.href = '{% url "logout" %}';
+    }
+}
+
+// Navigation functionality - removed because we now use separate URL routes
+// Individual pages handle their own navigation
+
+</script>
+<script src="{% static 'js/dashboard.js' %}?v=2"></script>
 {% endblock %}

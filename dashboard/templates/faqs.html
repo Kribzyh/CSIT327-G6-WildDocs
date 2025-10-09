@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}FAQs - WildDocs{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+  /* Scoped FAQ creative styles */
+  /* Reduce welcome-section bottom margin so the FAQ content sits higher */
+  .welcome-section { margin-bottom:8px; }
+  @media(max-width:767px){ .welcome-section { margin-bottom:12px; } }
+  .faq-shortcuts { display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap }
+  .faq-shortcut { flex:1; min-width:150px; background:#fff; border-radius:8px; padding:12px; display:flex; gap:12px; align-items:center }
+  .faq-shortcut i { font-size:22px; color:#6b21a8 }
+  .faq-card { border-radius:10px; box-shadow:0 6px 20px rgba(15,23,42,0.06) }
+  .fee-pill { background:#f3f4f6; padding:6px 10px; border-radius:999px; font-weight:600 }
+  .contact-cta { background:#6b21a8; color:#fff; padding:18px; border-radius:10px }
+  @media(max-width:767px){ .faq-shortcuts { flex-direction:column } }
+  /* Make accordion question text smaller and tighter */
+  #faqAccordion .accordion-button {
+    font-size: 1rem;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+  }
+  @media(max-width:767px){
+    #faqAccordion .accordion-button { font-size: 0.95rem; }
+  }
+  /* Chat-style Q/A bubbles */
+  .chat-qa { display:flex; flex-direction:column; gap:12px }
+  .qa-search { margin-bottom:10px }
+  .qa-item { display:flex; flex-direction:column; gap:8px }
+  .q-bubble { align-self:flex-start; background:#f3f4f6; padding:10px 14px; border-radius:18px; max-width:100%; cursor:pointer; font-weight:600 }
+  .q-bubble.open { background:#e9d5ff; }
+  .a-bubble { align-self:flex-start; background:#ffffff; padding:12px 16px; border-radius:12px; box-shadow:0 6px 18px rgba(15,23,42,0.06); display:none }
+  .a-bubble.show { display:block }
+  @media(min-width:768px){ .q-bubble { max-width:80% } .a-bubble { max-width:85% } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="d-flex align-items-center">
+        <h4 class="text-white mb-0">User</h4>
+      </div>
+      <hr class="sidebar-separator">
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a href="{% url 'dashboard' %}" class="nav-item">
+        <i class="fas fa-tachometer-alt"></i>
+        Dashboard
+      </a>
+      <a href="{% url 'student_profile' %}" class="nav-item">
+        <i class="fas fa-user"></i>
+        Student Profile
+      </a>
+      <a href="{% url 'requested_documents' %}" class="nav-item">
+        <i class="fas fa-file-alt"></i>
+        Requested Documents
+      </a>
+      <a href="{% url 'about_us' %}" class="nav-item">
+        <i class="fas fa-info-circle"></i>
+        About Us
+      </a>
+      <a href="{% url 'faqs' %}" class="nav-item active">
+        <i class="fas fa-question-circle"></i>
+        FAQs
+      </a>
+        <!-- History link removed -->
+      <a href="#" class="nav-item logout" onclick="confirmLogout(event)">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+      </a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <div class="welcome-content">
+        <div class="welcome-left">
+          <div class="date-display-welcome">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="welcomeDate">Loading...</span>
+          </div>
+          <div class="welcome-text">
+            <h3>Frequently Asked Questions</h3>
+            <p>Find answers to common questions</p>
+          </div>
+        </div>
+        <div class="welcome-right">
+          <h1 class="welcome-title">WildDocs</h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQs Content -->
+    <div class="dashboard-content">
+      <div class="row">
+        <div class="col-12">
+          <!-- Hero banner removed per user request -->
+
+          <div class="faq-shortcuts">
+            <div class="faq-shortcut faq-card">
+              <i class="fas fa-clock"></i>
+              <div>
+                <strong>Processing Times</strong>
+                <div class="small text-muted">Typical turnaround for common documents</div>
+              </div>
+            </div>
+            <div class="faq-shortcut faq-card">
+              <i class="fas fa-money-bill-wave"></i>
+              <div>
+                <strong>Fees</strong>
+                <div class="small text-muted">See fee breakdown and payment options</div>
+              </div>
+            </div>
+            <div class="faq-shortcut faq-card">
+              <i class="fas fa-map-marker-alt"></i>
+              <div>
+                <strong>Pickup Info</strong>
+                <div class="small text-muted">Where and when to collect documents</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card faq-card p-3">
+              <div class="row">
+              <div class="col-md-7">
+                <div class="chat-qa">
+                  <input class="form-control qa-search" id="qaSearch" placeholder="Search questions...">
+                  <div class="qa-list" id="qaList">
+                    <div class="qa-item">
+                      <div class="q-bubble" data-target="a1">How long does it take to process document requests?</div>
+                      <div class="a-bubble" id="a1">
+                        Processing depends on document type and workload. Typical:
+                        <ul>
+                          <li><strong>Certificate of Enrollment:</strong> 2–3 business days</li>
+                          <li><strong>Good Moral Certificate:</strong> 3–5 business days</li>
+                          <li><strong>Transcript of Records:</strong> 7–10 business days</li>
+                          <li><strong>Diploma / Graduation docs:</strong> 10–14 business days</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="qa-item">
+                      <div class="q-bubble" data-target="a2">How can I track my request?</div>
+                      <div class="a-bubble" id="a2">Track requests from your dashboard. Statuses and notifications are updated automatically. Use your Request ID when contacting support.</div>
+                    </div>
+                    <div class="qa-item">
+                      <div class="q-bubble" data-target="a3">What fees apply?</div>
+                      <div class="a-bubble" id="a3">See the quick fee list on the right. Fees may change; the Registrar will confirm final amount.</div>
+                    </div>
+                    <div class="qa-item">
+                      <div class="q-bubble" data-target="a4">Where do I pick up documents?</div>
+                      <div class="a-bubble" id="a4">Documents are issued at the Registrar's Office (Ground Floor, Admin Building). Bring a valid ID. Authorized representatives must present a signed authorization and ID.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-5">
+                <div class="p-3">
+                  <h6>Fees (Quick View)</h6>
+                  <div class="d-flex flex-column gap-2">
+                    <div class="d-flex justify-content-between align-items-center"><div>Certificate of Enrollment</div><div class="fee-pill">₱50</div></div>
+                    <div class="d-flex justify-content-between align-items-center"><div>Good Moral Certificate</div><div class="fee-pill">₱75</div></div>
+                    <div class="d-flex justify-content-between align-items-center"><div>Certificate of Graduation</div><div class="fee-pill">₱100</div></div>
+                    <div class="d-flex justify-content-between align-items-center"><div>Diploma Copy</div><div class="fee-pill">₱100</div></div>
+                    <div class="d-flex justify-content-between align-items-center"><div>Honorable Dismissal</div><div class="fee-pill">₱100</div></div>
+                    <div class="d-flex justify-content-between align-items-center"><div>Transcript of Records</div><div class="fee-pill">₱150</div></div>
+                  </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmLogout(event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+        window.location.href = '{% url "logout" %}';
+    }
+}
+
+// Set current date
+document.addEventListener('DOMContentLoaded', function() {
+    const dateElement = document.getElementById('welcomeDate');
+    if (dateElement) {
+        const today = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        dateElement.textContent = today.toLocaleDateString('en-US', options);
+    }
+    // FAQ chat toggles
+    document.querySelectorAll('.q-bubble').forEach(q => {
+      q.addEventListener('click', () => {
+        const id = q.dataset.target;
+        const a = document.getElementById(id);
+        const open = a.classList.toggle('show');
+        q.classList.toggle('open', open);
+      });
+    });
+    // Search
+    const qaSearch = document.getElementById('qaSearch');
+    if (qaSearch) {
+      qaSearch.addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase().trim();
+        document.querySelectorAll('.qa-item').forEach(item => {
+          const question = item.querySelector('.q-bubble').textContent.toLowerCase();
+          item.style.display = question.includes(q) ? '' : 'none';
+        });
+      });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Student Profile - WildDocs{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+  /* Custom button styling to match website theme */
+  .btn-primary {
+    background-color: #8B1538 !important;
+    border-color: #8B1538 !important;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background-color: #6d1028 !important;
+    border-color: #6d1028 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(139, 21, 56, 0.3);
+  }
+  
+  .btn-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-success:hover {
+    background-color: #218838 !important;
+    border-color: #218838 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+  }
+  
+  .btn-secondary {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #5a6268 !important;
+    border-color: #5a6268 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+  }
+  
+  /* Profile info styling */
+  .profile-info-section {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  /* Form styling */
+  .form-control {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: border-color 0.3s ease;
+  }
+  
+  .form-control:focus {
+    border-color: #8B1538;
+    box-shadow: 0 0 0 0.2rem rgba(139, 21, 56, 0.25);
+  }
+  
+  /* Profile picture hover effects */
+  .profile-avatar:hover .profile-overlay {
+    display: flex !important;
+  }
+  
+  .profile-upload-area {
+    transition: border-color 0.3s ease;
+  }
+  
+  .profile-upload-area:hover {
+    border-color: #8B1538 !important;
+    background-color: #f8f9fa;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="d-flex align-items-center">
+        <h4 class="text-white mb-0">User</h4>
+      </div>
+      <hr class="sidebar-separator">
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a href="{% url 'dashboard' %}" class="nav-item">
+        <i class="fas fa-tachometer-alt"></i>
+        Dashboard
+      </a>
+      <a href="{% url 'student_profile' %}" class="nav-item active">
+        <i class="fas fa-user"></i>
+        Student Profile
+      </a>
+      <a href="{% url 'requested_documents' %}" class="nav-item">
+        <i class="fas fa-file-alt"></i>
+        Requested Documents
+      </a>
+      <a href="{% url 'about_us' %}" class="nav-item">
+        <i class="fas fa-info-circle"></i>
+        About Us
+      </a>
+      <a href="{% url 'faqs' %}" class="nav-item">
+        <i class="fas fa-question-circle"></i>
+        FAQs
+      </a>
+      <a href="#" class="nav-item logout" onclick="confirmLogout(event)">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+      </a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <div class="welcome-content">
+        <div class="welcome-left">
+          <div class="date-display-welcome">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="welcomeDate">Loading...</span>
+          </div>
+          <div class="welcome-text">
+            <h3>Student Profile</h3>
+            <p>Manage your personal information</p>
+          </div>
+        </div>
+        <div class="welcome-right">
+          <h1 class="welcome-title">WildDocs</h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="dashboard-content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+
+              
+              <div class="row">
+                <div class="col-md-4 text-center">
+                  <div class="profile-avatar mb-3" style="width: 150px; height: 150px; margin: 0 auto; border-radius: 50%; overflow: hidden; border: 3px solid #8B1538; position: relative; background: #f8f9fa;">
+                    {% comment %}Only use profile_picture if it's a non-empty URL (starts with http/https)
+                        This prevents rendering a broken <img> when the field contains an empty string or invalid value.{% endcomment %}
+                    {% if student.profile_picture %}
+                      <img id="profileImage" src="{{ student.profile_picture }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                    {% else %}
+                      <div id="profilePlaceholder" class="d-flex align-items-center justify-content-center h-100 bg-light">
+                        <!-- Inline default avatar SVG (no external static file needed) -->
+                        <svg width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10" fill="#f1f1f1" />
+                          <path d="M12 12c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z" fill="#cfcfcf"/>
+                          <path d="M4 20c0-2.761 4.03-5 8-5s8 2.239 8 5v1H4v-1z" fill="#e6e6e6"/>
+                        </svg>
+                      </div>
+                    {% endif %}
+                    <!-- camera overlay removed: using simple avatar and Upload Photo button that opens edit mode -->
+                  </div>
+                  <!-- view-mode file input removed; uploads handled via edit form and Save Changes -->
+                  <button type="button" id="uploadBtn" class="btn btn-outline-primary btn-sm mb-2">
+                    <i class="fas fa-camera me-1"></i>
+                    Upload Photo
+                  </button>
+                  <h5>{{ student_name }}</h5>
+                  <p class="text-muted">{{ student_id_number }}</p>
+                </div>
+                
+                <div class="col-md-8">
+                  <!-- View Mode -->
+                  <div id="viewMode">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <strong>First Name:</strong>
+                        <p id="displayFirstName">{{ student.first_name|default:"Not specified" }}</p>
+                      </div>
+                      <div class="col-md-6">
+                        <strong>Last Name:</strong>
+                        <p id="displayLastName">{{ student.last_name|default:"Not specified" }}</p>
+                      </div>
+                      <div class="col-md-6">
+                        <strong>Course:</strong>
+                        <p id="displayCourse">{{ student.course|default:"Not specified" }}</p>
+                      </div>
+                      <div class="col-md-6">
+                        <strong>Program:</strong>
+                        <p id="displayProgram">{{ student.program|default:"Not specified" }}</p>
+                      </div>
+                      <div class="col-md-6">
+                        <strong>Year Level:</strong>
+                        <p id="displayYearLevel">{{ student.year_level|default:"Not specified" }}</p>
+                      </div>
+                      <div class="col-md-6">
+                        <strong>Email:</strong>
+                        <p id="displayEmail">{{ student.email|default:"Not specified" }}</p>
+                      </div>
+                      <div class="col-md-6">
+                        <strong>Contact Number:</strong>
+                        <p id="displayContact">{{ student.contact_number|default:"Not specified" }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Edit Mode -->
+                  <div id="editMode" style="display: none;">
+                    <form id="profileEditForm" enctype="multipart/form-data">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="update_profile">
+                      <div class="row">
+                        <div class="col-12 mb-3 text-center">
+                          <label class="form-label">Profile Picture:</label>
+                          <div id="previewContainer">
+                            {% if student.profile_picture %}
+                              <img id="editPreviewImage" src="{{ student.profile_picture }}" alt="Profile Preview" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
+                            {% else %}
+                              <i class="fas fa-user-circle fa-3x text-muted mb-2"></i>
+                            {% endif %}
+                          </div>
+                          <p class="mb-0">Use the 'Upload Photo' button on the profile view to choose a new image, then click Save Changes.</p>
+                          <small class="text-muted">Supports: JPG, PNG, GIF (Max: 5MB)</small>
+                          <input type="file" id="editProfilePictureInput" name="profile_picture" accept="image/*" style="display: none;" onchange="previewEditProfilePicture(event)">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                          <label for="first_name" class="form-label">First Name:</label>
+                          <input type="text" class="form-control" id="first_name" name="first_name" value="{{ student.first_name|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                          <label for="last_name" class="form-label">Last Name:</label>
+                          <input type="text" class="form-control" id="last_name" name="last_name" value="{{ student.last_name|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                          <label for="course" class="form-label">Course:</label>
+                          <select class="form-control" id="course" name="course">
+                            <option value="">Select your course</option>
+                            <!-- Engineering & Architecture Courses -->
+                            <option value="BS Architecture" {% if student.course == "BS Architecture" %}selected{% endif %}>BS Architecture</option>
+                            <option value="BS Chemical Engineering" {% if student.course == "BS Chemical Engineering" %}selected{% endif %}>BS Chemical Engineering</option>
+                            <option value="BS Civil Engineering" {% if student.course == "BS Civil Engineering" %}selected{% endif %}>BS Civil Engineering</option>
+                            <option value="BS Computer Engineering" {% if student.course == "BS Computer Engineering" %}selected{% endif %}>BS Computer Engineering</option>
+                            <option value="BS Electrical Engineering" {% if student.course == "BS Electrical Engineering" %}selected{% endif %}>BS Electrical Engineering</option>
+                            <option value="BS Electronics Engineering" {% if student.course == "BS Electronics Engineering" %}selected{% endif %}>BS Electronics Engineering</option>
+                            <option value="BS Industrial Engineering" {% if student.course == "BS Industrial Engineering" %}selected{% endif %}>BS Industrial Engineering</option>
+                            <option value="BS Mechanical Engineering" {% if student.course == "BS Mechanical Engineering" %}selected{% endif %}>BS Mechanical Engineering</option>
+                            <option value="BS Mining Engineering" {% if student.course == "BS Mining Engineering" %}selected{% endif %}>BS Mining Engineering</option>
+                            <!-- Business & Accountancy Courses -->
+                            <option value="BS Accountancy" {% if student.course == "BS Accountancy" %}selected{% endif %}>BS Accountancy</option>
+                            <option value="BS Business Administration" {% if student.course == "BS Business Administration" %}selected{% endif %}>BS Business Administration</option>
+                            <option value="BS Hospitality Management" {% if student.course == "BS Hospitality Management" %}selected{% endif %}>BS Hospitality Management</option>
+                            <option value="BS Tourism Management" {% if student.course == "BS Tourism Management" %}selected{% endif %}>BS Tourism Management</option>
+                            <option value="BS Office Administration" {% if student.course == "BS Office Administration" %}selected{% endif %}>BS Office Administration</option>
+                            <!-- Computer Studies Courses -->
+                            <option value="BS Information Technology" {% if student.course == "BS Information Technology" %}selected{% endif %}>BS Information Technology</option>
+                            <option value="BS Computer Science" {% if student.course == "BS Computer Science" %}selected{% endif %}>BS Computer Science</option>
+                            <option value="BS Information Systems" {% if student.course == "BS Information Systems" %}selected{% endif %}>BS Information Systems</option>
+                            <!-- Arts, Sciences & Education Courses -->
+                            <option value="AB Communication" {% if student.course == "AB Communication" %}selected{% endif %}>AB Communication</option>
+                            <option value="Bachelor of Elementary Education" {% if student.course == "Bachelor of Elementary Education" %}selected{% endif %}>Bachelor of Elementary Education</option>
+                            <option value="Bachelor of Secondary Education" {% if student.course == "Bachelor of Secondary Education" %}selected{% endif %}>Bachelor of Secondary Education</option>
+                            <option value="BS Biology" {% if student.course == "BS Biology" %}selected{% endif %}>BS Biology</option>
+                            <option value="BS Psychology" {% if student.course == "BS Psychology" %}selected{% endif %}>BS Psychology</option>
+                            <!-- Nursing & Allied Health Sciences Courses -->
+                            <option value="BS Nursing" {% if student.course == "BS Nursing" %}selected{% endif %}>BS Nursing</option>
+                            <option value="BS Pharmacy" {% if student.course == "BS Pharmacy" %}selected{% endif %}>BS Pharmacy</option>
+                            <option value="BS Medical Technology" {% if student.course == "BS Medical Technology" %}selected{% endif %}>BS Medical Technology</option>
+                            <!-- Criminal Justice -->
+                            <option value="BS Criminology" {% if student.course == "BS Criminology" %}selected{% endif %}>BS Criminology</option>
+                          </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                          <label for="program" class="form-label">Program:</label>
+                          <input type="text" class="form-control" id="program" name="program" value="{{ student.program|default:'' }}" readonly>
+                          <small class="text-muted">Program is automatically determined by course</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                          <label for="year_level" class="form-label">Year Level:</label>
+                          <select class="form-control" id="year_level" name="year_level">
+                            <option value="1" {% if student.year_level == 1 %}selected{% endif %}>1st Year</option>
+                            <option value="2" {% if student.year_level == 2 %}selected{% endif %}>2nd Year</option>
+                            <option value="3" {% if student.year_level == 3 %}selected{% endif %}>3rd Year</option>
+                            <option value="4" {% if student.year_level == 4 %}selected{% endif %}>4th Year</option>
+                            <option value="5" {% if student.year_level == 5 %}selected{% endif %}>5th Year</option>
+                          </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                          <label for="email" class="form-label">Email:</label>
+                          <input type="email" class="form-control" id="email" name="email" value="{{ student.email|default:'' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                          <label for="contact_number" class="form-label">Contact Number:</label>
+                          <input type="text" class="form-control" id="contact_number" name="contact_number" value="{{ student.contact_number|default:'' }}">
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="row mt-4">
+                <div class="col-12 text-center">
+                  <button id="editBtn" class="btn btn-primary" style="background-color: #8B1538; border-color: #8B1538; padding: 10px 30px; font-weight: 600;">
+                    <i class="fas fa-edit me-2"></i>
+                    Edit Information
+                  </button>
+                  <div id="editControls" style="display: none;">
+                    <button id="saveBtn" class="btn btn-success me-3" style="padding: 10px 30px; font-weight: 600;">
+                      <i class="fas fa-save me-2"></i>
+                      Save Changes
+                    </button>
+                    <button id="cancelBtn" class="btn btn-secondary" style="padding: 10px 30px; font-weight: 600;">
+                      <i class="fas fa-times me-2"></i>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmLogout(event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+        window.location.href = '{% url "logout" %}';
+    }
+}
+
+// Profile picture upload functions
+// When Upload Photo is clicked, open edit mode and trigger the edit form file chooser
+function triggerFileUpload() {
+  // Show edit mode (reuse existing edit UI) and open the edit file input
+  const editBtn = document.getElementById('editBtn');
+  const editControls = document.getElementById('editControls');
+  const viewMode = document.getElementById('viewMode');
+  const editMode = document.getElementById('editMode');
+  if (editBtn && editControls && viewMode && editMode) {
+    editBtn.style.display = 'none';
+    editControls.style.display = 'block';
+    viewMode.style.display = 'none';
+    editMode.style.display = 'block';
+  }
+  const input = document.getElementById('editProfilePictureInput');
+  if (input) input.click();
+}
+
+// Ensure only the Upload Photo button opens the edit file chooser
+document.addEventListener('DOMContentLoaded', function() {
+  const uploadBtn = document.getElementById('uploadBtn');
+  if (uploadBtn) uploadBtn.addEventListener('click', triggerFileUpload);
+});
+
+  // Defensive: prevent avatar container from triggering file input (in case old onclick persisted)
+  const avatarContainer = document.querySelector('.profile-avatar');
+  if (avatarContainer) {
+    avatarContainer.addEventListener('click', function(e) {
+      // If the click target is the upload button or overlay, let it through
+      if (e.target && (e.target.id === 'uploadBtn' || e.target.closest('#uploadBtn'))) return;
+      e.stopPropagation();
+      e.preventDefault();
+    }, { capture: true });
+  }
+
+// previewProfilePicture removed (view-mode immediate upload disabled). Use edit-mode preview instead.
+
+function previewEditProfilePicture(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = `
+                <img src="${e.target.result}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; object-position: center; margin-bottom: 10px;">
+            `;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// uploadProfilePicture removed. File uploads are handled by the edit form and Save Changes button.
+
+// Set current date
+document.addEventListener('DOMContentLoaded', function() {
+    const dateElement = document.getElementById('welcomeDate');
+    if (dateElement) {
+        const today = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        dateElement.textContent = today.toLocaleDateString('en-US', options);
+    }
+    
+    // Edit functionality
+    const editBtn = document.getElementById('editBtn');
+    const editControls = document.getElementById('editControls');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const viewMode = document.getElementById('viewMode');
+    const editMode = document.getElementById('editMode');
+    const profileForm = document.getElementById('profileEditForm');
+    const courseSelect = document.getElementById('course');
+    const programField = document.getElementById('program');
+    
+    // Store original values for cancel functionality
+    let originalValues = {};
+    
+    // Auto-update program based on course selection
+    courseSelect.addEventListener('change', function() {
+        const course = this.value;
+        let program = '';
+        
+        if (course.includes('Engineering') || course.includes('Architecture')) {
+            program = 'College of Engineering & Architecture';
+        } else if (course.includes('Business') || course.includes('Accountancy') || course.includes('Hospitality') || course.includes('Tourism') || course.includes('Office Administration') || course.includes('Public Administration')) {
+            program = 'College of Business & Accountancy';
+        } else if (course.includes('Information Technology') || course.includes('Computer Science') || course.includes('Information Systems')) {
+            program = 'College of Computer Studies';
+        } else if (course.includes('Communication') || course.includes('English') || course.includes('Education') || course.includes('Multimedia') || course.includes('Biology') || course.includes('Math') || course.includes('Psychology')) {
+            program = 'College of Arts, Sciences & Education';
+        } else if (course.includes('Nursing') || course.includes('Pharmacy') || course.includes('Medical Technology')) {
+            program = 'College of Nursing & Allied Health Sciences';
+        } else if (course.includes('Criminology')) {
+            program = 'College of Criminal Justice';
+        }
+        
+        programField.value = program;
+    });
+    
+    // Edit button click
+    editBtn.addEventListener('click', function() {
+        // Store original values
+        originalValues = {
+            first_name: document.getElementById('first_name').value,
+            last_name: document.getElementById('last_name').value,
+            course: document.getElementById('course').value,
+            program: document.getElementById('program').value,
+            year_level: document.getElementById('year_level').value,
+            email: document.getElementById('email').value,
+            contact_number: document.getElementById('contact_number').value
+        };
+        
+        // Toggle visibility
+        editBtn.style.display = 'none';
+        editControls.style.display = 'block';
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+    });
+    
+    // Cancel button click
+    cancelBtn.addEventListener('click', function() {
+        // Restore original values
+        document.getElementById('first_name').value = originalValues.first_name;
+        document.getElementById('last_name').value = originalValues.last_name;
+        document.getElementById('course').value = originalValues.course;
+        document.getElementById('program').value = originalValues.program;
+        document.getElementById('year_level').value = originalValues.year_level;
+        document.getElementById('email').value = originalValues.email;
+        document.getElementById('contact_number').value = originalValues.contact_number;
+        
+  // Toggle visibility back (use inline-block so text-center keeps it centered)
+  editBtn.style.display = 'inline-block';
+        editControls.style.display = 'none';
+        viewMode.style.display = 'block';
+        editMode.style.display = 'none';
+    });
+    
+    // Save button click
+    saveBtn.addEventListener('click', function() {
+        const formData = new FormData(profileForm);
+        
+        // Show loading state
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving Changes...';
+        saveBtn.style.opacity = '0.7';
+        
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update display values
+                document.getElementById('displayFirstName').textContent = document.getElementById('first_name').value || 'Not specified';
+                document.getElementById('displayLastName').textContent = document.getElementById('last_name').value || 'Not specified';
+                document.getElementById('displayCourse').textContent = document.getElementById('course').value || 'Not specified';
+                document.getElementById('displayProgram').textContent = document.getElementById('program').value || 'Not specified';
+                document.getElementById('displayYearLevel').textContent = document.getElementById('year_level').selectedOptions[0].text || 'Not specified';
+                document.getElementById('displayEmail').textContent = document.getElementById('email').value || 'Not specified';
+                document.getElementById('displayContact').textContent = document.getElementById('contact_number').value || 'Not specified';
+                
+        // If server returned a profile picture URL, update the left avatar and edit preview
+        if (data.student && data.student.profile_picture_url) {
+          const newUrl = data.student.profile_picture_url + '?cb=' + Date.now();
+          const leftImg = document.getElementById('profileImage');
+          const leftPlaceholder = document.getElementById('profilePlaceholder');
+          if (leftImg) {
+            leftImg.src = newUrl;
+          } else if (leftPlaceholder) {
+            const avatarContainer = leftPlaceholder.parentElement;
+            if (avatarContainer) {
+              avatarContainer.innerHTML = `\n                                <img id="profileImage" src="${newUrl}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">\n                            `;
+            }
+          }
+          const editPreview = document.getElementById('editPreviewImage');
+          if (editPreview) {
+            editPreview.src = newUrl;
+          }
+        }
+
+  // Toggle visibility back (use inline-block so text-center keeps it centered)
+  editBtn.style.display = 'inline-block';
+        editControls.style.display = 'none';
+        viewMode.style.display = 'block';
+        editMode.style.display = 'none';
+
+        // Show success message
+        alert('Profile updated successfully!');
+            } else {
+                alert('Error updating profile: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the profile.');
+        })
+        .finally(() => {
+            // Reset button state
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Changes';
+            saveBtn.style.opacity = '1';
+        });
+    });
+});
+</script>
+{% endblock %}

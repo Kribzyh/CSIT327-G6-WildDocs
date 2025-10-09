@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Requested Documents - WildDocs{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="d-flex align-items-center">
+        <h4 class="text-white mb-0">User</h4>
+      </div>
+      <hr class="sidebar-separator">
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a href="{% url 'dashboard' %}" class="nav-item">
+        <i class="fas fa-tachometer-alt"></i>
+        Dashboard
+      </a>
+      <a href="{% url 'student_profile' %}" class="nav-item">
+        <i class="fas fa-user"></i>
+        Student Profile
+      </a>
+      <a href="{% url 'requested_documents' %}" class="nav-item active">
+        <i class="fas fa-file-alt"></i>
+        Requested Documents
+      </a>
+      <!-- History link removed -->
+      <a href="{% url 'about_us' %}" class="nav-item">
+        <i class="fas fa-info-circle"></i>
+        About Us
+      </a>
+      <a href="{% url 'faqs' %}" class="nav-item">
+        <i class="fas fa-question-circle"></i>
+        FAQs
+      </a>
+      <a href="#" class="nav-item logout" onclick="confirmLogout(event)">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+      </a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <div class="welcome-content">
+        <div class="welcome-left">
+          <div class="date-display-welcome">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="welcomeDate">Loading...</span>
+          </div>
+          <div class="welcome-text">
+            <h3>Requested Documents</h3>
+            <p>View and manage your document requests</p>
+          </div>
+        </div>
+        <div class="welcome-right">
+          <h1 class="welcome-title">WildDocs</h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documents Content -->
+    <div class="dashboard-content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">
+                <i class="fas fa-file-alt me-2"></i>
+                Your Document Requests
+              </h5>
+              
+              {% if all_requests %}
+                <div class="table-responsive">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Document</th>
+                        <th>Purpose</th>
+                        <th>Copies</th>
+                        <th>Status</th>
+                        <th>Date Requested</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for request in all_requests %}
+                      <tr>
+                        <td>{{ request.document.name }}</td>
+                        <td>{{ request.purpose }}</td>
+                        <td>{{ request.copies }}</td>
+                        <td>
+                          {% if request.status == 'Pending' %}
+                            <span class="badge bg-warning">{{ request.status }}</span>
+                          {% elif request.status == 'Approved' %}
+                            <span class="badge bg-success">{{ request.status }}</span>
+                          {% elif request.status == 'Completed' %}
+                            <span class="badge bg-primary">{{ request.status }}</span>
+                          {% else %}
+                            <span class="badge bg-secondary">{{ request.status }}</span>
+                          {% endif %}
+                        </td>
+                        <td>{{ request.date_requested|date:"F j, Y" }}</td>
+                        <td>
+                          {% if request.status == 'Pending' %}
+                            <button class="btn btn-sm btn-danger">Cancel</button>
+                          {% elif request.status == 'Approved' %}
+                            <button class="btn btn-sm btn-info">Pickup Slip</button>
+                          {% elif request.status == 'Completed' %}
+                            <button class="btn btn-sm btn-success">Receipt</button>
+                          {% endif %}
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <div class="text-center py-5">
+                  <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+                  <h5>No Document Requests</h5>
+                  <p class="text-muted">You haven't submitted any document requests yet.</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmLogout(event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+        window.location.href = '{% url "logout" %}';
+    }
+}
+
+// Set current date
+document.addEventListener('DOMContentLoaded', function() {
+    const dateElement = document.getElementById('welcomeDate');
+    if (dateElement) {
+        const today = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        dateElement.textContent = today.toLocaleDateString('en-US', options);
+    }
+});
+</script>
+{% endblock %}

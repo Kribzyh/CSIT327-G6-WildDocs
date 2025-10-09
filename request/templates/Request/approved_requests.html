@@ -1,0 +1,222 @@
+{% extends "Request/requests_list.html" %}
+
+{% block title %}Approved Requests - WildDocs{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.approved-alert {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    border: 1px solid #17a2b8;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #0c5460;
+}
+
+.approved-header {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+}
+
+.table tbody tr {
+    background-color: #f0f9ff;
+}
+
+.table tbody tr:hover {
+    background-color: #d1ecf1;
+    transition: all 0.3s ease;
+}
+
+.btn-print {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.8rem;
+}
+
+.btn-print:hover {
+    background-color: #218838;
+    border-color: #218838;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.pickup-info {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    border-left: 4px solid #17a2b8;
+}
+
+.sidebar-separator {
+    border-top: 1px solid rgba(255,255,255,0.2);
+    margin: 15px 0 0 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="request-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="d-flex align-items-center">
+                <h4 class="text-white mb-0">Document Status</h4>
+            </div>
+            <hr class="sidebar-separator">
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/requests/pending/" class="nav-item">
+                <i class="fas fa-clock"></i>
+                Pending Requests
+            </a>
+            <a href="/requests/approved/" class="nav-item active">
+                <i class="fas fa-check-circle"></i>
+                Approved Requests
+            </a>
+            <a href="/requests/completed/" class="nav-item">
+                <i class="fas fa-check-double"></i>
+                Completed Requests
+            </a>
+            <a href="/dashboard/" class="nav-item back-to-dashboard">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="request-content">
+        <div class="approved-header request-header">
+            <h2 class="mb-0">
+                <i class="fas fa-check-circle mr-3"></i>Approved Requests
+            </h2>
+            <p class="mb-0 mt-2">Documents ready for pickup at the Registrar's Office</p>
+        </div>
+
+        {% if requests %}
+            <div class="approved-alert">
+                <i class="fas fa-info-circle mr-2"></i>
+                <strong>{{ requests|length }}</strong> approved request{{ requests|length|pluralize }} ready for pickup. 
+                Please visit the Registrar's Office during office hours.
+            </div>
+        {% endif %}
+
+        <div class="request-card">
+            <div class="card-body p-0">
+                {% if requests %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Request ID</th>
+                                    <th>Document Type</th>
+                                    <th>Date Approved</th>
+                                    <th>Copies</th>
+                                    <th>Pickup Location</th>
+                                    <th>Office Hours</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in requests %}
+                                <tr>
+                                    <td>
+                                        <span class="badge badge-info">#{{ request.id }}</span>
+                                    </td>
+                                    <td>{{ request.document.name }}</td>
+                                    <td>{{ request.date_requested|date:"M d, Y" }}</td>
+                                    <td>{{ request.copies }}</td>
+                                    <td>
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt mr-1"></i>
+                                            Registrar's Office
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">Mon-Fri 8AM-5PM</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'Request:detail' request.id %}" 
+                                               class="btn btn-sm btn-outline-primary mr-1">
+                                                <i class="fas fa-eye mr-1"></i>View
+                                            </a>
+                                            <button class="btn btn-sm btn-print" 
+                                                    data-action="print" data-id="{{ request.id }}">
+                                                <i class="fas fa-print mr-1"></i>Print Slip
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="pickup-info">
+                        <h5>
+                            <i class="fas fa-info-circle text-info mr-2"></i>Pickup Instructions
+                        </h5>
+                        <ul class="mb-0">
+                            <li>Bring a valid student ID or government-issued ID</li>
+                            <li>Office hours: Monday to Friday, 8:00 AM - 5:00 PM</li>
+                            <li>Payment may be required upon pickup (if not yet paid)</li>
+                            <li>Documents not claimed within 30 days will be returned to archive</li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle fa-4x"></i>
+                        <h4>No Approved Requests</h4>
+                        <p class="mb-0">
+                            You don't have any approved requests waiting for pickup.<br>
+                            Check back later or submit a new request.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function printPickupSlip(requestId) {
+    // Generate a pickup slip for printing
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Pickup Slip - Request #${requestId}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                .header { text-align: center; margin-bottom: 20px; color: #800000; }
+                .details { margin: 10px 0; }
+                @media print {
+                    body { margin: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h2>CIT-U Document Pickup Slip</h2>
+                <p>Request #${requestId}</p>
+            </div>
+            <div class="details">
+                <p><strong>Present this slip at the Registrar's Office</strong></p>
+                <p><strong>Office Hours:</strong> Monday to Friday, 8:00 AM - 5:00 PM</p>
+                <p><strong>Requirements:</strong> Valid ID required</p>
+            </div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}About Us - WildDocs{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+  /* Creative About Us styles */
+  /* About page spacing: closer layout but visible separation */
+  .about-page .card { margin-bottom: 8px; }
+  .about-page .feature-card { margin-bottom: 8px; position: relative; z-index: 1; min-height: 140px; }
+  .about-page .team-member { margin-bottom: 8px; }
+  /* Small row gap to keep subtle separation */
+  .about-page .row { column-gap: 0; row-gap: 0.4rem; }
+
+  .hero-creative {
+    background: linear-gradient(135deg,#3b82f6 0%,#6d28d9 100%);
+    color: #fff;
+    padding: 40px 28px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(45,55,72,0.12);
+  }
+  .hero-creative .title { font-size: 2rem; font-weight:700 }
+  .feature-card { border: none; border-radius: 10px; transition: transform .18s ease, box-shadow .18s ease; }
+  .feature-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(15,23,42,0.12); }
+  /* Feature row: single container with separators */
+  .feature-row { display:flex; flex-direction:column; gap:0; }
+  @media(min-width:768px){ .feature-row { flex-direction:row } }
+  .feature-item { flex:1; padding:22px 24px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  @media(min-width:768px){ .feature-item + .feature-item { border-left: 1px solid rgba(15,23,42,0.04); } }
+  /* Center team member cards */
+  .about-page .team-member { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+  /* Center timeline block within page */
+  .about-page .timeline { max-width: 680px; margin-left: auto; margin-right: auto; }
+  .timeline { list-style: none; padding: 0; margin: 0; }
+  .timeline li { display:flex; gap:16px; margin-bottom:18px; align-items:flex-start }
+  .timeline .step { min-width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff }
+  .step-1 { background: #0ea5e9 }
+  .step-2 { background: #34d399 }
+  .step-3 { background: #f59e0b }
+  .team-member { text-align:center }
+  .avatar-placeholder { width:96px; height:96px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:1.25rem; color:#fff }
+  .cta-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.12); color: #fff }
+  @media (max-width:767px){ .hero-creative { text-align:center } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="d-flex align-items-center">
+        <h4 class="text-white mb-0">User</h4>
+      </div>
+      <hr class="sidebar-separator">
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a href="{% url 'dashboard' %}" class="nav-item">
+        <i class="fas fa-tachometer-alt"></i>
+        Dashboard
+      </a>
+      <a href="{% url 'student_profile' %}" class="nav-item">
+        <i class="fas fa-user"></i>
+        Student Profile
+      </a>
+      <a href="{% url 'requested_documents' %}" class="nav-item">
+        <i class="fas fa-file-alt"></i>
+        Requested Documents
+      </a>
+      <!-- History link removed -->
+      <a href="{% url 'about_us' %}" class="nav-item active">
+        <i class="fas fa-info-circle"></i>
+        About Us
+      </a>
+      <a href="{% url 'faqs' %}" class="nav-item">
+        <i class="fas fa-question-circle"></i>
+        FAQs
+      </a>
+      <a href="#" class="nav-item logout" onclick="confirmLogout(event)">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+      </a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <div class="welcome-content">
+        <div class="welcome-left">
+          <div class="date-display-welcome">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="welcomeDate">Loading...</span>
+          </div>
+          <div class="welcome-text">
+            <h3>About WildDocs</h3>
+            <p>Learn more about our document management system</p>
+          </div>
+        </div>
+        <div class="welcome-right">
+          <h1 class="welcome-title">WildDocs</h1>
+        </div>
+      </div>
+    </div>
+
+  <!-- About Content -->
+  <div class="dashboard-content about-page" style="margin-top:-10px;">
+  <div class="row g-4 align-items-stretch">
+
+        <div class="col-12">
+          <div class="card p-0">
+            <div class="feature-row">
+              <div class="feature-item">
+                <i class="fas fa-paper-plane fa-2x text-primary mb-2"></i>
+                <h6>Fast Requests</h6>
+                <p class="small text-muted mb-0">Submit requests online and skip in-person queues. Track progress in real time.</p>
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-shield-alt fa-2x text-primary mb-2"></i>
+                <h6>Secure Processing</h6>
+                <p class="small text-muted mb-0">Role-based access and secure records keep sensitive documents protected.</p>
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-bell fa-2x text-primary mb-2"></i>
+                <h6>Proactive Alerts</h6>
+                <p class="small text-muted mb-0">Automated notifications keep students updated at every stage of the process.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-8">
+          <div class="card p-3 h-100">
+            <div class="card-body">
+              <h6>Process Timeline</h6>
+              <ul class="timeline mt-3">
+                <li>
+                  <div class="step step-1">1</div>
+                  <div>
+                    <strong>Submit Request</strong>
+                    <div class="small text-muted">Fill the online request form and upload required documents.</div>
+                  </div>
+                </li>
+                <li>
+                  <div class="step step-2">2</div>
+                  <div>
+                    <strong>Verification & Processing</strong>
+                    <div class="small text-muted">Registrar reviews, approves, and processes your request.</div>
+                  </div>
+                </li>
+                <li>
+                  <div class="step step-3">3</div>
+                  <div>
+                    <strong>Ready for Pickup / Delivery</strong>
+                    <div class="small text-muted">Receive a pickup notice or delivery confirmation when ready.</div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card p-3 h-100 text-center">
+            <div class="card-body">
+              <i class="fas fa-university fa-3x text-primary mb-3"></i>
+              <h6>Contact Registrar</h6>
+              <p class="small text-muted mb-1"><strong>Registrar's Office</strong></p>
+              <p class="small text-muted">Ground Floor, Admin Building<br>Mon-Fri: 8:00 AM - 5:00 PM</p>
+              <p class="small mb-0">Tel: (123) 456-7890<br>Email: <a href="mailto:registrar@wilddocs.edu">registrar@wilddocs.edu</a></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <h6 class="mt-4">Meet the Team</h6>
+          <div class="row g-3">
+            <div class="col-sm-6 col-md-4">
+              <div class="card team-member p-3">
+                <div class="avatar-placeholder mb-2" style="background:#6366f1">KD</div>
+                <strong>Kerby Delposo</strong>
+                <div class="small text-muted">Lead Developer</div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-md-4">
+              <div class="card team-member p-3">
+                <div class="avatar-placeholder mb-2" style="background:#ef4444">CR</div>
+                <strong>Camila Rose Cordero</strong>
+                <div class="small text-muted">Frontend Developer</div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-md-4">
+              <div class="card team-member p-3">
+                <div class="avatar-placeholder mb-2" style="background:#0ea5e9">DC</div>
+                <strong>Denn Anton Marc Cayacap</strong>
+                <div class="small text-muted">Backend Developer</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmLogout(event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+        window.location.href = '{% url "logout" %}';
+    }
+}
+
+// Set current date
+document.addEventListener('DOMContentLoaded', function() {
+    const dateElement = document.getElementById('welcomeDate');
+    if (dateElement) {
+        const today = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        dateElement.textContent = today.toLocaleDateString('en-US', options);
+    }
+});
+</script>
+{% endblock %}
