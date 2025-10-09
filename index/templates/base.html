@@ -25,8 +25,8 @@
     {% block extra_css %}{% endblock %}
   </head>
   <body>
-    <!-- Navigation - Show only when logged out OR on homepage -->
-    {% if not request.user.is_authenticated or request.path == '/' %}
+    {% if not request.user.is_authenticated %}
+    <!-- Navigation (top navbar for index pages only) -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
       <div class="container">
         <a class="navbar-brand" href="{% url 'home' %}" style="color: #800000;">
@@ -48,9 +48,9 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ml-auto">
-            </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'home' %}">Home</a>
+            </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'login' %}">Login</a>
             </li>
