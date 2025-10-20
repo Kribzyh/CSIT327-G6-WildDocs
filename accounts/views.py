@@ -2,8 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.models import User
+from django.utils import timezone
 
-from .models import StudentAccount
+from .models import StudentAccount, AdminAccount
 from .forms import StudentProfileForm
 from services.supabase_client import create_user_admin, delete_user_admin
 from django.views.decorators.cache import never_cache
@@ -14,35 +15,74 @@ from django.views.decorators.cache import never_cache
 
 @never_cache
 def login(request):
+    # --- Already logged in ---
     if request.user.is_authenticated:
-        # If there's a 'next' parameter, redirect there instead of dashboard
-        next_url = request.GET.get('next')
-        if next_url:
-            return redirect(next_url)
+        if hasattr(request.user, 'adminaccount'):
+            return redirect('admin_dashboard')
+        elif hasattr(request.user, 'studentaccount'):
+            return redirect('dashboard')
         return redirect('dashboard')
 
+    # --- Login attempt ---
     if request.method == 'POST':
-        student_number = request.POST.get('student_id')
+        identifier = request.POST.get('student_id')  # student_number or email
         password = request.POST.get('password')
+        user = None
 
-        user = authenticate(request, username=student_number, password=password)
+        # --- Check if email (staff login) ---
+        if '@' in identifier:
+            try:
+                admin_account = AdminAccount.objects.get(user__email=identifier, is_active=True)
+                user = authenticate(request, username=admin_account.user.username, password=password)
+            except AdminAccount.DoesNotExist:
+                user = None
+
+        # --- Otherwise, treat as student login ---
+        else:
+            try:
+                student_account = StudentAccount.objects.get(student_number=identifier)
+                user = authenticate(request, username=student_account.user.username, password=password)
+            except StudentAccount.DoesNotExist:
+                user = None
+
+        # --- Handle successful login ---
         if user is not None:
             auth_login(request, user)
-            # Auto-populate student info based on course if program is not set
-            try:
-                student_account = user.studentaccount
-                if student_account.program == "Other" and student_account.course:
-                    student_account.program = StudentProfileForm.get_program_from_course(student_account.course)
-                    student_account.save()
-            except StudentAccount.DoesNotExist:
-                pass
-            messages.success(request, 'Successfully logged in!')
-            return redirect('dashboard')
-        else:
-            messages.error(request, 'Invalid student number or password.')
 
-    # Always render the login page for GET or after failed login
+            # --- If Admin ---
+            if hasattr(user, 'adminaccount'):
+                admin_acc = user.adminaccount
+                admin_acc.last_login_at = timezone.now()
+                admin_acc.save()
+                messages.success(request, f"Welcome back, {admin_acc.full_name}!")
+                return redirect('admin_dashboard')
+
+            # --- If Student ---
+            elif hasattr(user, 'studentaccount'):
+                student_acc = user.studentaccount
+
+                # Auto-update program field if needed
+                if student_acc.program == "Other" and student_acc.course:
+                    try:
+                        student_acc.program = StudentProfileForm.get_program_from_course(student_acc.course)
+                        student_acc.save()
+                    except Exception:
+                        pass
+
+                messages.success(request, f"Welcome back, {student_acc.first_name} {student_acc.last_name}!")
+                return redirect('dashboard')
+
+            # --- Fallback (should rarely happen) ---
+            messages.warning(request, "Account type not recognized.")
+            return redirect('dashboard')
+
+        # --- Invalid login ---
+        else:
+            messages.error(request, 'Invalid student ID/email or password.')
+
+    # --- Render login page ---
     return render(request, 'login.html')
+
 @never_cache
 def register(request):
     if request.user.is_authenticated:
@@ -143,3 +183,5 @@ def logout(request):
     auth_logout(request)
     return redirect('login')
 
+def admin_dashboard(request):
+    return render(request, 'admin_dashboard.html')
