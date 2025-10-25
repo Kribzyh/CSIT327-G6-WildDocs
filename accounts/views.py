@@ -174,7 +174,6 @@ def register(request):
 
     return render(request, 'register.html')
 
-    return render(request, 'register.html')
 
 
 
@@ -182,6 +181,3 @@ def register(request):
 def logout(request):
     auth_logout(request)
     return redirect('login')
-
-def admin_dashboard(request):
-    return render(request, 'admin_dashboard.html')

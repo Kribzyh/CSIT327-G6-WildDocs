@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}All Document Requests - Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-container d-flex">
+  <!-- Sidebar -->
+  <div class="sidebar bg-dark text-white p-4">
+    <h3 class="mb-4">Staff Panel</h3>
+    <ul class="nav flex-column">
+      <li class="nav-item mb-2">
+        <a href="{% url 'admin_dashboard' %}" class="nav-link text-white">🏠 Dashboard</a>
+      </li>
+      <li class="nav-item mb-2">
+        <a href="{% url 'admin_document_requests' %}" class="nav-link text-white active">📄 Document Requests</a>
+      </li>
+      <li class="nav-item mb-2">
+        <a href="#" class="nav-link text-white">👥 Manage Students</a>
+      </li>
+      <li class="nav-item mb-2">
+        <a href="{% url 'logout' %}" class="nav-link text-danger">🚪 Logout</a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content flex-grow-1 p-4">
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>All Document Requests</h2>
+        <p class="text-muted">Manage all student document requests</p>
+      </div>
+
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title mb-4">
+            <i class="fas fa-file-alt me-2"></i> Document Requests Overview
+          </h5>
+
+          {% if all_requests %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Student</th>
+                  <th>Document</th>
+                  <th>Purpose</th>
+                  <th>Copies</th>
+                  <th>Status</th>
+                  <th>Date Requested</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for req in all_requests %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ req.student.first_name }} {{ req.student.last_name }}</td>
+                  <td>{{ req.document.name }}</td>
+                  <td>{{ req.purpose }}</td>
+                  <td>{{ req.copies }}</td>
+                  <td>
+                    {% if req.status == 'Pending' %}
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    {% elif req.status == 'Approved' %}
+                      <span class="badge bg-success">Approved</span>
+                    {% elif req.status == 'Rejected' %}
+                      <span class="badge bg-danger">Rejected</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ req.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ req.date_requested|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+            <h5>No Document Requests Found</h5>
+            <p class="text-muted">No document requests have been submitted yet.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.dashboard-container {
+  min-height: 100vh;
+}
+.sidebar {
+  width: 250px;
+}
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+  background: rgba(255,255,255,0.1);
+  border-radius: 6px;
+}
+</style>
+{% endblock %}

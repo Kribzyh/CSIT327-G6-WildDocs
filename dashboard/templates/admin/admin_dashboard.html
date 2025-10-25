@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container d-flex">
+    <!-- Sidebar -->
+    <div class="sidebar bg-dark text-white p-4">
+        <h3 class="mb-4">Staff Panel</h3>
+        <ul class="nav flex-column">
+            <li class="nav-item mb-2">
+                <a href="{% url 'admin_document_requests' %}" class="nav-link text-white">📄 Document Requests</a>
+            </li>
+            <li class="nav-item mb-2">
+                <a href="#" class="nav-link text-white">📄 Document Requests</a>
+            </li>
+            <li class="nav-item mb-2">
+                <a href="#" class="nav-link text-white">👥 Manage Students</a>
+            </li>
+            <li class="nav-item mb-2">
+                <a href="{% url 'logout' %}" class="nav-link text-danger">🚪 Logout</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content flex-grow-1 p-4">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Welcome, {{ admin.full_name }}!</h2>
+                <p class="text-muted">Role: {{ admin.role }}</p>
+            </div>
+
+            <!-- Dashboard Metrics -->
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title">📄 Pending Requests</h5>
+                            <p class="card-text display-6 text-primary fw-bold">{{ pending_count }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title">✅ Approved</h5>
+                            <p class="card-text display-6 text-success fw-bold">{{ approved_count }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title">❌ Rejected</h5>
+                            <p class="card-text display-6 text-danger fw-bold">{{ rejected_count }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Document Requests -->
+            <div class="mt-5">
+                <h4 class="mb-3">Recent Document Requests</h4>
+                <table class="table table-hover align-middle shadow-sm">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Student Name</th>
+                            <th>Document Type</th>
+                            <th>Status</th>
+                            <th>Date Requested</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in recent_requests %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ req.student.first_name }} {{ req.student.last_name }}</td>
+                            <td>{{ req.document.name }}</td>
+                            <td>
+                                {% if req.status == 'Pending' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif req.status == 'Approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif req.status == 'Rejected' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ req.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ req.date_requested|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No recent document requests found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+.dashboard-container {
+    min-height: 100vh;
+}
+.sidebar {
+    width: 250px;
+}
+.sidebar .nav-link:hover {
+    background: rgba(255,255,255,0.1);
+    border-radius: 6px;
+}
+</style>
+{% endblock %}

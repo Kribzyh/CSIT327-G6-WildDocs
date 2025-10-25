@@ -8,4 +8,9 @@ urlpatterns = [
     path('history/', views.history, name='history'),
     path('about_us/', views.about_us, name='about_us'),
     path('faqs/', views.faqs, name='faqs'),
+
+    ## Admin Routes
+    path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-document-requests/', views.admin_document_requests, name='admin_document_requests'),
+
 ]
