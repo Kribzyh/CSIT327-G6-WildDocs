@@ -1,0 +1,81 @@
+<!-- templates/admin/includes/sidebar.html -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="d-flex align-items-center">
+      <h4 class="text-white mb-0">Admin Panel</h4>
+    </div>
+    <hr class="sidebar-separator">
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="{% url 'admin_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+      <i class="fas fa-tachometer-alt"></i>
+      Dashboard
+    </a>
+    <a href="{% url 'admin_document_requests' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_document_requests' %}active{% endif %}">
+      <i class="fas fa-file-alt"></i>
+      Document Requests
+    </a>
+    <a href="#" class="nav-item">
+      <i class="fas fa-users"></i>
+      Manage Students
+    </a>
+    <a href="#" class="nav-item">
+      <i class="fas fa-cogs"></i>
+      Settings
+    </a>
+    <a href="#" class="nav-item logout" onclick="confirmLogout(event)">
+      <i class="fas fa-sign-out-alt"></i>
+      Logout
+    </a>
+  </nav>
+</div>
+
+<script>
+function confirmLogout(event) {
+  event.preventDefault();
+  if (confirm('Are you sure you want to log out?')) {
+    window.location.href = "{% url 'logout' %}";
+  }
+}
+</script>
+
+<style>
+.dashboard-container {
+    min-height: 100vh;
+}
+.sidebar {
+  background: #1a1a1a;
+  color: #fff;
+  width: 250px;
+  min-height: 100vh;
+}
+
+.sidebar .nav-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  color: #ddd;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.sidebar .nav-item i {
+  margin-right: 10px;
+}
+
+.sidebar .nav-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.sidebar .nav-item.active {
+  background: #0d6efd;
+  color: #fff;
+}
+
+.sidebar .logout {
+  color: #ff4c4c;
+}
+</style>

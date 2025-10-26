@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}All Document Requests - Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-container d-flex">
+  <!-- Sidebar -->
+    {% include 'admin/includes/sidebar.html' %}
+
+  <!-- Main Content -->
+  <div class="main-content flex-grow-1 p-4">
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>All Document Requests</h2>
+        <p class="text-muted">Manage all student document requests</p>
+      </div>
+
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title mb-4">
+            <i class="fas fa-file-alt me-2"></i> Document Requests Overview
+          </h5>
+
+          {% if all_requests %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Student</th>
+                  <th>Document</th>
+                  <th>Purpose</th>
+                  <th>Copies</th>
+                  <th>Status</th>
+                  <th>Date Requested</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for req in all_requests %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ req.student.first_name }} {{ req.student.last_name }}</td>
+                  <td>{{ req.document.name }}</td>
+                  <td>{{ req.purpose }}</td>
+                  <td>{{ req.copies }}</td>
+                  <td>
+                    {% if req.status == 'Pending' %}
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    {% elif req.status == 'Approved' %}
+                      <span class="badge bg-success">Approved</span>
+                    {% elif req.status == 'Rejected' %}
+                      <span class="badge bg-danger">Rejected</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ req.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ req.date_requested|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+            <h5>No Document Requests Found</h5>
+            <p class="text-muted">No document requests have been submitted yet.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.dashboard-container {
+  min-height: 100vh;
+}
+.sidebar {
+  background: #1a1a1a;
+  color: #fff;
+  width: 250px;
+  min-height: 100vh;
+}
+
+.sidebar .nav-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  color: #ddd;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.sidebar .nav-item i {
+  margin-right: 10px;
+}
+
+.sidebar .nav-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.sidebar .nav-item.active {
+  background: #0d6efd;
+  color: #fff;
+}
+
+.sidebar .logout {
+  color: #ff4c4c;
+}
+</style>
+{% endblock %}

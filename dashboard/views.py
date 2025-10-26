@@ -17,6 +17,9 @@ def dashboard(request):
     # Extra guard: if the user is not authenticated ensure we redirect to login.
     # This prevents rendering the dashboard for anonymous users even if the decorator
     # were accidentally removed in the future.
+    if hasattr(request.user, 'adminaccount'):
+        return redirect('admin_dashboard')
+
     if not request.user.is_authenticated:
         # Preserve next parameter so user returns to dashboard after login
         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
@@ -370,3 +373,73 @@ def faqs(request):
     }
     
     return render(request, 'faqs.html', context)
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
+from django.contrib import messages
+from accounts.models import AdminAccount, Request
+
+@never_cache
+@login_required
+def admin_dashboard(request):
+    # Ensure only staff/admin users can access
+    try:
+        admin = AdminAccount.objects.get(user=request.user)
+    except AdminAccount.DoesNotExist:
+        messages.error(request, "Access denied: Staff account required.")
+        return redirect('dashboard')  # Redirect non-staff users safely
+
+    # --- Dashboard metrics ---
+    pending_count = Request.objects.filter(status='Pending').count()
+    approved_count = Request.objects.filter(status='Approved').count()
+    rejected_count = Request.objects.filter(status='Rejected').count()
+
+    # --- Recent requests table ---
+    recent_requests = Request.objects.select_related('student', 'document').order_by('-date_requested')[:10]
+
+    context = {
+        'admin': admin,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
+        'recent_requests': recent_requests,
+    }
+
+    # ✅ This was missing
+    return render(request, 'admin/admin_dashboard.html', context)
+
+
+@never_cache
+@login_required
+def admin_document_requests(request):
+    try:
+        AdminAccount.objects.get(user=request.user)
+    except AdminAccount.DoesNotExist:
+        messages.error(request, "Access denied: staff accounts only.")
+        return redirect('dashboard')
+
+    all_requests = Request.objects.select_related('student', 'document').order_by('-date_requested')
+
+    context = {
+        'all_requests': all_requests
+    }
+    return render(request, 'admin/admin_document_requests.html', context)
+
+@login_required
+def dashboard_redirect(request):
+    """
+    Redirect /dashboard/ if a staff is logged in.
+    Students can stay on /dashboard/.
+    """
+    if hasattr(request.user, 'adminaccount'):
+        return redirect('admin_dashboard')
+    elif hasattr(request.user, 'studentaccount'):
+        # Student stays in dashboard
+        from .views import dashboard
+        return dashboard(request)
+    else:
+        return redirect('login')
+    
+    

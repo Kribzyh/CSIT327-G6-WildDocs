@@ -2,10 +2,18 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.dashboard, name='dashboard'),
+    # Base student dashboard route
+    path('', views.dashboard_redirect, name='dashboard'),
+
+    # Student routes
     path('student_profile/', views.student_profile, name='student_profile'),
     path('requested_documents/', views.requested_documents, name='requested_documents'),
     path('history/', views.history, name='history'),
     path('about_us/', views.about_us, name='about_us'),
     path('faqs/', views.faqs, name='faqs'),
+
+    # Admin routes
+    path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-document-requests/', views.admin_document_requests, name='admin_document_requests'),
 ]
+
