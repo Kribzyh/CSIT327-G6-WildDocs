@@ -3,15 +3,13 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.models import User
 from django.utils import timezone
+import re  # Added missing import
+from services.supabase_client import create_user_admin, delete_user_admin, check_user_exists
 
 from .models import StudentAccount, AdminAccount
 from .forms import StudentProfileForm
 from services.supabase_client import create_user_admin, delete_user_admin
 from django.views.decorators.cache import never_cache
-
-
-
-
 
 @never_cache
 def login(request):
@@ -105,13 +103,23 @@ def register(request):
             messages.error(request, "All fields are required.")
             return redirect('register')
 
-        # Step 2: Default year_level to 1 if empty or invalid
+        # Step 2: Validate email format
+        if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+            messages.error(request, "Please enter a valid email address.")
+            return redirect('register')
+
+        # Step 3: Validate password strength
+        if len(password) < 6:
+            messages.error(request, "Password must be at least 6 characters long.")
+            return redirect('register')
+
+        # Step 4: Default year_level to 1 if empty or invalid
         try:
             year_level = int(year_level) if year_level else 1
         except ValueError:
             year_level = 1
 
-        # Step 3: Check if student_number or email already exists
+        # Step 5: Check if student_number or email already exists in Django
         if User.objects.filter(username=student_number).exists():
             messages.error(request, "A user with that Student ID already exists.")
             return redirect('register')
@@ -120,7 +128,14 @@ def register(request):
             messages.error(request, "A user with that email already exists.")
             return redirect('register')
 
-        # Step 4: Create user in Supabase Auth first
+        # NEW: Check if user actually exists in Supabase
+        user_exists, existing_user = check_user_exists(email)
+        if user_exists:
+            print(f"User found in Supabase: {existing_user}")  # Debug
+            messages.error(request, "A user with that email address has already been registered in our system.")
+            return redirect('register')
+
+        # Step 6: Create user in Supabase Auth first
         user_metadata = {
             "student_number": student_number,
             "first_name": first_name,
@@ -128,18 +143,38 @@ def register(request):
             "course": course if course else '',
             "year_level": year_level
         }
+        
+        print(f"Creating Supabase user: {email}")
+        
         supa_resp, supa_err = create_user_admin(email, password, user_metadata)
-        if supa_err == "User already exists":
-            messages.error(request, "A Supabase Auth user with that email already exists.")
-            return redirect('register')
-        elif supa_err:
-            messages.error(request, f"Supabase error: {supa_err}")
+        
+        if supa_err:
+            print(f"Supabase error: {supa_err}")
+            
+            # If we get "already exists" error but our check didn't find it,
+            # there might be a timing issue or the user is in a different state
+            if "already exists" in supa_err.lower() or "already registered" in supa_err.lower():
+                # Try to get the specific user
+                user_exists, existing_user = check_user_exists(email)
+                if user_exists:
+                    messages.error(request, "This email is already registered. Please use a different email or try logging in.")
+                else:
+                    # User might be in "invited" state or other edge case
+                    messages.error(request, "This email appears to be in our system. Please try logging in or use a different email address.")
+            elif "password" in supa_err.lower():
+                messages.error(request, "Password does not meet requirements.")
+            else:
+                messages.error(request, f"Registration error: {supa_err}")
             return redirect('register')
 
-        supa_uid = supa_resp.get('id') if supa_resp else None
+        # Continue with the rest of your registration logic...
+        supa_uid = None
+        if supa_resp and isinstance(supa_resp, dict):
+            supa_uid = supa_resp.get('id')
+            print(f"Created Supabase user with ID: {supa_uid}")
 
         try:
-            # Step 5: Create the User in Django
+            # Step 7: Create the User in Django
             user = User.objects.create_user(
                 username=student_number,
                 email=email,
@@ -148,7 +183,7 @@ def register(request):
                 last_name=last_name
             )
 
-            # Step 6: Create linked StudentAccount
+            # Step 8: Create linked StudentAccount
             program = StudentProfileForm.get_program_from_course(course if course else '')
             StudentAccount.objects.create(
                 user=user,
@@ -160,22 +195,22 @@ def register(request):
                 program=program,
                 year_level=year_level
             )
+
+            messages.success(request, "Registration successful! You can now log in.")
+            return redirect('login')
+
         except Exception as e:
             # Rollback: delete Supabase user if Django user creation fails
             if supa_uid:
-                delete_user_admin(supa_uid)
-            messages.error(request, f"Registration failed: {e}")
+                print(f"Rollback: deleting Supabase user {supa_uid}")
+                success, delete_err = delete_user_admin(supa_uid)
+                if not success:
+                    print(f"Failed to delete Supabase user during rollback: {delete_err}")
+            
+            messages.error(request, f"Registration failed: {str(e)}")
             return redirect('register')
 
-        # Step 7: Log the user in and redirect
-        auth_login(request, user)
-        messages.success(request, f"Welcome, {first_name}!")
-        return redirect('dashboard')
-
     return render(request, 'register.html')
-
-
-
 
 @never_cache
 def logout(request):
