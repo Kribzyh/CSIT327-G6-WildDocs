@@ -215,4 +215,5 @@ def register(request):
 @never_cache
 def logout(request):
     auth_logout(request)
+    request.session.flush()
     return redirect('login')
