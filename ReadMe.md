@@ -40,6 +40,7 @@ A comprehensive student document management system built with Django and Supabas
    ```bash
    pipenv install
    pipenv shell
+   pipenv install -r requirements.txt
    ```
 
 4. **Set up environment variables**
