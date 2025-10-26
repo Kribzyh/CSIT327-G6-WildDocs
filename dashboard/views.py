@@ -17,6 +17,9 @@ def dashboard(request):
     # Extra guard: if the user is not authenticated ensure we redirect to login.
     # This prevents rendering the dashboard for anonymous users even if the decorator
     # were accidentally removed in the future.
+    if hasattr(request.user, 'adminaccount'):
+        return redirect('admin_dashboard')
+
     if not request.user.is_authenticated:
         # Preserve next parameter so user returns to dashboard after login
         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
@@ -423,3 +426,20 @@ def admin_document_requests(request):
         'all_requests': all_requests
     }
     return render(request, 'admin/admin_document_requests.html', context)
+
+@login_required
+def dashboard_redirect(request):
+    """
+    Redirect /dashboard/ if a staff is logged in.
+    Students can stay on /dashboard/.
+    """
+    if hasattr(request.user, 'adminaccount'):
+        return redirect('admin_dashboard')
+    elif hasattr(request.user, 'studentaccount'):
+        # Student stays in dashboard
+        from .views import dashboard
+        return dashboard(request)
+    else:
+        return redirect('login')
+    
+    
