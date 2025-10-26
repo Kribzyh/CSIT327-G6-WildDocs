@@ -6,23 +6,7 @@
 {% block content %}
 <div class="dashboard-container d-flex">
     <!-- Sidebar -->
-    <div class="sidebar bg-dark text-white p-4">
-        <h3 class="mb-4">Staff Panel</h3>
-        <ul class="nav flex-column">
-            <li class="nav-item mb-2">
-                <a href="{% url 'admin_document_requests' %}" class="nav-link text-white">📄 Document Requests</a>
-            </li>
-            <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">📄 Document Requests</a>
-            </li>
-            <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">👥 Manage Students</a>
-            </li>
-            <li class="nav-item mb-2">
-                <a href="{% url 'logout' %}" class="nav-link text-danger">🚪 Logout</a>
-            </li>
-        </ul>
-    </div>
+    {% include 'admin/includes/sidebar.html' %}
 
     <!-- Main Content -->
     <div class="main-content flex-grow-1 p-4">
@@ -112,13 +96,6 @@
 <style>
 .dashboard-container {
     min-height: 100vh;
-}
-.sidebar {
-    width: 250px;
-}
-.sidebar .nav-link:hover {
-    background: rgba(255,255,255,0.1);
-    border-radius: 6px;
 }
 </style>
 {% endblock %}
