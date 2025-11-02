@@ -15,7 +15,7 @@ from django.views.decorators.cache import never_cache
 def login(request):
     # --- Already logged in ---
     if request.user.is_authenticated:
-        if hasattr(request.user, 'adminaccount'):
+        if request.user.is_staff:
             return redirect('admin_dashboard')
         elif hasattr(request.user, 'studentaccount'):
             return redirect('dashboard')
@@ -23,60 +23,71 @@ def login(request):
 
     # --- Login attempt ---
     if request.method == 'POST':
-        identifier = request.POST.get('student_id')  # student_number or email
+        identifier = request.POST.get('student_id')  # can be email or student_number
         password = request.POST.get('password')
         user = None
 
-        # --- Check if email (staff login) ---
+        # --- If identifier is an email ---
         if '@' in identifier:
             try:
-                admin_account = AdminAccount.objects.get(user__email=identifier, is_active=True)
-                user = authenticate(request, username=admin_account.user.username, password=password)
-            except AdminAccount.DoesNotExist:
-                user = None
+                # Find user by email
+                user_obj = User.objects.get(email=identifier)
+            except User.DoesNotExist:
+                messages.error(request, 'This email is not registered.')
+                return render(request, 'login.html')
 
-        # --- Otherwise, treat as student login ---
+            # Authenticate using the found username
+            user = authenticate(request, username=user_obj.username, password=password)
+
+            # If authentication fails
+            if user is None:
+                messages.error(request, 'Invalid password. Please try again.')
+                return render(request, 'login.html')
+
+            # --- Check if staff/admin ---
+            if user.is_staff:
+                try:
+                    admin_acc = AdminAccount.objects.get(user=user)
+                    admin_acc.last_login_at = timezone.now()
+                    admin_acc.save()
+                    messages.success(request, f"Welcome back, {admin_acc.full_name}!")
+                    auth_login(request, user)
+                    return redirect('admin_dashboard')
+                except AdminAccount.DoesNotExist:
+                    messages.error(request, 'Admin account not found for this user.')
+                    return render(request, 'login.html')
+
+            # --- Otherwise, treat as student ---
+            else:
+                try:
+                    student_acc = StudentAccount.objects.get(user=user)
+                    # Optional auto-program update
+                    if student_acc.program == "Other" and student_acc.course:
+                        try:
+                            student_acc.program = StudentProfileForm.get_program_from_course(student_acc.course)
+                            student_acc.save()
+                        except Exception:
+                            pass
+                    messages.success(request, f"Welcome back, {student_acc.first_name} {student_acc.last_name}!")
+                    auth_login(request, user)
+                    return redirect('dashboard')
+                except StudentAccount.DoesNotExist:
+                    messages.error(request, 'Student account not found for this user.')
+                    return render(request, 'login.html')
+
+        # --- Otherwise, identifier is a student number ---
         else:
             try:
                 student_account = StudentAccount.objects.get(student_number=identifier)
                 user = authenticate(request, username=student_account.user.username, password=password)
+                if user is not None:
+                    auth_login(request, user)
+                    messages.success(request, f"Welcome back, {student_account.first_name} {student_account.last_name}!")
+                    return redirect('dashboard')
+                else:
+                    messages.error(request, 'Invalid password. Please try again.')
             except StudentAccount.DoesNotExist:
-                user = None
-
-        # --- Handle successful login ---
-        if user is not None:
-            auth_login(request, user)
-
-            # --- If Admin ---
-            if hasattr(user, 'adminaccount'):
-                admin_acc = user.adminaccount
-                admin_acc.last_login_at = timezone.now()
-                admin_acc.save()
-                messages.success(request, f"Welcome back, {admin_acc.full_name}!")
-                return redirect('admin_dashboard')
-
-            # --- If Student ---
-            elif hasattr(user, 'studentaccount'):
-                student_acc = user.studentaccount
-
-                # Auto-update program field if needed
-                if student_acc.program == "Other" and student_acc.course:
-                    try:
-                        student_acc.program = StudentProfileForm.get_program_from_course(student_acc.course)
-                        student_acc.save()
-                    except Exception:
-                        pass
-
-                messages.success(request, f"Welcome back, {student_acc.first_name} {student_acc.last_name}!")
-                return redirect('dashboard')
-
-            # --- Fallback (should rarely happen) ---
-            messages.warning(request, "Account type not recognized.")
-            return redirect('dashboard')
-
-        # --- Invalid login ---
-        else:
-            messages.error(request, 'Invalid student ID/email or password.')
+                messages.error(request, 'This student ID does not exist in our records.')
 
     # --- Render login page ---
     return render(request, 'login.html')
