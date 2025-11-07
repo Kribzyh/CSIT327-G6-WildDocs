@@ -325,6 +325,165 @@ def admin_document_requests(request):
     return render(request, 'admin/admin_document_requests.html', context)
 
 
+@never_cache
+@login_required
+def admin_manage_students(request):
+    """Admin manage students page"""
+    try:
+        AdminAccount.objects.get(user=request.user)
+    except AdminAccount.DoesNotExist:
+        messages.error(request, "Access denied: staff accounts only.")
+        return redirect('dashboard')
+
+    students = StudentAccount.objects.select_related('user').order_by('last_name', 'first_name')
+
+    context = {
+        'students': students,
+    }
+    return render(request, 'admin/admin_manage_students.html', context)
+
+
+@never_cache
+@login_required
+def admin_settings(request):
+    """Admin settings placeholder page"""
+    try:
+        admin = AdminAccount.objects.get(user=request.user)
+    except AdminAccount.DoesNotExist:
+        messages.error(request, "Access denied: staff accounts only.")
+        return redirect('dashboard')
+
+    # For now this is a simple settings placeholder. Expand as needed.
+    context = {
+        'admin': admin,
+    }
+    return render(request, 'admin/admin_settings.html', context)
+
+
+@never_cache
+@login_required
+def admin_request_action(request):
+    """Handle admin actions on requests via AJAX: approve, reject, complete, cancel."""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST required'}, status=400)
+
+    try:
+        AdminAccount.objects.get(user=request.user)
+    except AdminAccount.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+
+    req_id = request.POST.get('request_id') or request.POST.get('id')
+    action = request.POST.get('action')
+    note = request.POST.get('note', '')
+
+    if not req_id or not action:
+        return JsonResponse({'success': False, 'error': 'Missing parameters'}, status=400)
+
+    try:
+        req_obj = Request.objects.select_related('student', 'document').get(id=int(req_id))
+    except Request.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Request not found'}, status=404)
+
+    action = action.lower()
+    valid_actions = ['approve', 'reject', 'complete', 'cancel']
+    if action not in valid_actions:
+        return JsonResponse({'success': False, 'error': 'Invalid action'}, status=400)
+
+    admin = AdminAccount.objects.get(user=request.user)
+
+    if action == 'approve':
+        req_obj.status = 'Approved'
+        req_obj.assigned_admin = admin
+        if note:
+            req_obj.notes = (req_obj.notes or '') + f"\n[Approved by {admin.user.username}]: {note}"
+    elif action == 'reject':
+        req_obj.status = 'Rejected'
+        req_obj.assigned_admin = admin
+        if note:
+            req_obj.notes = (req_obj.notes or '') + f"\n[Rejected by {admin.user.username}]: {note}"
+    elif action == 'complete':
+        req_obj.status = 'Completed'
+        req_obj.assigned_admin = admin
+        if note:
+            req_obj.notes = (req_obj.notes or '') + f"\n[Completed by {admin.user.username}]: {note}"
+    elif action == 'cancel':
+        req_obj.status = 'Cancelled'
+        req_obj.assigned_admin = admin
+        if note:
+            req_obj.notes = (req_obj.notes or '') + f"\n[Cancelled by {admin.user.username}]: {note}"
+
+    req_obj.save()
+
+    # Optionally: create a Notification for the student (lightweight)
+    try:
+        from accounts.models import Notification
+        Notification.objects.create(
+            student=req_obj.student,
+            request=req_obj,
+            message=f"Your request #{req_obj.id} has been updated to '{req_obj.status}'."
+        )
+    except Exception:
+        # don't block action if notification creation fails
+        pass
+
+    return JsonResponse({'success': True, 'status': req_obj.status, 'request_id': req_obj.id})
+
+
+@never_cache
+@login_required
+def admin_request_detail(request):
+    """Return JSON details for a request (used by admin view modal)."""
+    req_id = request.GET.get('request_id') or request.GET.get('id')
+    if not req_id:
+        return JsonResponse({'success': False, 'error': 'request_id required'}, status=400)
+
+    try:
+        AdminAccount.objects.get(user=request.user)
+    except AdminAccount.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+
+    try:
+        req_obj = Request.objects.select_related('student__user', 'document').get(id=int(req_id))
+    except Request.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Request not found'}, status=404)
+
+    # Collect attachments if model exists
+    attachments = []
+    try:
+        for a in req_obj.attachment_set.all():
+            attachments.append({
+                'id': a.id,
+                'url': a.file.url if hasattr(a.file, 'url') else str(a.file),
+                'size': a.file_size,
+            })
+    except Exception:
+        # ignore if attachment relation missing
+        pass
+
+    data = {
+        'success': True,
+        'request': {
+            'id': req_obj.id,
+            'document': req_obj.document.name,
+            'purpose': req_obj.purpose,
+            'copies': req_obj.copies,
+            'status': req_obj.status,
+            'notes': req_obj.notes,
+            'date_requested': req_obj.date_requested.strftime('%Y-%m-%d %H:%M:%S'),
+        },
+        'student': {
+            'name': f"{req_obj.student.first_name} {req_obj.student.last_name}",
+            'student_number': req_obj.student.student_number,
+            'email': req_obj.student.email,
+            'contact': req_obj.student.contact_number,
+            'profile_picture': req_obj.student.profile_picture,
+        },
+        'attachments': attachments,
+    }
+
+    return JsonResponse(data)
+
+
 @login_required
 def dashboard_redirect(request):
     """Redirect /dashboard/ depending on user type"""

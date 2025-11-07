@@ -26,17 +26,17 @@
           {% csrf_token %}
           
           <div class="form-group mb-3">
-            <label for="student_id" class="font-weight-medium small">Student ID</label>
+            <label for="student_id" class="font-weight-medium small">Email / Student ID</label>
             <input 
               type="text" 
               class="form-control" 
               id="student_id" 
               name="student_id" 
-              placeholder="22-1234-567"
+              placeholder="yourname@cit.edu ... or 22-1234-567"
               required
             >
             <div class="invalid-feedback">
-              Please provide a valid Student ID.
+              Please provide a valid Email or Student ID.
             </div>
           </div>
           
@@ -106,7 +106,6 @@
   }
 </style>
 {% endblock %}
-
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -114,14 +113,108 @@ document.addEventListener('DOMContentLoaded', function() {
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
     
-    togglePassword.addEventListener('click', function() {
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-        
-        const icon = this.querySelector('i');
-        icon.classList.toggle('fa-eye');
-        icon.classList.toggle('fa-eye-slash');
+    if (togglePassword && passwordInput) {
+      togglePassword.addEventListener('click', function() {
+          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+          
+          const icon = this.querySelector('i');
+          if (icon) {
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+          }
+      });
+    }
+
+  const form = document.querySelector('form.needs-validation');
+  if (!form) return;
+
+  const identifier = document.getElementById('student_id');
+  const password = document.getElementById('password');
+  const remember = document.getElementById('rememberMe');
+
+  const idFeedback = identifier.closest('.form-group').querySelector('.invalid-feedback');
+  const pwFeedback = password.closest('.form-group').querySelector('.invalid-feedback');
+
+  function validateIdentifier() {
+    const val = (identifier.value || '').trim();
+    if (!val) {
+      idFeedback.textContent = 'Please provide your Email or Student ID.';
+      identifier.classList.add('is-invalid');
+      return false;
+    }
+
+    if (val.indexOf('@') !== -1) {
+      // Only accept cit.edu emails
+      const emailRegex = /^[A-Za-z0-9._%+-]+@cit\.edu$/i;
+      if (!emailRegex.test(val)) {
+        idFeedback.textContent = 'Use your CIT email: yourname@cit.edu';
+        identifier.classList.add('is-invalid');
+        return false;
+      }
+    } else {
+      // Student ID format: ##-####-###
+      const sidRegex = /^\d{2}-\d{4}-\d{3}$/;
+      if (!sidRegex.test(val)) {
+        idFeedback.textContent = 'Invalid Student ID format.';
+        identifier.classList.add('is-invalid');
+        return false;
+      }
+    }
+
+    identifier.classList.remove('is-invalid');
+    return true;
+  }
+
+  function validatePassword() {
+    const val = password.value || '';
+    if (val.length < 6) {
+      pwFeedback.textContent = 'Password must be at least 6 characters.';
+      password.classList.add('is-invalid');
+      return false;
+    }
+    password.classList.remove('is-invalid');
+    return true;
+  }
+
+  form.addEventListener('submit', function(e) {
+    // Uncheck "Remember me" when attempting to sign in (as requested)
+    if (remember) remember.checked = false;
+
+    const okId = validateIdentifier();
+    const okPw = validatePassword();
+
+    if (!okId || !okPw) {
+      e.preventDefault();
+      e.stopPropagation();
+      // focus first invalid field
+      if (!okId) identifier.focus(); else if (!okPw) password.focus();
+      return false;
+    }
+
+    return true; // allow submit
+  });
+
+  // Remove validation styles on input
+  [identifier, password].forEach(el => {
+    el.addEventListener('input', function() {
+      el.classList.remove('is-invalid');
     });
+  });
+
+  // If server returned messages (rendered as toasts), mark fields accordingly
+  document.querySelectorAll('.toast .toast-body').forEach(tb => {
+    const text = (tb.textContent || tb.innerText || '').toLowerCase();
+    if (/invalid password/.test(text) || /invalid password/i.test(text)) {
+      password.classList.add('is-invalid');
+      if (pwFeedback) pwFeedback.textContent = 'Invalid password. Please try again.';
+    }
+    if (/not registered|does not exist|not found|does not exist|does not exist in our records|this email is not registered|student id does not exist/i.test(text)) {
+      identifier.classList.add('is-invalid');
+      if (idFeedback && /email/.test(text)) idFeedback.textContent = 'This email is not registered.';
+      if (idFeedback && /student/i.test(text)) idFeedback.textContent = 'This student ID does not exist in our records.';
+    }
+  });
 });
 </script>
 {% endblock %}

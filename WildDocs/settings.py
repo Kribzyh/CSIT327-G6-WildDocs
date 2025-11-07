@@ -72,9 +72,13 @@ WSGI_APPLICATION = 'WildDocs.wsgi.application'
 # Database configuration using Supabase Session Pooler
 DATABASES = {
     "default": dj_database_url.config(
-        default="sqlite:///db.sqlite3",
+        default=(os.getenv('DATABASE_URL') or "sqlite:///db.sqlite3"),
         conn_max_age=600,  # persistent connections
-        ssl_require=True   # enforce SSL
+        # Only enforce SSL when using a Postgres DATABASE_URL. If no
+        # DATABASE_URL is set we fall back to sqlite and must not pass
+        # postgres-specific options (like sslmode) to sqlite's
+        # Connection constructor which will raise a TypeError.
+        ssl_require=True if os.getenv('DATABASE_URL', '').startswith('postgres') else False
     )
 }
 

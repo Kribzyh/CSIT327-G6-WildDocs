@@ -3,6 +3,10 @@
 
 {% block title %}All Document Requests - Admin{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="dashboard-container d-flex">
   <!-- Sidebar -->
@@ -33,28 +37,52 @@
                   <th>Purpose</th>
                   <th>Copies</th>
                   <th>Status</th>
+                  <th>Actions</th>
                   <th>Date Requested</th>
                 </tr>
               </thead>
               <tbody>
                 {% for req in all_requests %}
-                <tr>
+                <tr data-request-id="{{ req.id }}">
                   <td>{{ forloop.counter }}</td>
                   <td>{{ req.student.first_name }} {{ req.student.last_name }}</td>
                   <td>{{ req.document.name }}</td>
-                  <td>{{ req.purpose }}</td>
+                  <td>{{ req.purpose|truncatechars:60 }}</td>
                   <td>{{ req.copies }}</td>
-                  <td>
+                  <td class="request-status">
                     {% if req.status == 'Pending' %}
                       <span class="badge bg-warning text-dark">Pending</span>
                     {% elif req.status == 'Approved' %}
                       <span class="badge bg-success">Approved</span>
                     {% elif req.status == 'Rejected' %}
                       <span class="badge bg-danger">Rejected</span>
+                    {% elif req.status == 'Completed' %}
+                      <span class="badge bg-primary">Completed</span>
+                    {% elif req.status == 'Cancelled' %}
+                      <span class="badge bg-secondary">Cancelled</span>
                     {% else %}
                       <span class="badge bg-secondary">{{ req.status }}</span>
                     {% endif %}
                   </td>
+
+                  <td class="request-actions">
+                    <div class="btn-group" role="group" aria-label="actions">
+                      <button class="btn btn-sm btn-outline-primary view-btn" data-bs-toggle="modal" data-bs-target="#requestDetailModal" data-request-id="{{ req.id }}">View</button>
+                      {% if req.status == 'Pending' %}
+                        <button class="btn btn-sm btn-success action-btn" data-action="approve">Approve</button>
+                        <button class="btn btn-sm btn-danger action-btn" data-action="reject">Reject</button>
+                        <button class="btn btn-sm btn-outline-secondary action-btn" data-action="cancel">Cancel</button>
+                      {% elif req.status == 'Approved' %}
+                        <button class="btn btn-sm btn-primary action-btn" data-action="complete">Mark Complete</button>
+                        <button class="btn btn-sm btn-danger action-btn" data-action="reject">Reject</button>
+                      {% elif req.status == 'Rejected' or req.status == 'Cancelled' or req.status == 'Completed' %}
+                        <span class="text-muted small">No actions</span>
+                      {% else %}
+                        <button class="btn btn-sm btn-outline-secondary action-btn" data-action="cancel">Cancel</button>
+                      {% endif %}
+                    </div>
+                  </td>
+
                   <td>{{ req.date_requested|date:"M d, Y" }}</td>
                 </tr>
                 {% endfor %}
@@ -74,43 +102,159 @@
   </div>
 </div>
 
-<style>
-.dashboard-container {
-  min-height: 100vh;
-}
-.sidebar {
-  background: #1a1a1a;
-  color: #fff;
-  width: 250px;
-  min-height: 100vh;
+<!-- Styles are provided by dashboard/static/css/dashboard.css to keep admin and student layouts uniform -->
+<!-- Request detail modal -->
+<div class="modal fade" id="requestDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Request Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="request-detail-body">
+          <p class="text-muted">Loading...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+// CSRF helper (Django cookie)
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
 }
 
-.sidebar .nav-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 15px;
-  color: #ddd;
-  text-decoration: none;
-  border-radius: 5px;
-  transition: background 0.3s;
+async function postAction(requestId, action, note=''){
+  const url = "{% url 'admin_request_action' %}";
+  const form = new FormData();
+  form.append('request_id', requestId);
+  form.append('action', action);
+  if (note) form.append('note', note);
+
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: form
+  });
+  return resp.json();
 }
 
-.sidebar .nav-item i {
-  margin-right: 10px;
-}
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', async function(e){
+      const row = e.target.closest('tr');
+      const requestId = row.dataset.requestId;
+      const action = e.target.dataset.action;
+      e.target.disabled = true;
+      try{
+        const result = await postAction(requestId, action);
+        if (result.success){
+          // update badge
+          const statusCell = row.querySelector('.request-status');
+          let html = '';
+          if (result.status === 'Pending') html = '<span class="badge bg-warning text-dark">Pending</span>';
+          else if (result.status === 'Approved') html = '<span class="badge bg-success">Approved</span>';
+          else if (result.status === 'Rejected') html = '<span class="badge bg-danger">Rejected</span>';
+          else if (result.status === 'Completed') html = '<span class="badge bg-primary">Completed</span>';
+          else if (result.status === 'Cancelled') html = '<span class="badge bg-secondary">Cancelled</span>';
+          else html = '<span class="badge bg-secondary">' + result.status + '</span>';
+          statusCell.innerHTML = html;
 
-.sidebar .nav-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
+          // refresh action buttons (simple approach: reload the page to reflect accurate buttons)
+          // but to avoid full reload we disable buttons when final
+          row.querySelectorAll('.action-btn').forEach(b => b.remove());
+          const actionsCell = row.querySelector('.request-actions');
+          const noteSpan = document.createElement('div');
+          noteSpan.className = 'text-success small mt-1';
+          noteSpan.textContent = 'Status updated: ' + result.status;
+          actionsCell.appendChild(noteSpan);
+        } else {
+          alert('Error: ' + (result.error || 'Unknown'));
+        }
+      } catch(err){
+        console.error(err);
+        alert('Network error while performing action');
+      } finally {
+        e.target.disabled = false;
+      }
+    });
+  });
 
-.sidebar .nav-item.active {
-  background: #0d6efd;
-  color: #fff;
-}
+  // View details: request full data from server and populate modal
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', async function(e){
+      const requestId = e.target.dataset.requestId;
+      const url = "{% url 'admin_request_detail' %}" + `?request_id=${encodeURIComponent(requestId)}`;
+      const body = document.getElementById('request-detail-body');
+      body.innerHTML = '<p class="text-muted">Loading details...</p>';
+      try{
+        const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const data = await resp.json();
+        if (!data.success){
+          body.innerHTML = `<div class="text-danger">Error: ${data.error || 'Could not load details'}</div>`;
+          return;
+        }
 
-.sidebar .logout {
-  color: #ff4c4c;
-}
-</style>
+        const r = data.request;
+        const s = data.student;
+        let attachmentsHtml = '';
+        if (data.attachments && data.attachments.length){
+          attachmentsHtml = '<ul class="list-unstyled">';
+          data.attachments.forEach(a => {
+            attachmentsHtml += `<li><a href="${a.url}" target="_blank" rel="noopener">Attachment ${a.id}</a> <small class="text-muted">(${a.size || 'unknown'} bytes)</small></li>`;
+          });
+          attachmentsHtml += '</ul>';
+        } else {
+          attachmentsHtml = '<p class="text-muted">No attachments</p>';
+        }
+
+        body.innerHTML = `
+          <div class="row">
+            <div class="col-md-3 text-center">
+              ${s.profile_picture ? `<img src="${s.profile_picture}" class="img-fluid rounded mb-2" alt="Profile">` : '<i class="fas fa-user-circle fa-4x text-muted"></i>'}
+              <p class="mt-2"><strong>${s.name}</strong><br><small>${s.student_number}</small></p>
+              <p class="mb-0"><a href="mailto:${s.email}">${s.email}</a></p>
+              <p class="mb-0"><a href="tel:${s.contact}">${s.contact || 'N/A'}</a></p>
+            </div>
+            <div class="col-md-9">
+              <h5>Request #${r.id} — ${r.document}</h5>
+              <p><strong>Purpose:</strong> ${r.purpose}</p>
+              <p><strong>Copies:</strong> ${r.copies} &nbsp; <strong>Status:</strong> ${r.status}</p>
+              <p><strong>Requested:</strong> ${r.date_requested}</p>
+              <hr>
+              <h6>Notes</h6>
+              <p>${r.notes ? r.notes.replace(/\n/g,'<br>') : '<span class="text-muted">No notes</span>'}</p>
+              <h6>Attachments</h6>
+              ${attachmentsHtml}
+            </div>
+          </div>
+        `;
+      } catch(err){
+        console.error(err);
+        body.innerHTML = '<div class="text-danger">Network error while loading details.</div>';
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
 {% endblock %}

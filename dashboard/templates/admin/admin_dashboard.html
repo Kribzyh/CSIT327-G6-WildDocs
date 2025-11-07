@@ -3,6 +3,15 @@
 
 {% block title %}Admin Dashboard{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+    /* Minor adjustments to admin main content spacing to match student layout */
+    .main-content { padding: 2rem; }
+    .card .card-body .display-6 { font-size: 2.5rem; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="dashboard-container d-flex">
     <!-- Sidebar -->

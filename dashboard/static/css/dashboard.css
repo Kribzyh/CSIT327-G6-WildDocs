@@ -50,24 +50,31 @@
 .nav-item {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1.5rem;
+  padding: 0.9rem 1.25rem;
   color: #333;
   text-decoration: none;
-  font-weight: 500;
-  font-size: 14px;
-  border-radius: 15px !important;
-  transition: all 0.3s ease;
-  background-color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: 12px !important;
+  transition: all 0.18s ease;
+  background-color: #fff !important;
   border: none;
   width: 100%;
   text-align: left;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.03);
 }
 
 .nav-item i {
-  margin-right: 0.75rem;
-  width: 20px;
-  text-align: center;
-  color: #666;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  color: #800000;
+  margin-right: 0.9rem;
+  font-size: 14px;
 }
 
 .nav-item:hover {
@@ -81,10 +88,10 @@
 .nav-item.active {
   background-color: #FFA500 !important;
   color: white !important;
-  font-weight: 600;
 }
 
 .nav-item.active i {
+  background: transparent;
   color: white !important;
 }
 

@@ -96,6 +96,7 @@
                   id="email" 
                   name="email" 
                   placeholder="yourname@cit.edu"
+                  pattern="^[A-Za-z0-9._%+-]+@cit\.edu$"
                   required
                 >
                 <div class="invalid-feedback">Please provide a valid email address.</div>
@@ -317,8 +318,9 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Toggle password visibility for password field
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password');
+  const form = document.querySelector('form.needs-validation');
+  const togglePassword = document.getElementById('togglePassword');
+  const passwordInput = document.getElementById('password');
     
     togglePassword.addEventListener('click', function() {
         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -342,17 +344,118 @@ document.addEventListener('DOMContentLoaded', function() {
         icon.classList.toggle('fa-eye-slash');
     });
 
-    // Password confirmation validation
-    function validatePassword() {
-        if (passwordInput.value !== confirmPasswordInput.value) {
-            confirmPasswordInput.setCustomValidity("Passwords don't match");
-        } else {
-            confirmPasswordInput.setCustomValidity('');
-        }
+  // Password confirmation validation
+  function validatePasswordMatch() {
+    if (passwordInput.value !== confirmPasswordInput.value) {
+      confirmPasswordInput.setCustomValidity("Passwords don't match");
+      confirmPasswordInput.classList.remove('is-valid');
+      confirmPasswordInput.classList.add('is-invalid');
+      return false;
+    } else {
+      confirmPasswordInput.setCustomValidity('');
+      confirmPasswordInput.classList.remove('is-invalid');
+      if (confirmPasswordInput.value.length >= 6) confirmPasswordInput.classList.add('is-valid');
+      return true;
     }
-    
-    passwordInput.addEventListener('change', validatePassword);
-    confirmPasswordInput.addEventListener('keyup', validatePassword);
+  }
+
+  passwordInput.addEventListener('input', function() {
+    // validate length
+    if (passwordInput.value.length >= 6) {
+      passwordInput.classList.remove('is-invalid');
+      passwordInput.classList.add('is-valid');
+    } else {
+      passwordInput.classList.remove('is-valid');
+      if (passwordInput.value.length > 0) passwordInput.classList.add('is-invalid');
+      else passwordInput.classList.remove('is-invalid');
+    }
+    validatePasswordMatch();
+  });
+
+  confirmPasswordInput.addEventListener('input', function() {
+    validatePasswordMatch();
+  });
+
+  // Generic field validators to show green check or red error.
+  const firstName = document.getElementById('first_name');
+  const lastName = document.getElementById('last_name');
+  const studentId = document.getElementById('student_id');
+  const email = document.getElementById('email');
+  const course = document.getElementById('course');
+  const yearLevel = document.getElementById('year_level');
+
+  function setValid(el) {
+    el.classList.remove('is-invalid');
+    el.classList.add('is-valid');
+  }
+  function setInvalid(el) {
+    el.classList.remove('is-valid');
+    el.classList.add('is-invalid');
+  }
+
+  function validateNotEmpty(el) {
+    if (!el.value || el.value.trim() === '') { setInvalid(el); return false; }
+    setValid(el); return true;
+  }
+
+  function validateStudentIdField() {
+    const sidRegex = /^\d{2}-\d{4}-\d{3}$/;
+    if (!sidRegex.test(studentId.value.trim())) { setInvalid(studentId); return false; }
+    setValid(studentId); return true;
+  }
+
+  function validateEmailField() {
+    const emailRegex = /^[A-Za-z0-9._%+-]+@cit\.edu$/i;
+    if (!emailRegex.test(email.value.trim())) { setInvalid(email); return false; }
+    setValid(email); return true;
+  }
+
+  function validateSelect(el) {
+    if (!el.value || el.value === '') { setInvalid(el); return false; }
+    setValid(el); return true;
+  }
+
+  // Attach input/change listeners
+  firstName.addEventListener('input', () => validateNotEmpty(firstName));
+  lastName.addEventListener('input', () => validateNotEmpty(lastName));
+  studentId.addEventListener('input', validateStudentIdField);
+  email.addEventListener('input', validateEmailField);
+  course.addEventListener('change', () => validateSelect(course));
+  yearLevel.addEventListener('change', () => validateSelect(yearLevel));
+
+    // Run initial validation to pick up autofilled values and set classes
+    validateNotEmpty(firstName);
+    validateNotEmpty(lastName);
+    validateStudentIdField();
+    validateEmailField();
+    validateSelect(course);
+    validateSelect(yearLevel);
+    if (passwordInput.value && passwordInput.value.length >= 6) passwordInput.classList.add('is-valid');
+    validatePasswordMatch();
+
+    // On form submit, validate all fields and prevent submit if any invalid.
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      let ok = true;
+      if (!validateNotEmpty(firstName)) ok = false;
+      if (!validateNotEmpty(lastName)) ok = false;
+      if (!validateStudentIdField()) ok = false;
+      if (!validateEmailField()) ok = false;
+      if (!validateSelect(course)) ok = false;
+      if (!validateSelect(yearLevel)) ok = false;
+      if (!(passwordInput.value.length >= 6)) { setInvalid(passwordInput); ok = false; }
+      if (!validatePasswordMatch()) ok = false;
+
+      if (!ok) {
+        // prevent submission and ensure no green check marks are shown for invalid fields
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+      // allow submit
+      return true;
+    });
+  }
 });
 </script>
 {% endblock %}
