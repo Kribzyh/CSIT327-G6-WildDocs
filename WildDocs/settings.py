@@ -6,6 +6,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
+from urllib.parse import urlparse #from render deployment instructions snippet (10.11.2025)
 
 # Load environment variables
 load_dotenv()
@@ -19,8 +20,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-0y$vp&@l-h)yylg#lr2e9h!d9+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*.supabase.co']
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*.supabase.co']
 
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"] + os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
+# ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")]
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 
 # Application definition
 
@@ -39,6 +43,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # this is for render deployment (10.11.2025)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -123,12 +128,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / "staticfiles" # added this directory for render deployment (10.11.2025)
 STATICFILES_DIRS = [
     BASE_DIR / "index/static",
     BASE_DIR / "dashboard/static",
     BASE_DIR / "request/static",
 ]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage" # this is for render deployment (10.11.2025)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -155,3 +162,10 @@ EMAIL_HOST_USER = 'delposo20@gmail.com'
 EMAIL_HOST_PASSWORD = 'makm dmej acxd kipp'  
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 EMAIL_TIMEOUT = 30
+
+
+# Render instructions use env flags to automatically toggle security in production.
+if os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "False").lower() == "true":
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True

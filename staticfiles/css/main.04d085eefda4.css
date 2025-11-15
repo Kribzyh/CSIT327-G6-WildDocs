@@ -1,0 +1,318 @@
+/* Hero Section Styles */
+.hero-section {
+    background: linear-gradient(135deg, #800000 0%, #a00000 100%);
+    color: white;
+    padding: 80px 0;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+}
+
+.hero-section p {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    opacity: 0.95;
+}
+
+.hero-section .btn {
+    padding: 12px 30px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.hero-section .btn-light:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.hero-section .btn-outline-light:hover {
+    background-color: white;
+    color: #800000;
+    transform: translateY(-2px);
+}
+
+/* Quick Access Card */
+.quick-access-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    padding: 2rem;
+    max-width: 400px;
+    margin: 0 auto;
+    transition: transform 0.3s ease;
+}
+
+.quick-access-card:hover {
+    transform: translateY(-5px);
+}
+
+.quick-access-card h3 {
+    color: #800000;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.quick-access-item {
+    padding: 1rem;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.quick-access-item:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.05);
+}
+
+.quick-access-item i {
+    color: #800000;
+    margin-bottom: 0.75rem;
+}
+
+.quick-access-item p {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+/* Features Section */
+#features {
+    padding: 80px 0;
+    background-color: #f8f9fa;
+}
+
+#features h2 {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+#features .lead {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+}
+
+.feature-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.feature-card .card-body {
+    padding: 2.5rem 2rem;
+}
+
+.feature-card i {
+    color: #800000;
+    margin-bottom: 1.5rem;
+}
+
+.feature-card .card-title {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.feature-card .card-text {
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+/* How It Works Section */
+.how-it-works-section {
+    padding: 80px 0;
+    background-color: white;
+}
+
+.how-it-works-section h3 {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
+.step-container {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    background: #800000;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-right: 1.5rem;
+    box-shadow: 0 4px 10px rgba(128, 0, 0, 0.3);
+}
+
+.step-content h6 {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.step-content p {
+    color: #6c757d;
+    margin-bottom: 0;
+    line-height: 1.6;
+}
+
+/* Available Documents Card */
+.documents-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    text-align: center;
+}
+
+.documents-card h5 {
+    color: #800000;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+}
+
+.documents-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.documents-list li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    color: #333;
+}
+
+.documents-list li:last-child {
+    border-bottom: none;
+}
+
+.documents-list li i {
+    color: #28a745;
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+/* Footer */
+footer {
+    background-color: #343a40;
+    color: white;
+    padding: 2rem 0;
+    margin-top: 0;
+}
+
+footer p {
+    margin-bottom: 0;
+    opacity: 0.8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 60px 0;
+        text-align: center;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-section p {
+        font-size: 1.1rem;
+    }
+    
+    .hero-section .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .quick-access-card {
+        margin-top: 2rem;
+        padding: 1.5rem;
+    }
+    
+    .feature-card .card-body {
+        padding: 2rem 1.5rem;
+    }
+    
+    .step-number {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        margin-right: 1rem;
+    }
+    
+    .how-it-works-section h3 {
+        font-size: 1.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .quick-access-item p {
+        font-size: 0.8rem;
+    }
+    
+    .quick-access-item i {
+        font-size: 2rem;
+    }
+}
+
+/* Utility Classes */
+.text-maroon {
+    color: #800000;
+}
+
+.bg-maroon {
+    background-color: #800000;
+}
+
+.btn-maroon {
+    background-color: #800000;
+    color: white;
+    border: none;
+}
+
+.btn-maroon:hover {
+    background-color: #a00000;
+    color: white;
+}
