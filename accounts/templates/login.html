@@ -32,7 +32,7 @@
               class="form-control" 
               id="student_id" 
               name="student_id" 
-              placeholder="yourname@cit.edu ... or 22-1234-567"
+              placeholder="name.surname@cit.edu/22-1234-567"
               required
             >
             <div class="invalid-feedback">
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Only accept cit.edu emails
       const emailRegex = /^[A-Za-z0-9._%+-]+@cit\.edu$/i;
       if (!emailRegex.test(val)) {
-        idFeedback.textContent = 'Use your CIT email: yourname@cit.edu';
+        idFeedback.textContent = 'Use your CIT email: name.surname@cit.edu';
         identifier.classList.add('is-invalid');
         return false;
       }
