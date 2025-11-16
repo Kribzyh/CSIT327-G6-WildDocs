@@ -6,9 +6,11 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
+from urllib.parse import urlparse # render deployment
 
 # Load environment variables
-load_dotenv()
+if os.environ.get("RENDER", "") != "true": # render deployment
+    load_dotenv() # render deployment
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,8 +21,19 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-0y$vp&@l-h)yylg#lr2e9h!d9+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*.supabase.co']
+# Security (production)
+if os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "True").lower() == "true":
+ SECURE_SSL_REDIRECT = True
+ SESSION_COOKIE_SECURE = True
+ CSRF_COOKIE_SECURE = True
 
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*.supabase.co']
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()] # render deployment
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()] # render deployment
+
+# Static files (WhiteNoise)
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Application definition
 
@@ -39,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # render deployment
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -46,6 +60,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# WhiteNoise: serve compressed static files
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage" # render deployment
 
 ROOT_URLCONF = 'WildDocs.urls'
 
