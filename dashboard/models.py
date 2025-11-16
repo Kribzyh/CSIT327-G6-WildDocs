@@ -21,8 +21,8 @@ class StudentAccount(models.Model):
     course = models.CharField(max_length=100, blank=True, null=True)
     year_level = models.IntegerField(blank=True, null=True)
     contact_number = models.CharField(max_length=15, blank=True, null=True)
-    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)  # Add this line
-
+    # profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True) 
+    profile_picture = models.URLField(blank=True, null=True)
     def save(self, *args, **kwargs):
         # hash the password if it's not already hashed
         if not self.password.startswith('pbkdf2_'):
