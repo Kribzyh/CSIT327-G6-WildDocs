@@ -21,7 +21,7 @@ supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVIC
 def get_student_data(user):
     """Get student data or return None if not found"""
     try:
-        student = StudentAccount.objects.get(user=request.user)
+        student = StudentAccount.objects.get(user=user)
         return {
             'student': student,
             'student_name': str(student),
