@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "==> Installing dependencies"
-pip install --upgrade pip # this is optional
-pip install -r requirements.txt
+echo "==> Installing dependencies via Pipenv"
+pip install --upgrade pip
+pip install pipenv
+pipenv install --deploy --ignore-pipfile
 
-echo "==> Running database migrations"
-python manage.py makemigrations
-python manage.py migrate --noinput
+echo "==> Running migrations"
+pipenv run python manage.py migrate --noinput
 
 echo "==> Collecting static files"
-python manage.py collectstatic --noinput
-
-echo "==> Build complete"
+pipenv run python manage.py collectstatic --noinput
