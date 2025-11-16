@@ -26,6 +26,8 @@ if os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "True").lower() == "true":
  SECURE_SSL_REDIRECT = True
  SESSION_COOKIE_SECURE = True
  CSRF_COOKIE_SECURE = True
+ 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*.supabase.co']
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()] # render deployment
