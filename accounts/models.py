@@ -79,7 +79,7 @@ class Request(models.Model):
 
 # --- Payment associated with a request ---
 class Payment(models.Model):
-    request = models.ForeignKey(Request, on_delete=models.CASCADE)
+    request = models.ForeignKey(Request, on_delete=models.CASCADE, related_name='accounts_payments')
     amount = models.DecimalField(max_digits=8, decimal_places=2)
     payment_status = models.CharField(max_length=50, default="Unpaid")
     date_paid = models.DateTimeField(blank=True, null=True)
