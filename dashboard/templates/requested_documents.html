@@ -112,7 +112,7 @@
                         <td>{{ request.date_requested|date:"F j, Y" }}</td>
                         <td>
                           {% if request.status == 'Pending' %}
-                            <button class="btn btn-sm btn-danger">Cancel</button>
+                            <a href="{% url 'cancel_request' request.id %}" class="btn btn-sm btn-danger">Cancel</a>
                           {% elif request.status == 'Approved' %}
                             <button class="btn btn-sm btn-info">Pickup Slip</button>
                           {% elif request.status == 'Completed' %}

@@ -11,6 +11,7 @@ urlpatterns = [
     path('history/', views.history, name='history'),
     path('about_us/', views.about_us, name='about_us'),
     path('faqs/', views.faqs, name='faqs'),
+    path("request/cancel/<int:request_id>/", views.cancel_request, name="cancel_request"),
 
     # Admin routes
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),

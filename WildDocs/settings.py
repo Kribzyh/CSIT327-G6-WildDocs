@@ -6,10 +6,11 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
-from urllib.parse import urlparse #from render deployment instructions snippet (10.11.2025)
+from urllib.parse import urlparse # render deployment
 
 # Load environment variables
-load_dotenv()
+if os.environ.get("RENDER", "") != "true": # render deployment
+    load_dotenv() # render deployment
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,11 +21,21 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-0y$vp&@l-h)yylg#lr2e9h!d9+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*.supabase.co']
+# Security (production)
+if os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "True").lower() == "true":
+ SECURE_SSL_REDIRECT = True
+ SESSION_COOKIE_SECURE = True
+ CSRF_COOKIE_SECURE = True
+ 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"] + os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
-# ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")]
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*.supabase.co']
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()] # render deployment
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()] # render deployment
+
+# Static files (WhiteNoise)
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Application definition
 
@@ -44,7 +55,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # this is for render deployment (10.11.2025)
+    'whitenoise.middleware.WhiteNoiseMiddleware', # render deployment
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -52,6 +63,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# WhiteNoise: serve compressed static files
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage" # render deployment
 
 ROOT_URLCONF = 'WildDocs.urls'
 
@@ -144,8 +158,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage" 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Media (for uploaded profile pictures) - Update for Supabase Storage
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'

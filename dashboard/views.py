@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from accounts.models import StudentAccount, Request, DocumentType, AdminAccount
@@ -12,6 +12,8 @@ from django.views.decorators.cache import never_cache
 from django.utils import timezone
 from datetime import timedelta
 from .decorators import student_required  # ✅ NEW IMPORT
+from supabase import create_client, Client
+supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
 
 
 # ===== HELPER FUNCTIONS =====
@@ -53,19 +55,19 @@ def handle_profile_update(request, student):
             if file_extension not in ['.jpg', '.jpeg', '.png', '.gif']:
                 return JsonResponse({'success': False, 'error': 'Invalid format. Use JPG, PNG, or GIF.'})
             
-            # Save locally
-            media_dir = os.path.join(settings.MEDIA_ROOT, 'profile_pictures', str(student.student_number))
-            os.makedirs(media_dir, exist_ok=True)
-            unique_filename = f"{uuid.uuid4()}{file_extension}"
-            local_path = os.path.join(media_dir, unique_filename)
+            # Upload to Supabase Storage
+            unique_filename = f"{student.student_number}_{uuid.uuid4()}{file_extension}"
+            file_data = profile_picture.read()
 
-            with open(local_path, 'wb') as f:
-                for chunk in profile_picture.chunks():
-                    f.write(chunk)
+            res = supabase.storage.from_("profile-pictures").upload(
+                unique_filename,
+                file_data,
+                {"content-type": profile_picture.content_type}
+            )
 
-            profile_picture_url = os.path.join(
-                settings.MEDIA_URL, 'profile_pictures', str(student.student_number), unique_filename
-            ).replace('\\', '/')
+            # Get public URL
+            public_url = supabase.storage.from_("profile-pictures").get_public_url(unique_filename)
+            profile_picture_url = public_url
 
         # Update fields
         student.first_name = request.POST.get('first_name', student.first_name)
@@ -483,6 +485,22 @@ def admin_request_detail(request):
 
     return JsonResponse(data)
 
+@login_required
+def cancel_request(request, request_id):
+    # Get the logged-in student's StudentAccount instance
+    try:
+        student_acc = StudentAccount.objects.get(user=request.user)
+    except StudentAccount.DoesNotExist:
+        messages.error(request, "Student account not found.")
+        return redirect("dashboard")
+
+    # Get the request object only if it belongs to this student
+    req = get_object_or_404(Request, id=request_id, student=student_acc)
+
+    # Delete the request
+    req.delete()
+    messages.success(request, "Request cancelled")
+    return redirect("requested_documents")
 
 @login_required
 def dashboard_redirect(request):
