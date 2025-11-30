@@ -6,105 +6,164 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <style>
-    /* Minor adjustments to admin main content spacing to match student layout */
     .main-content { padding: 2rem; }
-    .card .card-body .display-6 { font-size: 2.5rem; }
+    .summary-card .display-5 { font-size: 2.75rem; }
+    .icon-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: rgba(13, 110, 253, 0.08);
+        font-size: 1.1rem;
+    }
+    .stage-card .badge { font-size: 0.85rem; }
+    .stage-card .status-tags .badge { font-size: 0.7rem; }
+    .needs-attention .list-group-item { border: 0; border-bottom: 1px solid #f1f3f5; }
+    .needs-attention .list-group-item:last-child { border-bottom: 0; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container d-flex">
-    <!-- Sidebar -->
+<div class="dashboard-container">
     {% include 'admin/includes/sidebar.html' %}
 
-    <!-- Main Content -->
-    <div class="main-content flex-grow-1 p-4">
-        <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>Welcome, {{ admin.full_name }}!</h2>
-                <p class="text-muted">Role: {{ admin.role }}</p>
+    <div class="main-content">
+        <div class="welcome-section admin-welcome">
+            <div class="welcome-content">
+                <div class="welcome-left">
+                    <div class="date-display-welcome">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        <span id="welcomeDate">Loading...</span>
+                    </div>
+                    <div class="welcome-text">
+                        <h3>Welcome back, {{ admin.full_name|default:admin.user.get_full_name|default:admin.user.username }}!</h3>
+                    </div>
+                </div>
+                <div class="welcome-right">
+                    <h1 class="welcome-title">WildDocs</h1>
+                </div>
             </div>
+        </div>
 
-            <!-- Dashboard Metrics -->
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body">
-                            <h5 class="card-title">📄 Pending Requests</h5>
-                            <p class="card-text display-6 text-primary fw-bold">{{ pending_count }}</p>
+        <div class="dashboard-content admin-dashboard-content">
+            <section class="stats-grid">
+                <div class="stat-cards-row admin-stat-cards">
+                    <div class="stat-card status-pending">
+                        <div class="stat-card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <div>
+                                <div class="stat-header">In-Progress</div>
+                                <div class="stat-number">{{ totals.open }}</div>
+                                <div class="stat-meta">Reviewing / Printing</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card status-approved">
+                        <div class="stat-card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <div class="stat-header">Completed Term</div>
+                                <div class="stat-number">{{ totals.completed }}</div>
+                                <div class="stat-meta">Released / Claimed</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card status-completed">
+                        <div class="stat-card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-circle-exclamation"></i>
+                            </div>
+                            <div>
+                                <div class="stat-header">Exceptions</div>
+                                <div class="stat-number">{{ totals.exceptions }}</div>
+                                <div class="stat-meta">Rejected / Cancelled</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card status-info">
+                        <div class="stat-card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <div class="stat-header">Overall Volume</div>
+                                <div class="stat-number">{{ totals.overall }}</div>
+                                <div class="stat-meta">Tracked requests</div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <div class="col-md-4 mb-4">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body">
-                            <h5 class="card-title">✅ Approved</h5>
-                            <p class="card-text display-6 text-success fw-bold">{{ approved_count }}</p>
-                        </div>
+            <section class="admin-table-card">
+                <div class="section-header">
+                    <div>
+                        <h4>Search Document Requests</h4>
+                        <p class="text-muted mb-0">Filter the latest submissions by keyword or queue</p>
                     </div>
                 </div>
-
-                <div class="col-md-4 mb-4">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body">
-                            <h5 class="card-title">❌ Rejected</h5>
-                            <p class="card-text display-6 text-danger fw-bold">{{ rejected_count }}</p>
-                        </div>
+                <div class="table-filters">
+                    <div class="input-group filter-search">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" id="recentRequestsSearch" class="form-control" placeholder="Search student, document, status, or stage" autocomplete="off">
+                    </div>
+                    <div class="filter-meta text-muted">
+                        <small id="recentRequestsVisibleCount">{{ recent_requests|length }} of {{ recent_requests|length }} shown</small>
                     </div>
                 </div>
-            </div>
-
-            <!-- Recent Document Requests -->
-            <div class="mt-5">
-                <h4 class="mb-3">Recent Document Requests</h4>
-                <table class="table table-hover align-middle shadow-sm">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>#</th>
-                            <th>Student Name</th>
-                            <th>Document Type</th>
-                            <th>Status</th>
-                            <th>Date Requested</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for req in recent_requests %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ req.student.first_name }} {{ req.student.last_name }}</td>
-                            <td>{{ req.document.name }}</td>
-                            <td>
-                                {% if req.status == 'Pending' %}
-                                    <span class="badge bg-warning text-dark">Pending</span>
-                                {% elif req.status == 'Approved' %}
-                                    <span class="badge bg-success">Approved</span>
-                                {% elif req.status == 'Rejected' %}
-                                    <span class="badge bg-danger">Rejected</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">{{ req.status }}</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ req.date_requested|date:"M d, Y" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">
-                                No recent document requests found.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                <div class="stage-filter-pills">
+                    <button type="button" class="stage-filter-btn active" data-stage-filter="all">All</button>
+                    <button type="button" class="stage-filter-btn" data-stage-filter="pending">Pending</button>
+                    <button type="button" class="stage-filter-btn" data-stage-filter="requirements">Requirements Queue</button>
+                    <button type="button" class="stage-filter-btn" data-stage-filter="payment">Payment Queue</button>
+                    <button type="button" class="stage-filter-btn" data-stage-filter="processing">Processing/Printing</button>
+                    <button type="button" class="stage-filter-btn" data-stage-filter="pickup">Ready for Pickup</button>
+                    <button type="button" class="stage-filter-btn" data-stage-filter="completed">Completed/Released</button>
+                    <button type="button" class="stage-filter-btn" data-stage-filter="exceptions">Cancelled/Rejected</button>
+                </div>
+                <!-- documents list removed per request -->
+                <div class="table-responsive recent-requests-wrapper">
+                    <table id="recentRequestsTable" class="table align-middle admin-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Student</th>
+                                <th>Document</th>
+                                <th>Status</th>
+                                <th>Stage</th>
+                                <th>Date Requested</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if recent_requests %}
+                                {% for req in recent_requests %}
+                                <tr data-filterable="true" data-stage-category="{{ req.stage_category }}" data-stage-key="{{ req.stage_key }}" data-filter-value="{{ req.student.first_name }} {{ req.student.last_name }} {{ req.document.name }} {{ req.status_label }} {{ req.stage_label }} {{ req.date_requested|date:'M d, Y' }}">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ req.student.first_name }} {{ req.student.last_name }}</td>
+                                    <td>{{ req.document.name }}</td>
+                                    <td><span class="badge {{ req.badge_class }}">{{ req.status_label }}</span></td>
+                                    <td class="text-muted">{{ req.stage_label }}</td>
+                                    <td>{{ req.date_requested|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% endif %}
+                            <tr id="recentRequestsEmptyRow" {% if recent_requests %}style="display: none;"{% endif %}>
+                                <td colspan="6" class="text-center text-muted">No document requests match your filters.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </div>
     </div>
 </div>
+{% endblock %}
 
-<!-- Styles -->
-<style>
-.dashboard-container {
-    min-height: 100vh;
-}
-</style>
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}?v=2"></script>
 {% endblock %}
