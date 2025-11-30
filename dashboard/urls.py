@@ -8,6 +8,10 @@ urlpatterns = [
     # Student routes
     path('student_profile/', views.student_profile, name='student_profile'),
     path('requested_documents/', views.requested_documents, name='requested_documents'),
+    path('requested_documents/<int:request_id>/requirements/', views.submit_requirements, name='submit_requirements'),
+    path('requested_documents/<int:request_id>/requirement-uploads/', views.get_requirement_uploads, name='get_requirement_uploads'),
+    path('requested_documents/<int:request_id>/payment/', views.submit_payment_receipt, name='submit_payment_receipt'),
+    path('requested_documents/requirement-upload/<int:upload_id>/delete/', views.delete_requirement_upload, name='delete_requirement_upload'),
     path('history/', views.history, name='history'),
     path('about_us/', views.about_us, name='about_us'),
     path('faqs/', views.faqs, name='faqs'),
@@ -20,5 +24,6 @@ urlpatterns = [
     path('admin-settings/', views.admin_settings, name='admin_settings'),
     path('admin-request-action/', views.admin_request_action, name='admin_request_action'),
     path('admin-request-detail/', views.admin_request_detail, name='admin_request_detail'),
+    path('admin-debug-echo/', views.admin_debug_echo, name='admin_debug_echo'),
 ]
 
