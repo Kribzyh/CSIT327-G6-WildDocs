@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from accounts.models import Request, StudentAccount
+from accounts.models import Request, StudentAccount, RequestWorkflow
 from datetime import datetime, timedelta
 
 
@@ -43,25 +43,43 @@ class RequestManager:
     @staticmethod
     def get_pending_requests_for_student(student):
         """Get all pending requests for a student"""
-        return Request.objects.filter(student=student, status='Pending').order_by('-date_requested')
+        return Request.objects.filter(
+            student=student,
+            status__in=RequestWorkflow.pending_statuses()
+        ).order_by('-date_requested')
     
     @staticmethod
     def get_approved_requests_for_student(student):
         """Get all approved requests for a student"""
-        return Request.objects.filter(student=student, status='Approved').order_by('-date_requested')
+        return Request.objects.filter(
+            student=student,
+            status__in=RequestWorkflow.approval_statuses()
+        ).order_by('-date_requested')
     
     @staticmethod
     def get_completed_requests_for_student(student):
         """Get all completed requests for a student"""
-        return Request.objects.filter(student=student, status='Completed').order_by('-date_requested')
+        return Request.objects.filter(
+            student=student,
+            status__in=RequestWorkflow.completed_statuses()
+        ).order_by('-date_requested')
     
     @staticmethod
     def get_request_statistics(student):
         """Get statistics for a student's requests"""
         total_requests = Request.objects.filter(student=student).count()
-        pending_count = Request.objects.filter(student=student, status='Pending').count()
-        approved_count = Request.objects.filter(student=student, status='Approved').count()
-        completed_count = Request.objects.filter(student=student, status='Completed').count()
+        pending_count = Request.objects.filter(
+            student=student,
+            status__in=RequestWorkflow.pending_statuses()
+        ).count()
+        approved_count = Request.objects.filter(
+            student=student,
+            status__in=RequestWorkflow.approval_statuses()
+        ).count()
+        completed_count = Request.objects.filter(
+            student=student,
+            status__in=RequestWorkflow.completed_statuses()
+        ).count()
         
         return {
             'total': total_requests,
@@ -73,7 +91,7 @@ class RequestManager:
     @staticmethod
     def calculate_processing_time(request):
         """Calculate processing time for a request"""
-        if request.status == 'Completed':
+        if request.status in RequestWorkflow.completed_statuses():
             # This would use actual completion date when that field exists
             return (timezone.now() - request.date_requested).days
         return None
@@ -83,6 +101,50 @@ class RequestManager:
         """Get approved requests that are overdue for pickup"""
         threshold_date = timezone.now() - timedelta(days=days_threshold)
         return Request.objects.filter(
-            status='Approved',
+            status__in=RequestWorkflow.approval_statuses(),
             date_requested__lt=threshold_date
         )
+
+
+class RequirementUpload(models.Model):
+    """Stores metadata for requirement files uploaded by students (backed by Supabase storage)."""
+    request = models.ForeignKey(Request, on_delete=models.CASCADE, related_name='requirement_uploads')
+    uploaded_by = models.ForeignKey(StudentAccount, on_delete=models.SET_NULL, null=True, blank=True, related_name='uploads')
+    file_name = models.CharField(max_length=512)
+    file_url = models.TextField(blank=True, null=True)
+    supabase_id = models.CharField(max_length=255, blank=True, null=True)
+    delete_url = models.TextField(blank=True, null=True)
+    content_type = models.CharField(max_length=100, blank=True, null=True)
+    file_size = models.BigIntegerField(blank=True, null=True)
+    provider = models.CharField(max_length=50, default='supabase')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Requirement Upload'
+        verbose_name_plural = 'Requirement Uploads'
+
+    def __str__(self):
+        return f"Upload {self.file_name} for Request #{self.request.id}"
+
+
+class PaymentUpload(models.Model):
+    """Stores metadata for payment receipt files uploaded by students."""
+    request = models.ForeignKey(Request, on_delete=models.CASCADE, related_name='payment_uploads')
+    uploaded_by = models.ForeignKey(StudentAccount, on_delete=models.SET_NULL, null=True, blank=True, related_name='payment_uploads')
+    file_name = models.CharField(max_length=512)
+    file_url = models.TextField(blank=True)
+    supabase_id = models.CharField(max_length=255, blank=True, null=True)
+    delete_url = models.TextField(blank=True)
+    content_type = models.CharField(max_length=100, blank=True, null=True)
+    file_size = models.BigIntegerField(blank=True, null=True)
+    provider = models.CharField(max_length=50, default='supabase')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Payment Upload'
+        verbose_name_plural = 'Payment Uploads'
+
+    def __str__(self):
+        return f"Payment {self.file_name} for Request #{self.request.id}"
