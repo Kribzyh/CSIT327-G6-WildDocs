@@ -5,133 +5,543 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+  /* Single rounded container for admin filters */
+  .section-actions .status-filters {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 999px;
+    box-shadow: 0 1px 0 rgba(15,23,42,0.04);
+  }
+  .section-actions .status-filters .admin-filter-btn {
+    border: none !important;
+    background: transparent !important;
+    color: #374151 !important;
+    padding: 6px 12px;
+    border-radius: 999px !important;
+    font-size: 0.88rem;
+    transition: background-color 0.14s ease, color 0.14s ease;
+  }
+  .section-actions .status-filters .admin-filter-btn:hover {
+    background: rgba(128,0,0,0.08);
+    color: #800000 !important;
+  }
+  .section-actions .status-filters .admin-filter-btn.active {
+    background: #800000 !important;
+    color: #fff !important;
+  }
+  /* Ensure actions column uses a consistent stacked layout */
+  .request-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .request-actions .d-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+    margin-bottom: 0;
+  }
+  .request-actions .workflow-actions {
+    margin-top: 0;
+  }
+  /* Ensure workflow dropdown aligns with the view pill and doesn't stretch */
+  .workflow-dropdown {
+    display: inline-block;
+  }
+  /* Pill action button style for action controls (View, Workflow Actions) */
+  .pill-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #fff;
+    color: #800000;
+    border: 1px solid #800000;
+    font-weight: 500;
+    font-size: 0.95rem;
+    line-height: 1;
+    box-shadow: none;
+    text-decoration: none;
+  }
+  .pill-action:hover,
+  .pill-action:focus {
+    background: rgba(128,0,0,0.04);
+    color: #800000;
+    outline: none;
+  }
+  .workflow-dropdown .workflow-dropdown-toggle.pill-action {
+    padding-right: 12px;
+  }
+  /* Ensure workflow toggle has consistent inline-flex centering */
+  .workflow-dropdown-toggle.pill-action {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: normal;
+    text-align: center;
+  }
+  .pill-action .fa-chevron-down {
+    font-size: 0.85rem;
+  }
+  /* Small modifier for compact inline pills (View) */
+  .pill-action.small {
+    padding: 4px 8px;
+    font-size: 0.88rem;
+  }
+  /* Request detail modal styling */
+  .request-detail-left img.profile-thumb {
+    width: 140px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.08);
+  }
+  /* Thumbnail for payment receipt preview inside admin modal */
+  .payment-thumb {
+    max-width: 220px;
+    max-height: 220px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid rgba(15,23,42,0.06);
+    box-shadow: 0 8px 24px rgba(2,6,23,0.06);
+    display: block;
+    margin-bottom: 8px;
+  }
+  .request-detail-left .student-name {
+    font-weight:700;
+    margin-top:10px;
+    margin-bottom:6px;
+    font-size:1.05rem;
+  }
+  .request-detail-left .student-number { color:#6b7280; }
+  .request-detail-contact a { color:#800000; font-weight:600; display:block; margin-top:6px; }
+  .request-detail-right h5.request-title { font-size:1.15rem; margin-bottom:8px; color:#111827; }
+  .request-detail-right .meta-row { margin-bottom:8px; color:#374151; }
+  .request-detail-right h6.section-heading { margin-top:16px; font-size:0.95rem; font-weight:700; color:#111827; }
+  .request-attachments-list li { list-style:none; }
+  .request-attachments-list img { border-radius:6px; }
+  /* Modal chrome */
+  .modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 12px 40px rgba(2,6,23,0.12);
+  }
+  .modal-header {
+    background: #fff;
+    border-bottom: 1px solid rgba(15,23,42,0.06);
+    padding: 18px 24px;
+  }
+  .modal-title {
+    color: #800000;
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.1rem;
+  }
+  .modal-body { padding: 20px 24px; background: #fff; }
+  .modal-footer { border-top: none; padding: 14px 20px; background: #fff; }
+  .btn-maroon {
+    background: #800000;
+    color: #fff;
+    border: none;
+  }
+  .btn-maroon:hover { background: #6a0000; color:#fff; }
+  .btn-rounded { border-radius: 999px; padding: 8px 18px; }
+  .section-heading { color: #343a40; font-weight:700; margin-bottom:8px; }
+  .meta-row strong { color:#111827; }
+  .attachments-section { margin-top:8px; }
+  .attachments-section .list-unstyled { padding-left:0; }
+  .attachments-section a { color:#800000; font-weight:600; }
+  .notes-content { background:#fbfbfb; padding:12px; border-radius:8px; border:1px solid rgba(15,23,42,0.04); }
+  .notes-content ul { margin:0; padding-left:20px; }
+  /* Make payment-stage badges show white text for readability */
+  .admin-requests-table .badge.badge-payment {
+    color: #fff !important;
+  }
+  /* Fallback centering for this modal if Bootstrap centering isn't available */
+  #requestDetailModal[data-centered="true"].show .modal-dialog,
+  #requestDetailModal[data-centered="true"] .modal-dialog {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 3.5rem);
+    margin: 0 auto;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container d-flex">
-  <!-- Sidebar -->
-    {% include 'admin/includes/sidebar.html' %}
+<div class="dashboard-container">
+  {% include 'admin/includes/sidebar.html' %}
 
-  <!-- Main Content -->
-  <div class="main-content flex-grow-1 p-4">
-    <div class="container-fluid">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>All Document Requests</h2>
-        <p class="text-muted">Manage all student document requests</p>
-      </div>
-
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <h5 class="card-title mb-4">
-            <i class="fas fa-file-alt me-2"></i> Document Requests Overview
-          </h5>
-
-          {% if all_requests %}
-          <div class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead class="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Student</th>
-                  <th>Document</th>
-                  <th>Purpose</th>
-                  <th>Copies</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                  <th>Date Requested</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for req in all_requests %}
-                <tr data-request-id="{{ req.id }}">
-                  <td>{{ forloop.counter }}</td>
-                  <td>{{ req.student.first_name }} {{ req.student.last_name }}</td>
-                  <td>{{ req.document.name }}</td>
-                  <td>{{ req.purpose|truncatechars:60 }}</td>
-                  <td>{{ req.copies }}</td>
-                  <td class="request-status">
-                    {% if req.status == 'Pending' %}
-                      <span class="badge bg-warning text-dark">Pending</span>
-                    {% elif req.status == 'Approved' %}
-                      <span class="badge bg-success">Approved</span>
-                    {% elif req.status == 'Rejected' %}
-                      <span class="badge bg-danger">Rejected</span>
-                    {% elif req.status == 'Completed' %}
-                      <span class="badge bg-primary">Completed</span>
-                    {% elif req.status == 'Cancelled' %}
-                      <span class="badge bg-secondary">Cancelled</span>
-                    {% else %}
-                      <span class="badge bg-secondary">{{ req.status }}</span>
-                    {% endif %}
-                  </td>
-
-                  <td class="request-actions">
-                    <div class="btn-group" role="group" aria-label="actions">
-                      <button class="btn btn-sm btn-outline-primary view-btn" data-bs-toggle="modal" data-bs-target="#requestDetailModal" data-request-id="{{ req.id }}">View</button>
-                      {% if req.status == 'Pending' %}
-                        <button class="btn btn-sm btn-success action-btn" data-action="approve">Approve</button>
-                        <button class="btn btn-sm btn-danger action-btn" data-action="reject">Reject</button>
-                        <button class="btn btn-sm btn-outline-secondary action-btn" data-action="cancel">Cancel</button>
-                      {% elif req.status == 'Approved' %}
-                        <button class="btn btn-sm btn-primary action-btn" data-action="complete">Mark Complete</button>
-                        <button class="btn btn-sm btn-danger action-btn" data-action="reject">Reject</button>
-                      {% elif req.status == 'Rejected' or req.status == 'Cancelled' or req.status == 'Completed' %}
-                        <span class="text-muted small">No actions</span>
-                      {% else %}
-                        <button class="btn btn-sm btn-outline-secondary action-btn" data-action="cancel">Cancel</button>
-                      {% endif %}
-                    </div>
-                  </td>
-
-                  <td>{{ req.date_requested|date:"M d, Y" }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+  <div class="main-content">
+    <div class="welcome-section admin-welcome">
+      <div class="welcome-content">
+        <div class="welcome-left">
+          <div class="date-display-welcome">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="welcomeDate">Loading...</span>
           </div>
-          {% else %}
-          <div class="text-center py-5">
-            <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
-            <h5>No Document Requests Found</h5>
-            <p class="text-muted">No document requests have been submitted yet.</p>
+          <div class="welcome-text">
+            <h3>Document Requests Workspace</h3>
+            <p>Review, triage, and move every submission forward</p>
           </div>
-          {% endif %}
+        </div>
+        <div class="welcome-right">
+          <h1 class="welcome-title">Requests</h1>
         </div>
       </div>
     </div>
+
+    <div class="dashboard-content admin-dashboard-content">
+      <section class="admin-table-card">
+        <div class="section-header">
+          <div>
+            <h4>All Document Requests</h4>
+            <p class="text-muted mb-0">Total tracked: {{ all_requests|length }}</p>
+          </div>
+          <div class="section-actions d-flex align-items-center gap-3">
+            <div class="input-group filter-search" style="min-width:280px; max-width:420px;">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+              <input type="text" id="allRequestsSearch" class="form-control" placeholder="Search student, document, status, or stage" autocomplete="off">
+            </div>
+            <div class="status-filters d-flex gap-2">
+              <button class="btn btn-sm btn-outline-secondary admin-filter-btn active" data-filter="all">All</button>
+              <button class="btn btn-sm btn-outline-secondary admin-filter-btn" data-filter="pending">Pending</button>
+              <button class="btn btn-sm btn-outline-secondary admin-filter-btn" data-filter="requirements">Requirements</button>
+              <button class="btn btn-sm btn-outline-secondary admin-filter-btn" data-filter="payment">Payment</button>
+              <button class="btn btn-sm btn-outline-secondary admin-filter-btn" data-filter="completed">Completed</button>
+              <button class="btn btn-sm btn-outline-secondary admin-filter-btn" data-filter="exceptions">Exceptions</button>
+            </div>
+          </div>
+        </div>
+
+        {% if all_requests %}
+        <div class="table-responsive requests-table-wrapper">
+          <table class="table table-hover align-middle admin-table admin-requests-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th>Document</th>
+                <th>Purpose</th>
+                <th>Copies</th>
+                <th>Status</th>
+                <th>Actions</th>
+                <th>Date Requested</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in all_requests %}
+              <tr data-request-id="{{ req.id }}" data-status="{{ req.status_label }}" data-document-key="{{ req.document.name|slugify }}" data-stage-category="{{ req.stage_category }}" data-stage-key="{{ req.stage_key }}" data-filter-value="{{ req.student.first_name }} {{ req.student.last_name }} {{ req.document.name }} {{ req.status_label }} {{ req.stage_label }} {{ req.date_requested|date:'M d, Y' }}">
+                <td>{{ forloop.counter }}</td>
+                <td>{{ req.student.first_name }} {{ req.student.last_name }}</td>
+                <td>{{ req.document.name }}</td>
+                <td>{{ req.purpose|truncatechars:60 }}</td>
+                <td>{{ req.copies }}</td>
+                <td class="request-status">
+                  <span class="badge {{ req.badge_class }} {% if req.stage_category == 'payment' %}badge-payment{% endif %}">{{ req.status_label }}</span>
+                  <small class="text-muted d-block">{{ req.stage_label }}</small>
+                </td>
+
+                <td class="request-actions">
+                  <div class="d-flex flex-wrap gap-2 mb-2">
+                    <button class="btn btn-sm pill-action small view-btn" data-bs-toggle="modal" data-bs-target="#requestDetailModal" data-request-id="{{ req.id }}">View</button>
+                  </div>
+                  <div class="workflow-actions"></div>
+                  <div class="row-feedback small mt-2"></div>
+                </td>
+
+                <td>{{ req.date_requested|date:"M d, Y" }}</td>
+              </tr>
+              {% endfor %}
+              <tr id="allRequestsEmptyRow" {% if all_requests %}style="display: none;"{% endif %}>
+                <td colspan="8" class="text-center text-muted">No document requests match your filters.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="notification-empty py-5">
+          <i class="fas fa-file-circle-xmark"></i>
+          <p class="mb-1 fw-semibold">No document requests yet</p>
+          <small class="text-muted">You'll see new submissions as soon as students file them.</small>
+        </div>
+        {% endif %}
+      </section>
+    </div>
   </div>
 </div>
-
-<!-- Styles are provided by dashboard/static/css/dashboard.css to keep admin and student layouts uniform -->
-<!-- Request detail modal -->
-<div class="modal fade" id="requestDetailModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+<div class="modal fade" id="requestDetailModal" tabindex="-1" aria-hidden="true" data-centered="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Request Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
+            <h5 class="modal-title">Payment Details</h5>
+          </div>
       <div class="modal-body">
         <div id="request-detail-body">
           <p class="text-muted">Loading...</p>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <!-- Intentionally left blank: modal closers removed (use backdrop/ESC or programmatic close) -->
       </div>
     </div>
   </div>
 </div>
 
 {% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}?v=2"></script>
 <script>
-// CSRF helper (Django cookie)
+window.STATUS_VALUES = window.STATUS_VALUES || {
+  pendingReview: 'Pending (For Review)',
+  pendingLegacy: 'Pending',
+  requirementsNeeded: 'Requirements Needed',
+  requirementsSubmitted: 'Requirements Submitted \u2013 For Verification',
+  requirementsIssue: 'Requirements Issue',
+  approvedForPayment: 'Approved \u2013 For Payment',
+  approvedLegacy: 'Approved',
+  paymentSubmitted: 'Payment Submitted \u2013 For Verification',
+  paymentIssue: 'Payment Issue',
+  processing: 'Processing',
+  readyForPickup: 'Ready for Pickup'
+};
+
+window.STATUS_ACTIONS = window.STATUS_ACTIONS || {};
+
+// Allow 'Request Requirements' from review stage; action auto-sends preset requirements note
+STATUS_ACTIONS[STATUS_VALUES.pendingReview] = [
+  {
+    action: 'need_requirements',
+    label: 'Request Requirements',
+    variant: 'btn-outline-info',
+    // note will be populated automatically from presets
+    noteRequired: false
+  },
+  {
+    action: 'approve',
+    label: 'Approve for Payment',
+    variant: 'btn-success',
+    confirm: 'Move this request to the payment stage?'
+  },
+  {
+    action: 'reject',
+    label: 'Reject',
+    variant: 'btn-outline-danger',
+    confirm: 'Reject this request? This notifies the student.'
+  },
+  {
+    action: 'cancel',
+    label: 'Cancel',
+    variant: 'btn-outline-secondary',
+    confirm: 'Cancel this request?'
+  }
+];
+STATUS_ACTIONS[STATUS_VALUES.pendingLegacy] = STATUS_ACTIONS[STATUS_VALUES.pendingReview];
+
+STATUS_ACTIONS[STATUS_VALUES.requirementsNeeded] = [
+  {
+    action: 'need_requirements',
+    label: 'Update Instructions',
+    variant: 'btn-outline-info',
+    noteRequired: true,
+    notePrompt: 'Update the missing requirements for this student.'
+  },
+  {
+    action: 'reject',
+    label: 'Reject',
+    variant: 'btn-outline-danger',
+    confirm: 'Reject this request? This notifies the student.'
+  },
+  {
+    action: 'cancel',
+    label: 'Cancel',
+    variant: 'btn-outline-secondary',
+    confirm: 'Cancel this request?'
+  }
+];
+
+STATUS_ACTIONS[STATUS_VALUES.requirementsSubmitted] = [
+  {
+    action: 'requirements_accept',
+    label: 'Accept Requirements',
+    variant: 'btn-success',
+    confirm: 'Mark requirements as complete and send payment instructions?'
+  },
+  {
+    action: 'requirements_issue',
+    label: 'Flag Issue',
+    variant: 'btn-outline-warning',
+    noteRequired: true,
+    notePrompt: 'Explain what needs to be fixed in the submission.'
+  },
+  {
+    action: 'reject',
+    label: 'Reject',
+    variant: 'btn-outline-danger',
+    confirm: 'Reject this request? This notifies the student.'
+  },
+  {
+    action: 'cancel',
+    label: 'Cancel',
+    variant: 'btn-outline-secondary',
+    confirm: 'Cancel this request?'
+  }
+];
+
+STATUS_ACTIONS[STATUS_VALUES.requirementsIssue] = [
+  {
+    action: 'requirements_issue',
+    label: 'Update Feedback',
+    variant: 'btn-outline-warning',
+    noteRequired: true,
+    notePrompt: 'Clarify what the student needs to re-submit.'
+  },
+  {
+    action: 'reject',
+    label: 'Reject',
+    variant: 'btn-outline-danger',
+    confirm: 'Reject this request? This notifies the student.'
+  },
+  {
+    action: 'cancel',
+    label: 'Cancel',
+    variant: 'btn-outline-secondary',
+    confirm: 'Cancel this request?'
+  }
+];
+
+STATUS_ACTIONS[STATUS_VALUES.approvedForPayment] = [
+  {
+    action: 'reject',
+    label: 'Reject',
+    variant: 'btn-outline-danger',
+    confirm: 'Reject this request? This notifies the student.'
+  },
+  {
+    action: 'cancel',
+    label: 'Cancel',
+    variant: 'btn-outline-secondary',
+    confirm: 'Cancel this request?'
+  }
+];
+STATUS_ACTIONS[STATUS_VALUES.approvedLegacy] = STATUS_ACTIONS[STATUS_VALUES.approvedForPayment];
+
+STATUS_ACTIONS[STATUS_VALUES.paymentSubmitted] = [
+  {
+    action: 'payment_accept',
+    label: 'Verify Payment',
+    variant: 'btn-success',
+    confirm: 'Mark payment as verified and start processing?'
+  },
+  {
+    action: 'payment_issue',
+    label: 'Flag Payment Issue',
+    variant: 'btn-outline-warning',
+    noteRequired: true,
+    notePrompt: 'Describe the issue found in the receipt.'
+  },
+  {
+    action: 'reject',
+    label: 'Reject',
+    variant: 'btn-outline-danger',
+    confirm: 'Reject this request? This notifies the student.'
+  },
+  {
+    action: 'cancel',
+    label: 'Cancel',
+    variant: 'btn-outline-secondary',
+    confirm: 'Cancel this request?'
+  }
+];
+
+STATUS_ACTIONS[STATUS_VALUES.paymentIssue] = [
+  {
+    action: 'payment_issue',
+    label: 'Update Payment Note',
+    variant: 'btn-outline-warning',
+    noteRequired: true,
+    notePrompt: 'Provide more details about the payment issue.'
+  },
+  {
+    action: 'reject',
+    label: 'Reject',
+    variant: 'btn-outline-danger',
+    confirm: 'Reject this request? This notifies the student.'
+  },
+  {
+    action: 'cancel',
+    label: 'Cancel',
+    variant: 'btn-outline-secondary',
+    confirm: 'Cancel this request?'
+  }
+];
+
+STATUS_ACTIONS[STATUS_VALUES.processing] = [
+  {
+    action: 'ready_for_pickup',
+    label: 'Ready for Pickup',
+    variant: 'btn-success',
+    confirm: 'Mark as ready for pickup?'
+  },
+  {
+    action: 'complete',
+    label: 'Mark Complete',
+    variant: 'btn-outline-primary',
+    confirm: 'Confirm that the document has been released?'
+  },
+  {
+    action: 'cancel',
+    label: 'Cancel',
+    variant: 'btn-outline-secondary',
+    confirm: 'Cancel this request?'
+  }
+];
+
+STATUS_ACTIONS[STATUS_VALUES.readyForPickup] = [
+  {
+    action: 'complete',
+    label: 'Mark Complete',
+    variant: 'btn-success',
+    confirm: 'Confirm the student picked up the document?'
+  },
+  {
+    action: 'cancel',
+    label: 'Cancel',
+    variant: 'btn-outline-secondary',
+    confirm: 'Cancel this request?'
+  }
+];
+
+window.WAITING_ON_STUDENT = window.WAITING_ON_STUDENT || new Set([
+  window.STATUS_VALUES.requirementsNeeded,
+  window.STATUS_VALUES.requirementsIssue,
+  window.STATUS_VALUES.approvedForPayment,
+  window.STATUS_VALUES.approvedLegacy,
+  window.STATUS_VALUES.paymentIssue
+]);
+
+window.DOCUMENT_REQUIREMENT_PRESETS = window.DOCUMENT_REQUIREMENT_PRESETS || {
+  'transcript-of-records-tor': `Transcript of Records (TOR) requirements:\n\n- Valid School ID or Government ID\n- Official Receipt of TOR payment\n- Clearance from Finance Office\n- Clearance from Library\n- Clearance from Department/Program Chair\n- PSA Birth Certificate (optional)\n- Exit Interview Form (for graduating/transfer students)\n- Proof of graduation (Diploma or Certificate of Graduation)` ,
+  'certificate-of-enrollment': `Certificate of Enrollment requirements:\n\n- Valid School ID\n- Currently enrolled in the semester (auto-verified)\n- Official Receipt (if applicable)` ,
+  'diploma-copy': `Diploma Copy requirements:\n\n- Valid School ID or Government ID\n- Official Receipt of payment\n- For lost diploma: Affidavit of Loss\n- PSA Birth Certificate\n- Proof of graduation from registrar records (auto-check)` ,
+  'good-moral-certificate': `Good Moral Certificate requirements:\n\n- Valid School ID\n- Official Receipt of payment\n- Clearance from Guidance Office (no disciplinary record)\n- Barangay Clearance or Police Clearance for alumni (if required)` ,
+  'certificate-of-graduation': `Certificate of Graduation requirements:\n\n- Valid School ID or Government ID\n- Official Receipt of payment\n- Clearance from Finance Office\n- Clearance from Library\n- Proof of graduation already recorded in system\n- Alumni name verification`,
+  'honorable-dismissal': `Honorable Dismissal requirements:\n\n- Valid School ID or Government ID\n- Clearance from Finance Office\n- Clearance from Library\n- Clearance from Department\n- Clearance from Registrar\n- Exit/Transfer Interview Form\n- Official Receipt of payment\n- Parent/Guardian Consent (if student is a minor)`
+};
+
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
+    for (const cookieRaw of cookies) {
+      const cookie = cookieRaw.trim();
       if (cookie.substring(0, name.length + 1) === (name + '=')) {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
         break;
@@ -141,120 +551,602 @@ function getCookie(name) {
   return cookieValue;
 }
 
-async function postAction(requestId, action, note=''){
+async function postAction(requestId, action, note = '') {
   const url = "{% url 'admin_request_action' %}";
   const form = new FormData();
   form.append('request_id', requestId);
   form.append('action', action);
-  if (note) form.append('note', note);
+  if (note) {
+    form.append('note', note);
+  }
 
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken')
-    },
-    body: form
-  });
-  return resp.json();
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      },
+      body: form
+    });
+
+    // Try to parse JSON; if server returned non-JSON, return a standardized error
+    let data = null;
+    try {
+      data = await resp.json();
+    } catch (e) {
+      return { success: false, error: `Server returned status ${resp.status}` };
+    }
+    if (!resp.ok) {
+      return data || { success: false, error: `Request failed (${resp.status})` };
+    }
+    return data;
+  } catch (networkErr) {
+    console.error('postAction network error', networkErr);
+    return { success: false, error: 'Network error' };
+  }
 }
 
-document.addEventListener('DOMContentLoaded', function(){
-  document.querySelectorAll('.action-btn').forEach(btn => {
-    btn.addEventListener('click', async function(e){
-      const row = e.target.closest('tr');
-      const requestId = row.dataset.requestId;
-      const action = e.target.dataset.action;
-      e.target.disabled = true;
-      try{
-        const result = await postAction(requestId, action);
-        if (result.success){
-          // update badge
-          const statusCell = row.querySelector('.request-status');
-          let html = '';
-          if (result.status === 'Pending') html = '<span class="badge bg-warning text-dark">Pending</span>';
-          else if (result.status === 'Approved') html = '<span class="badge bg-success">Approved</span>';
-          else if (result.status === 'Rejected') html = '<span class="badge bg-danger">Rejected</span>';
-          else if (result.status === 'Completed') html = '<span class="badge bg-primary">Completed</span>';
-          else if (result.status === 'Cancelled') html = '<span class="badge bg-secondary">Cancelled</span>';
-          else html = '<span class="badge bg-secondary">' + result.status + '</span>';
-          statusCell.innerHTML = html;
+function renderWorkflowActions(row) {
+  const container = row.querySelector('.workflow-actions');
+  if (!container) {
+    return;
+  }
+  const status = row.dataset.status || '';
+  const actions = STATUS_ACTIONS[status] || [];
+  if (!actions.length) {
+    const waitingMessage = WAITING_ON_STUDENT.has(status) ? 'Waiting for student response' : 'No admin actions for this stage';
+    container.innerHTML = `<span class="text-muted small">${waitingMessage}</span>`;
+    return;
+  }
+  const dropdownId = `workflow-menu-${row.dataset.requestId}`;
+  const dropdownItems = actions.map((config) => `
+    <li>
+      <button type="button"
+              class="dropdown-item action-btn"
+              data-action="${config.action}"
+              data-variant="${config.variant}"
+              data-confirm="${config.confirm || ''}"
+              data-note-prompt="${config.notePrompt || ''}"
+              data-note-required="${config.noteRequired ? '1' : '0'}">
+        ${config.label}
+      </button>
+    </li>
+  `).join('');
 
-          // refresh action buttons (simple approach: reload the page to reflect accurate buttons)
-          // but to avoid full reload we disable buttons when final
-          row.querySelectorAll('.action-btn').forEach(b => b.remove());
-          const actionsCell = row.querySelector('.request-actions');
-          const noteSpan = document.createElement('div');
-          noteSpan.className = 'text-success small mt-1';
-          noteSpan.textContent = 'Status updated: ' + result.status;
-          actionsCell.appendChild(noteSpan);
-        } else {
-          alert('Error: ' + (result.error || 'Unknown'));
-        }
-      } catch(err){
-        console.error(err);
-        alert('Network error while performing action');
-      } finally {
-        e.target.disabled = false;
+  container.innerHTML = `
+    <div class="workflow-dropdown">
+      <button type="button" onclick="toggleWorkflowMenu('${dropdownId}')" class="btn btn-sm workflow-dropdown-toggle pill-action" data-target="${dropdownId}">
+        Workflow Actions <i class="fas fa-chevron-down ms-1"></i>
+      </button>
+      <ul id="${dropdownId}" class="workflow-dropdown-menu">
+        ${dropdownItems}
+      </ul>
+    </div>
+  `;
+}
+
+function updateStatusCell(row, payload) {
+  const statusCell = row.querySelector('.request-status');
+  if (!statusCell) {
+    return;
+  }
+  const badge = payload.badge_class || 'bg-secondary';
+  const stage = payload.stage_label || '—';
+  // Normalize display: show main status on badge and stage in parentheses below.
+  let mainStatus = payload.status_label || '';
+  let stageText = stage;
+  // Normalize verification-related stage labels to a consistent phrase
+  const stLower = (stageText || '').toLowerCase();
+  if (stLower.includes('verify') || stLower.includes('verification') || stLower.includes('requirements verify')) {
+    stageText = 'Requirements To Verify';
+  }
+  // If the status_label contains an en-dash or em-dash followed by the stage, split it.
+  const dashIndex = mainStatus.indexOf('\u2013');
+  if (dashIndex === -1) {
+    // try em-dash
+    const emIndex = mainStatus.indexOf('—');
+    if (emIndex !== -1) {
+      mainStatus = mainStatus.slice(0, emIndex).trim();
+    }
+  } else {
+    mainStatus = mainStatus.slice(0, dashIndex).trim();
+  }
+  statusCell.innerHTML = `
+    <span class="badge ${badge}">${mainStatus}</span>
+    <small class="text-muted d-block">(${stageText})</small>
+  `;
+}
+
+function showRowFeedback(row, message, variant = 'success') {
+  const feedbackEl = row.querySelector('.row-feedback');
+  if (!feedbackEl) {
+    return;
+  }
+  feedbackEl.textContent = message;
+  feedbackEl.classList.remove('text-success', 'text-danger');
+  feedbackEl.classList.add(variant === 'error' ? 'text-danger' : 'text-success');
+  setTimeout(() => {
+    if (feedbackEl.textContent === message) {
+      feedbackEl.textContent = '';
+    }
+  }, 4000);
+}
+
+function collectActionNote(button, row) {
+  const notePrompt = button.dataset.notePrompt;
+  const noteRequired = button.dataset.noteRequired === '1';
+  const actionType = button.dataset.action;
+  const documentKey = row.dataset.documentKey || '';
+
+  if (actionType === 'need_requirements') {
+    const preset = (DOCUMENT_REQUIREMENT_PRESETS[documentKey] || '').trim();
+    if (preset) {
+      return preset;
+    }
+    if (!notePrompt) {
+      return '';
+    }
+    const fallback = (globalThis.prompt(notePrompt, '') || '').trim();
+    if (noteRequired && !fallback) {
+      alert('A note is required for this action.');
+      return null;
+    }
+    return fallback;
+  }
+
+  if (!notePrompt) {
+    return '';
+  }
+
+  const response = (globalThis.prompt(notePrompt, '') || '').trim();
+  if (noteRequired && !response) {
+    alert('A note is required for this action.');
+    return null;
+  }
+  return response;
+}
+
+// Fallback helper to toggle a workflow menu directly (inline onclick safe fallback)
+function toggleWorkflowMenu(menuId) {
+  try {
+    const menu = document.getElementById(menuId);
+    if (!menu) return;
+    const isOpen = menu.classList.contains('show');
+    closeWorkflowMenus();
+    if (!isOpen) menu.classList.add('show');
+  } catch (e) {
+    console.warn('toggleWorkflowMenu error', e);
+  }
+}
+
+async function handleActionButtonClick(button) {
+  const row = button.closest('tr');
+  if (!row) {
+    return;
+  }
+
+  closeWorkflowMenus();
+
+  const confirmMessage = button.dataset.confirm;
+  if (confirmMessage && !globalThis.confirm(confirmMessage)) {
+    return;
+  }
+
+  const note = collectActionNote(button, row);
+  if (note === null) {
+    return;
+  }
+
+  button.disabled = true;
+  try {
+    console.debug('admin action:', { requestId: row.dataset.requestId, action: button.dataset.action, note });
+    const result = await postAction(row.dataset.requestId, button.dataset.action, note);
+    console.debug('admin action result:', result);
+    if (result.success) {
+      // If server returns updated status, keep the dataset status as the human-readable label
+      if (result.status_label) {
+        row.dataset.status = result.status_label;
+      } else if (result.status) {
+        // fallback to internal status if label not provided
+        row.dataset.status = result.status;
       }
-    });
+
+      // If action was 'need_requirements' and server did not return status fields,
+      // update UI optimistically to show Requirements queue.
+      if (button.dataset.action === 'need_requirements') {
+        if (!result.status_label) result.status_label = STATUS_VALUES.requirementsNeeded;
+        if (!result.stage_label) result.stage_label = 'Requirements Queue';
+        if (!result.badge_class) result.badge_class = 'bg-warning';
+        // ensure dataset reflects requirementsNeeded internal status key
+        row.dataset.status = row.dataset.status || 'requirementsNeeded';
+      }
+
+      updateStatusCell(row, result);
+      renderWorkflowActions(row);
+      showRowFeedback(row, `Status updated to ${result.status_label}`);
+    } else {
+      showRowFeedback(row, result.error || 'Unable to update request.', 'error');
+    }
+  } catch (error) {
+    console.error(error);
+    showRowFeedback(row, 'Network error while performing action.', 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function initializeWorkflowActions() {
+  const rows = document.querySelectorAll('tr[data-request-id]');
+  for (const row of rows) {
+    renderWorkflowActions(row);
+  }
+}
+
+function wireActionButtons() {
+  document.addEventListener('click', (event) => {
+    const actionButton = event.target.closest('.action-btn');
+    if (actionButton) {
+      event.preventDefault();
+      void handleActionButtonClick(actionButton);
+    }
   });
+}
 
-  // View details: request full data from server and populate modal
-  document.querySelectorAll('.view-btn').forEach(btn => {
-    btn.addEventListener('click', async function(e){
-      const requestId = e.target.dataset.requestId;
-      const url = "{% url 'admin_request_detail' %}" + `?request_id=${encodeURIComponent(requestId)}`;
-      const body = document.getElementById('request-detail-body');
-      body.innerHTML = '<p class="text-muted">Loading details...</p>';
-      try{
-        const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-        const data = await resp.json();
-        if (!data.success){
-          body.innerHTML = `<div class="text-danger">Error: ${data.error || 'Could not load details'}</div>`;
-          return;
-        }
+function wireViewButtons() {
+  // Use event delegation so handlers survive re-renders and filtering
+  document.addEventListener('click', (event) => {
+    const btn = event.target.closest('.view-btn');
+    if (!btn) return;
+    try {
+      // call the existing handler with an event-like object
+      // Do NOT preventDefault here so Bootstrap's data-bs-toggle can open the modal.
+      handleViewButtonClick({ currentTarget: btn });
+    } catch (err) {
+      console.error('Error handling view button click', err);
+    }
+  });
+}
 
-        const r = data.request;
-        const s = data.student;
-        let attachmentsHtml = '';
-        if (data.attachments && data.attachments.length){
-          attachmentsHtml = '<ul class="list-unstyled">';
-          data.attachments.forEach(a => {
-            attachmentsHtml += `<li><a href="${a.url}" target="_blank" rel="noopener">Attachment ${a.id}</a> <small class="text-muted">(${a.size || 'unknown'} bytes)</small></li>`;
-          });
-          attachmentsHtml += '</ul>';
-        } else {
-          attachmentsHtml = '<p class="text-muted">No attachments</p>';
-        }
+function closeWorkflowMenus(exceptId = null) {
+  const openMenus = document.querySelectorAll('.workflow-dropdown-menu.show');
+  for (const menu of openMenus) {
+    if (!exceptId || menu.id !== exceptId) {
+      menu.classList.remove('show');
+    }
+  }
+}
 
-        body.innerHTML = `
-          <div class="row">
-            <div class="col-md-3 text-center">
-              ${s.profile_picture ? `<img src="${s.profile_picture}" class="img-fluid rounded mb-2" alt="Profile">` : '<i class="fas fa-user-circle fa-4x text-muted"></i>'}
-              <p class="mt-2"><strong>${s.name}</strong><br><small>${s.student_number}</small></p>
-              <p class="mb-0"><a href="mailto:${s.email}">${s.email}</a></p>
-              <p class="mb-0"><a href="tel:${s.contact}">${s.contact || 'N/A'}</a></p>
-            </div>
-            <div class="col-md-9">
-              <h5>Request #${r.id} — ${r.document}</h5>
-              <p><strong>Purpose:</strong> ${r.purpose}</p>
-              <p><strong>Copies:</strong> ${r.copies} &nbsp; <strong>Status:</strong> ${r.status}</p>
-              <p><strong>Requested:</strong> ${r.date_requested}</p>
+function wireWorkflowDropdowns() {
+  document.addEventListener('click', (event) => {
+    const toggle = event.target.closest('.workflow-dropdown-toggle');
+    if (toggle) {
+      event.preventDefault();
+      const targetId = toggle.dataset.target;
+      console.debug('workflow toggle clicked', { targetId, toggle });
+      const menu = document.getElementById(targetId);
+      if (!menu) {
+        console.warn('workflow toggle: menu element not found for id', targetId);
+        return;
+      }
+      const isOpen = menu.classList.contains('show');
+      console.debug('workflow toggle: menu found, isOpen=', isOpen);
+      closeWorkflowMenus();
+      if (!isOpen) {
+        menu.classList.add('show');
+        console.debug('workflow toggle: menu opened', targetId);
+      } else {
+        console.debug('workflow toggle: menu closed (was open)', targetId);
+      }
+      return;
+    }
+
+    if (!event.target.closest('.workflow-dropdown')) {
+      console.debug('click outside workflow-dropdown; closing menus');
+      closeWorkflowMenus();
+    }
+  });
+}
+
+async function handleViewButtonClick(event) {
+  const button = event.currentTarget;
+  console.log('View clicked for', button?.dataset?.requestId);
+  const requestId = button.dataset.requestId;
+  const url = "{% url 'admin_request_detail' %}" + `?request_id=${encodeURIComponent(requestId)}`;
+  const body = document.getElementById('request-detail-body');
+  body.innerHTML = '<p class="text-muted">Loading details...</p>';
+  try {
+    const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    const data = await resp.json();
+    if (!data.success) {
+      body.innerHTML = `<div class="text-danger">Error: ${data.error || 'Could not load details'}</div>`;
+      return;
+    }
+
+    const r = data.request;
+    const s = data.student;
+    let attachmentsHtml = '';
+    const attachmentParts = [];
+
+    if (data.attachments && data.attachments.length) {
+      const items = [];
+      for (const attachment of data.attachments) {
+        items.push(`<li><a href="${attachment.url}" target="_blank" rel="noopener">Attachment ${attachment.id}</a> <small class="text-muted">(${attachment.size || 'unknown'} bytes)</small></li>`);
+      }
+      attachmentParts.push(`<div><strong>Attachments</strong><ul class="list-unstyled">${items.join('')}</ul></div>`);
+    }
+
+    // Include requirement uploads (student-submitted files) if present in admin payload
+    if (data.requirement_uploads && data.requirement_uploads.length) {
+      const rItems = [];
+      for (const f of data.requirement_uploads) {
+        // Accept multiple possible keys from server payload for compatibility
+        const fileUrl = f.url || f.file_url || f.fileUrl || '';
+        const fileName = f.name || f.file_name || f.fileName || 'File';
+        const uploaderName = f.uploaded_by || f.uploaded_by_name || f.uploader || '';
+        const uploader = uploaderName ? ` by ${uploaderName}` : '';
+        const sizeText = (f.file_size || f.size) ? ` <small class="text-muted">(${f.file_size || f.size} bytes)</small>` : '';
+        rItems.push(`<li><a href="${fileUrl}" target="_blank" rel="noopener">${fileName}</a>${uploader}${sizeText}</li>`);
+      }
+      attachmentParts.push(`<div><strong>Requirement Uploads</strong><ul class="list-unstyled">${rItems.join('')}</ul></div>`);
+    }
+
+    // Include payment uploads (payment receipts) if present
+    if (data.payment_uploads && data.payment_uploads.length) {
+      const pItems = [];
+      for (const f of data.payment_uploads) {
+        const fileUrl = f.url || f.file_url || '';
+        const fileName = f.name || f.file_name || 'Receipt';
+        const uploaderName = f.uploaded_by || '';
+        const uploadedAt = f.created_at ? ` <small class="text-muted">uploaded ${new Date(f.created_at).toLocaleString()}</small>` : '';
+        const sizeText = (f.file_size || f.size) ? ` <small class="text-muted">(${f.file_size || f.size} bytes)</small>` : '';
+        pItems.push(`<li><a href="${fileUrl}" target="_blank" rel="noopener">${fileName}</a>${uploaderName ? ` by ${uploaderName}` : ''}${sizeText}${uploadedAt}</li>`);
+      }
+      attachmentParts.push(`<div><strong>Payment Receipts</strong><ul class="list-unstyled">${pItems.join('')}</ul></div>`);
+    }
+
+    if (attachmentParts.length) {
+      attachmentsHtml = attachmentParts.join('\n');
+    } else {
+      attachmentsHtml = '<p class="text-muted">No attachments</p>';
+    }
+
+    let notesHtml = '';
+    if (r.notes) {
+      // If notes are bullet-list style (lines starting with -), render as list
+      const lines = r.notes.split('\n').map(l => l.trim()).filter(Boolean);
+      const isList = lines.length > 0 && lines.every(l => l.startsWith('-') || l.startsWith('*'));
+      if (isList) {
+        const items = lines.map(l => `<li>${l.replace(/^[-*]\s*/, '')}</li>`).join('');
+        notesHtml = `<div class="notes-content"><ul>${items}</ul></div>`;
+      } else {
+        notesHtml = `<div class="notes-content">${r.notes.replaceAll('\n', '<br>')}</div>`;
+      }
+    } else {
+      notesHtml = '<span class="text-muted">No notes</span>';
+    }
+
+    // Build a primary receipt preview (if available) to show prominently
+    let primaryReceiptUrl = '';
+    let primaryReceiptName = '';
+    let primaryReceiptIsImage = false;
+    if (data.payment_uploads && data.payment_uploads.length) {
+      const p = data.payment_uploads[0];
+      primaryReceiptUrl = p.url || p.file_url || '';
+      primaryReceiptName = p.name || p.file_name || p.fileName || 'Receipt';
+      const imgExt = /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i;
+      primaryReceiptIsImage = primaryReceiptUrl && imgExt.test(primaryReceiptUrl);
+    }
+
+    // Prefer the explicit primary receipt URL field if present on the request record
+    if (!primaryReceiptUrl && r.payment_receipt) {
+      primaryReceiptUrl = r.payment_receipt;
+    }
+
+    const receiptPreviewHtml = primaryReceiptUrl ? (
+      primaryReceiptIsImage ?
+        `<a href="${primaryReceiptUrl}" target="_blank" rel="noopener"><img src="${primaryReceiptUrl}" class="payment-thumb" alt="Payment receipt"></a>` :
+        `<div><a href="${primaryReceiptUrl}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">Open primary receipt (${primaryReceiptName})</a></div>`
+    ) : `<p class="text-muted">No receipt uploaded</p>`;
+
+    // Render the modal focusing on Payment Details first
+    body.innerHTML = `
+      <div class="request-detail row g-0">
+        <div class="col-md-4 request-detail-left p-4 text-center">
+          ${s.profile_picture ? `<img src="${s.profile_picture}" class="profile-thumb mb-2" alt="Profile">` : '<i class="fas fa-user-circle fa-5x text-muted"></i>'}
+          <div class="student-meta mt-2">
+            <div class="student-name">${s.name || 'Student'}</div>
+            <div class="student-number">${s.student_number || ''}</div>
+          </div>
+          <div class="request-detail-contact mt-3">
+            <a href="mailto:${s.email}">${s.email || 'N/A'}</a>
+            <a href="tel:${s.contact}">${s.contact || 'N/A'}</a>
+          </div>
+        </div>
+        <div class="col-md-8 request-detail-right p-4">
+          <div class="card" style="border:0;box-shadow:none;">
+            <div class="card-body p-0">
+              <h5 class="request-title">Payment Details — Request #${r.id}</h5>
+              <div class="meta-row"><strong>Document:</strong> ${r.document || '—'}</div>
+              <div class="meta-row"><strong>Status:</strong> ${r.status_label || '—'}</div>
+              <div class="section-heading">Primary Receipt</div>
+              <div class="meta-row">
+                ${receiptPreviewHtml}
+              </div>
+              <div class="section-heading">Payment Info</div>
+              <div class="meta-row">
+                <div><strong>Reference:</strong> ${r.payment_reference_code || '—'}</div>
+                <div><strong>Submitted:</strong> ${r.payment_submitted_at ? new Date(r.payment_submitted_at).toLocaleString() : '—'}</div>
+                <div><strong>Feedback:</strong> ${r.payment_feedback || '—'}</div>
+              </div>
+
               <hr>
-              <h6>Notes</h6>
-              <p>${r.notes ? r.notes.replace(/\n/g,'<br>') : '<span class="text-muted">No notes</span>'}</p>
-              <h6>Attachments</h6>
-              ${attachmentsHtml}
+              <h6 class="section-heading">Other Attachments</h6>
+              <div class="attachments-section">
+                ${attachmentsHtml}
+              </div>
             </div>
           </div>
-        `;
-      } catch(err){
-        console.error(err);
-        body.innerHTML = '<div class="text-danger">Network error while loading details.</div>';
+        </div>
+      </div>
+    `;
+    // Ensure modal is visible (in case Bootstrap didn't auto-open it)
+    try {
+      const modalEl = document.getElementById('requestDetailModal');
+      if (modalEl) {
+        // Handle different Bootstrap versions and fallbacks:
+        // - Bootstrap >=5.1: Modal.getInstance exists
+        // - Bootstrap 5.x: getOrCreateInstance may exist
+        // - Older setups may expose jQuery modal plugin
+        let bsModal = null;
+        if (window.bootstrap && bootstrap.Modal) {
+          if (typeof bootstrap.Modal.getInstance === 'function') {
+            // safe to call getInstance
+            try { bsModal = bootstrap.Modal.getInstance(modalEl); } catch (_) { bsModal = null; }
+            if (!bsModal) bsModal = new bootstrap.Modal(modalEl);
+          } else if (typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+            bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+          } else {
+            // Last resort for environments that expose Modal constructor
+            bsModal = new bootstrap.Modal(modalEl);
+          }
+          try { bsModal.show(); } catch (showErr) {
+            console.warn('Bootstrap modal show failed', showErr);
+          }
+        } else if (window.jQuery && typeof window.jQuery(modalEl).modal === 'function') {
+          // jQuery-based Bootstrap (v3/4) fallback
+          try { window.jQuery(modalEl).modal('show'); } catch (jqErr) { console.warn('jQuery modal show failed', jqErr); }
+        } else {
+          // No modal API available; do nothing but log for debugging
+          console.warn('No Bootstrap modal API found to programmatically show modal.');
+        }
       }
-    });
-  });
+    } catch (e) {
+      console.warn('Could not show Bootstrap modal programmatically', e);
+    }
+  } catch (error) {
+    console.error(error);
+    body.innerHTML = '<div class="text-danger">Network error while loading details.</div>';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initializeWorkflowActions();
+  wireActionButtons();
+  wireViewButtons();
+  wireWorkflowDropdowns();
+  wireAdminFilters();
+  // Normalize existing status badges so layout stays consistent
+  const rows = document.querySelectorAll('tr[data-request-id]');
+  for (const r of rows) {
+    try { renderWorkflowActions(r); } catch (e) {}
+    // if the status cell exists, re-run updateStatusCell logic using its current dataset values
+    const statusCell = r.querySelector('.request-status');
+    if (statusCell) {
+      const badgeEl = statusCell.querySelector('.badge');
+      let stageText = (r.dataset.stageLabel || r.querySelector('.request-status small')?.textContent || '').replace(/[()]/g, '').trim();
+      const stl = stageText.toLowerCase();
+      if (stl.includes('verify') || stl.includes('verification') || stl.includes('requirements verify')) {
+        stageText = 'Requirements To Verify';
+      }
+      if (badgeEl) {
+        const full = badgeEl.textContent || '';
+        // If badge already contains a dash, split and update
+        const dashI = full.indexOf('\u2013');
+        const emI = full.indexOf('—');
+        if (dashI !== -1 || emI !== -1) {
+          // Build a payload-like object for updateStatusCell
+          const payload = { status_label: full, stage_label: stageText, badge_class: badgeEl.className.replace('badge','').trim() };
+          try { updateStatusCell(r, payload); } catch (err) { /* ignore */ }
+        }
+      }
+    }
+  }
+  // If the last row corresponds to a student who already submitted requirements,
+  // reflect that in the UI by showing a disabled 'Submitted' action and updated badge.
+  function markLastRowSubmittedIfNeeded() {
+    const all = document.querySelectorAll('tbody tr[data-request-id]');
+    if (!all || all.length === 0) return;
+    const last = all[all.length - 1];
+    if (!last) return;
+    const statusCell = last.querySelector('.request-status');
+    // Only update if status currently indicates requirements are needed
+    const statusText = (statusCell && statusCell.textContent || '').toLowerCase();
+    if (!statusText.includes('requirements needed')) return;
+
+    // Update badge to 'Requirements Submitted — For Verification'
+    if (statusCell) {
+      statusCell.innerHTML = `<span class="badge" style="background:#6a0000;color:#fff;">Requirements Submitted \u2013 For Verification</span><small class="text-muted d-block">(Requirements Queue)</small>`;
+    }
+
+    // Replace workflow actions with a disabled 'Submitted' pill
+    const actionsContainer = last.querySelector('.request-actions .d-flex');
+    if (actionsContainer) {
+      actionsContainer.innerHTML = `<button class="btn btn-sm pill-action small" disabled>Submitted</button>`;
+    }
+  }
+
+  // Run the UI update once on load
+  try { markLastRowSubmittedIfNeeded(); } catch (e) { console.warn('markLastRowSubmittedIfNeeded error', e); }
 });
+
+function wireAdminFilters() {
+  const searchInput = document.getElementById('allRequestsSearch');
+  const filterButtons = Array.from(document.querySelectorAll('.admin-filter-btn'));
+  const rows = Array.from(document.querySelectorAll('tbody tr[data-request-id]'));
+  const emptyRow = document.getElementById('allRequestsEmptyRow');
+
+  let activeFilter = 'all';
+
+  function applyFilters() {
+    const q = (searchInput?.value || '').trim().toLowerCase();
+    let visible = 0;
+    for (const row of rows) {
+      const stage = (row.dataset.stageCategory || '').toLowerCase();
+      const stageKey = (row.dataset.stageKey || '').toLowerCase();
+      const status = (row.dataset.status || '').toLowerCase();
+      const text = (row.dataset.filterValue || row.textContent || '').toLowerCase();
+
+      let matchesFilter = true;
+      if (activeFilter && activeFilter !== 'all') {
+        if (activeFilter === 'pending') {
+          matchesFilter = (stage === 'pending');
+        } else if (activeFilter === 'requirements') {
+          matchesFilter = (stage === 'requirements' || stageKey === 'requirements');
+        } else if (activeFilter === 'payment') {
+          matchesFilter = (stage === 'payment' || stageKey === 'payment');
+        } else if (activeFilter === 'completed') {
+          matchesFilter = (stage === 'completed');
+        } else if (activeFilter === 'exceptions') {
+          matchesFilter = (stage === 'exceptions' || status.includes('issue') || status.includes('rejected'));
+        }
+      }
+
+      const matchesSearch = !q || text.includes(q);
+      const show = matchesFilter && matchesSearch;
+      row.style.display = show ? '' : 'none';
+      if (show) {
+        visible += 1;
+        // Re-render workflow actions to ensure consistent markup/style after filtering
+        try { renderWorkflowActions(row); } catch (e) { /* ignore rendering errors */ }
+      }
+    }
+    if (emptyRow) emptyRow.style.display = visible ? 'none' : '';
+  }
+
+  for (const btn of filterButtons) {
+    btn.addEventListener('click', (e) => {
+      for (const b of filterButtons) b.classList.remove('active');
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter || 'all';
+      applyFilters();
+    });
+  }
+
+  if (searchInput) searchInput.addEventListener('input', () => applyFilters());
+}
 </script>
 {% endblock %}
 {% endblock %}
