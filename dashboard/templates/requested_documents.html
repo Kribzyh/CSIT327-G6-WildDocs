@@ -5,6 +5,221 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+  .request-stats .stat-card {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    padding: 18px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .request-stats .label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #6b7280;
+  }
+
+  .request-stats .value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  /* Lighter status badge backgrounds for better readability */
+  .badge {
+    padding: .35em .6em;
+    border-radius: .375rem;
+    font-weight: 600;
+    /* Ensure badges use a light background with dark, readable text */
+    color: #0F172A !important;
+  }
+  .badge.bg-warning { background: #FFF9ED; color: #92400E; border: 1px solid rgba(16,24,40,0.04); }
+  .badge.bg-info { background: #E6F6FF; color: #0C4A6E; border: 1px solid rgba(2,6,23,0.04); }
+  /* Make the "Requirements Submitted" badge stand out with white text */
+  .badge.bg-primary { background: #3730A3; color: #aaa4a4ff !important; border: 1px solid rgba(2,6,23,0.04); }
+  .badge.bg-danger { background: #FFF1F2; color: #7F1D1D; border: 1px solid rgba(16,24,40,0.04); }
+  .badge.bg-secondary { background: #F8FAFC; color: #0F172A; border: 1px solid rgba(16,24,40,0.04); }
+  .badge.bg-success { background: #ECFDF5; color: #065F46; border: 1px solid rgba(16,24,40,0.04); }
+
+  .stat-card.total { border-top: 4px solid #2563eb; }
+  .stat-card.pending { border-top: 4px solid #f59e0b; }
+  .stat-card.approved { border-top: 4px solid #10b981; }
+  .stat-card.completed { border-top: 4px solid #6366f1; }
+
+  .request-controls {
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: -rem;
+  }
+
+  .request-search .form-control {
+    border-radius: 10px 0 0 10px;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+  }
+
+  .request-search .btn {
+    border-radius: 0 10px 10px 0;
+  }
+
+  .status-filters {
+    flex: 1 1 100%;
+    display: grid;
+    /* Auto-fit the filter buttons so the row adapts to available width */
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .status-filters .btn {
+    border-radius: 20px;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    background: #f8fafc;
+    color: #0f172a;
+    padding: 6px 12px;
+    transition: all 0.15s ease;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .status-filters .btn.active,
+  .status-filters .btn:hover {
+    background: #800000;
+    color: #fff !important;
+    border-color: #800000;
+  }
+
+  /* Modal styles for Submit Requirements */
+  .modal-backdrop-blur {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.55);
+    backdrop-filter: blur(6px) saturate(120%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    padding: 1rem;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-width: 720px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(2,6,23,0.45);
+    overflow: hidden;
+  }
+
+  .modal-card .modal-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(15,23,42,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-card .modal-body {
+    padding: 18px 20px;
+    max-height: 60vh;
+    overflow: auto;
+  }
+
+  .modal-card .modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid rgba(15,23,42,0.06);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    background: #fff;
+  }
+
+  /* Payment modal specific styles */
+  .payment-file-row { display:flex; gap:12px; align-items:center; }
+  .payment-file-label {
+    display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; cursor:pointer;
+    border:1px dashed rgba(15,23,42,0.08); background:#fff;
+  }
+  .payment-file-name { font-size:0.95rem; color:#0f172a; }
+  .payment-preview { max-width:120px; max-height:80px; object-fit:contain; border-radius:6px; border:1px solid rgba(15,23,42,0.06); }
+  .btn-maroon { background:#800000; color:#fff; border-color:#800000; }
+  .btn-maroon:hover { background:#660000; border-color:#660000; }
+  .modal-card .modal-header h5 { font-weight:700; }
+  .modal-card .modal-body { padding-top:12px; }
+  
+
+  .modal-close {
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    color: #374151;
+  }
+
+  .requirements-list { margin-bottom: 12px; }
+  .requirements-list li { margin-bottom: 6px; display:flex; align-items:flex-start; gap:8px; }
+  .requirements-list input[type="checkbox"] { margin-top:4px; }
+  .requirements-note { font-size: 1rem; line-height: 1.35; color: #800000 !important; }
+
+  .request-table table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .request-table th {
+    background: #f1f5f9;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.15);
+  }
+
+  .request-table tbody tr {
+    background: #fff;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+  }
+
+  .request-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .request-table td,
+  .request-table th {
+    vertical-align: middle;
+    padding: 14px 16px;
+  }
+
+  .no-matching-requests,
+  .request-empty-state {
+    border: 1px dashed rgba(15, 23, 42, 0.18);
+    border-radius: 16px;
+    background: #f8fafc;
+  }
+
+  .request-empty-state .btn {
+    border-radius: 999px;
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  @media (max-width: 767px) {
+    .request-stats .stat-card { padding: 14px; }
+    .request-controls { flex-direction: column; }
+    .request-search .form-control { border-radius: 10px; }
+    .request-search .btn { border-radius: 10px; margin-top: 1px; }
+    .status-filters {
+      /* On small screens, fit as many 120px-wide buttons as possible */
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.5rem;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -69,19 +284,32 @@
     </div>
 
     <!-- Documents Content -->
-    <div class="dashboard-content">
+    <div class="dashboard-content" style="margin-top:-2rem;">
       <div class="row">
         <div class="col-12">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">
-                <i class="fas fa-file-alt me-2"></i>
-                Your Document Requests
-              </h5>
+              <div class="request-controls d-flex align-items-center">
+                <div class="request-search flex-grow-1">
+                  <div class="input-group">
+                    <input type="text" id="requestSearch" class="form-control" placeholder="Search by document, purpose, or status">
+                    <button class="btn btn-outline-primary" type="button">
+                      <i class="fas fa-search"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="status-filters">
+                  <button class="btn active" data-filter="pending">Pending / Review</button>
+                  <button class="btn" data-filter="requirements">Requirements</button>
+                  <button class="btn" data-filter="payment">Payment / Processing</button>
+                  <button class="btn" data-filter="completed">Completed</button>
+                  <button class="btn" data-filter="exceptions">Cancel / Rejected</button>
+                </div>
+              </div>
               
               {% if all_requests %}
-                <div class="table-responsive">
-                  <table class="table table-striped">
+                <div class="table-responsive request-table mt-4">
+                  <table class="table align-middle request-table">
                     <thead>
                       <tr>
                         <th>Document</th>
@@ -94,29 +322,61 @@
                     </thead>
                     <tbody>
                       {% for request in all_requests %}
-                      <tr>
+                      <tr class="request-row" data-stage="{{ request.stage_category }}" data-stage-key="{{ request.stage_key }}">
                         <td>{{ request.document.name }}</td>
                         <td>{{ request.purpose }}</td>
                         <td>{{ request.copies }}</td>
                         <td>
-                          {% if request.status == 'Pending' %}
-                            <span class="badge bg-warning">{{ request.status }}</span>
-                          {% elif request.status == 'Approved' %}
-                            <span class="badge bg-success">{{ request.status }}</span>
-                          {% elif request.status == 'Completed' %}
-                            <span class="badge bg-primary">{{ request.status }}</span>
-                          {% else %}
-                            <span class="badge bg-secondary">{{ request.status }}</span>
-                          {% endif %}
+                          {% with status=request.status %}
+                            {% if status == workflow.PENDING_REVIEW or status == workflow.LEGACY_PENDING %}
+                              <span class="badge bg-warning text-dark">{{ request.status_label }}</span>
+                            {% elif status == workflow.REQUIREMENTS_NEEDED %}
+                              <span class="badge bg-info text-dark">{{ request.status_label }}</span>
+                            {% elif status == workflow.REQUIREMENTS_SUBMITTED %}
+                              <span class="badge bg-primary">{{ request.status_label }}</span>
+                            {% elif status == workflow.REQUIREMENTS_ISSUE %}
+                              <span class="badge bg-danger">{{ request.status_label }}</span>
+                            {% elif status == workflow.APPROVED_FOR_PAYMENT or status == workflow.LEGACY_APPROVED %}
+                              <span class="badge bg-success">{{ request.status_label }}</span>
+                            {% elif status == workflow.PAYMENT_SUBMITTED %}
+                              <span class="badge bg-primary">{{ request.status_label }}</span>
+                            {% elif status == workflow.PAYMENT_ISSUE %}
+                              <span class="badge bg-danger">{{ request.status_label }}</span>
+                            {% elif status == workflow.PROCESSING %}
+                              <span class="badge bg-secondary">{{ request.status_label }}</span>
+                            {% elif status == workflow.READY_FOR_PICKUP %}
+                              <span class="badge bg-success">{{ request.status_label }}</span>
+                            {% elif status in workflow_sets.completed %}
+                              <span class="badge bg-primary">{{ request.status_label }}</span>
+                            {% else %}
+                              <span class="badge bg-secondary">{{ request.status_label }}</span>
+                            {% endif %}
+                          {% endwith %}
                         </td>
                         <td>{{ request.date_requested|date:"F j, Y" }}</td>
                         <td>
-                          {% if request.status == 'Pending' %}
-                            <a href="{% url 'cancel_request' request.id %}" class="btn btn-sm btn-danger">Cancel</a>
-                          {% elif request.status == 'Approved' %}
-                            <button class="btn btn-sm btn-info">Pickup Slip</button>
-                          {% elif request.status == 'Completed' %}
-                            <button class="btn btn-sm btn-success">Receipt</button>
+                          {% comment %} Allow students to cancel only when the request is in the pending stage.
+                             Otherwise, provide upload actions for requirements or payment where applicable. {% endcomment %}
+                          {% if request.stage_category == 'pending' %}
+                            <a href="{% url 'cancel_request' request.id %}" class="btn btn-sm btn-outline-danger">Cancel</a>
+                          {% elif request.status == workflow.REQUIREMENTS_SUBMITTED or request.status == workflow.PAYMENT_SUBMITTED %}
+                            <span class="btn btn-sm btn-outline-secondary disabled submitted-label" aria-disabled="true">Submitted</span>
+                          {% elif request.stage_category == 'requirements' or request.requires_requirements_upload %}
+                            <button type="button" 
+                                    class="btn btn-sm btn-primary submit-requirements-btn"
+                                    data-request-id="{{ request.id }}"
+                                    data-document-name="{{ request.document.name|escapejs }}"
+                                    data-requirements-instructions="{{ request.requirements_instructions|default:''|escape }}">
+                              Submit Requirements
+                            </button>
+                          {% elif request.stage_category == 'payment' or request.requires_payment_upload %}
+                            <button type="button" 
+                                    class="btn btn-sm btn-primary upload-receipt-btn"
+                                    data-request-id="{{ request.id }}">
+                              Upload Receipt
+                            </button>
+                          {% else %}
+                            <span class="text-muted small">No action available</span>
                           {% endif %}
                         </td>
                       </tr>
@@ -124,13 +384,111 @@
                     </tbody>
                   </table>
                 </div>
+                <div id="noRequestMatches" class="no-matching-requests text-center py-4 mt-4 d-none">
+                  <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                  <h6>No requests match your filters</h6>
+                  <p class="text-muted mb-0">Try clearing your search or selecting "All" statuses.</p>
+                </div>
               {% else %}
-                <div class="text-center py-5">
+                <div class="request-empty-state text-center py-5 px-3 mt-4">
                   <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
-                  <h5>No Document Requests</h5>
-                  <p class="text-muted">You haven't submitted any document requests yet.</p>
+                  <h5>No Document Requests Yet</h5>
+                  <p class="text-muted mb-4">Once you submit a request, it will appear here with real-time status updates.</p>
+                  <a href="{% url 'dashboard' %}#request" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Start a Request
+                  </a>
                 </div>
               {% endif %}
+
+              {# Requirements panel removed — submissions are handled on the dedicated submit_requirements view #}
+
+              {# Payments panel removed — receipts are uploaded via the submit_payment_receipt view #}
+              
+              <!-- Submit Requirements Modal -->
+              <div id="requirementsModal" class="d-none" aria-hidden="true">
+                <div class="modal-backdrop-blur" role="dialog" aria-modal="true">
+                  <dialog class="modal-card" id="requirementsDialog">
+                    <div class="modal-header">
+                      <h5 class="mb-0">Submit Requirements</h5>
+                    </div>
+                    <div class="modal-body">
+                      <p class="text-muted small mb-2">Please upload the required documents for your request. Files accepted: JPG, PNG, PDF. Max 5MB per file.</p>
+                      <div>
+                        <strong>Document Requested:</strong>
+                        <p id="modalDocumentName" class="mb-2">&mdash;</p>
+                      </div>
+                      <div>
+                        <strong>Requirements To Submit</strong>
+                        <p id="modalInstructions" class="text-muted small mb-3"></p>
+                      </div>
+                      <div>
+                        <ul id="modalRequirementsList" class="requirements-list"></ul>
+                      </div>
+
+                      <form id="requirementsModalForm" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                          <label for="modal_requirements_file" class="form-label">Upload your requirements below</label>
+                          <div id="dropZone" class="p-3 mb-2" style="border:1px dashed rgba(15,23,42,0.08); border-radius:8px; background:#fbfdff; text-align:center;">
+                            <div id="dropText">Drag &amp; drop files here, or <button type="button" id="dropBrowse" class="btn btn-link p-0">browse</button></div>
+                            <input id="modal_requirements_file" type="file" name="requirements_file[]" class="d-none" multiple accept="image/*,.pdf">
+                            <div id="dropHelp" class="text-muted small mt-2">Accepted: JPG, PNG, PDF — Max 15MB per file</div>
+                          </div>
+                          <div id="filesPreview" class="mb-2"></div>
+                        </div>
+                        <div class="mb-3">
+                          <label for="modal_student_note" class="form-label">Optional message to registrar</label>
+                          <textarea id="modal_student_note" name="student_note" class="form-control" rows="3" placeholder="Optional message to registrar"></textarea>
+                        </div>
+                        <div id="submitInfo" class="text-muted small mb-2">Your submitted files will be reviewed by staff. You will receive an update once your requirements are approved.</div>
+                      </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button id="requirementsModalCancel" type="button" class="btn btn-outline-secondary">Cancel</button>
+                      <button id="requirementsModalUpload" type="button" class="btn btn-primary">Upload</button>
+                    </div>
+                  </dialog>
+                </div>
+              </div>
+                <!-- Upload Payment Receipt Modal -->
+                <div id="paymentModal" class="d-none" aria-hidden="true">
+                  <div class="modal-backdrop-blur" role="dialog" aria-modal="true">
+                    <dialog class="modal-card" id="paymentDialog">
+                      <div class="modal-header">
+                        <h5 class="mb-0">Upload Payment Receipt</h5>
+                        <button type="button" class="modal-close" id="paymentModalClose" aria-label="Close">×</button>
+                      </div>
+                      <div class="modal-body">
+                        <p class="text-muted small mb-2">Please upload your payment receipt. Accepted: JPG, PNG, PDF. Max 10MB.</p>
+                        <form id="paymentModalForm" method="post" enctype="multipart/form-data">
+                          {% csrf_token %}
+                          <div class="mb-3">
+                            <div class="payment-file-row">
+                              <label class="payment-file-label" for="payment_receipt_file">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3v10" stroke="#800000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 6l3-3 3 3" stroke="#800000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                <span class="payment-file-name" id="paymentFileDisplay">Choose a file…</span>
+                              </label>
+                              <div style="flex:1;text-align:right">
+                                <img id="paymentPreview" class="payment-preview d-none" alt="preview">
+                              </div>
+                            </div>
+                            <input id="payment_receipt_file" type="file" name="payment_receipt" class="d-none" accept="image/*,.pdf">
+                            <div id="paymentFileHelp" class="text-muted small mt-2">Accepted formats: JPG, PNG, PDF — Max 10MB</div>
+                          </div>
+                          <div class="mb-3">
+                            <label for="payment_reference_code" class="form-label">Payment reference (optional)</label>
+                            <input id="payment_reference_code" name="payment_reference_code" class="form-control" placeholder="Transaction ID or reference">
+                          </div>
+                        </form>
+                      </div>
+                      <div class="modal-footer">
+                        <button id="paymentModalCancel" type="button" class="btn btn-outline-secondary">Cancel</button>
+                        <button id="paymentModalUpload" type="button" class="btn btn-maroon">Upload Receipt</button>
+                      </div>
+                    </dialog>
+                  </div>
+                </div>
             </div>
           </div>
         </div>
@@ -151,17 +509,655 @@ function confirmLogout(event) {
 
 // Set current date
 document.addEventListener('DOMContentLoaded', function() {
-    const dateElement = document.getElementById('welcomeDate');
-    if (dateElement) {
-        const today = new Date();
-        const options = { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        };
-        dateElement.textContent = today.toLocaleDateString('en-US', options);
-    }
+  const dateElement = document.getElementById('welcomeDate');
+  if (dateElement) {
+    const today = new Date();
+    const options = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    dateElement.textContent = today.toLocaleDateString('en-US', options);
+  }
+
+  setupRequestInteractions();
 });
+
+function setupRequestInteractions() {
+  const tableRows = Array.from(document.querySelectorAll('.request-row'));
+  const summaryElements = {
+    total: document.querySelector('[data-summary="total"]'),
+    pending: document.querySelector('[data-summary="pending"]'),
+    approved: document.querySelector('[data-summary="approved"]'),
+    completed: document.querySelector('[data-summary="completed"]')
+  };
+  const searchInput = document.getElementById('requestSearch');
+  const filterButtons = Array.from(document.querySelectorAll('[data-filter]'));
+  const noMatches = document.getElementById('noRequestMatches');
+  const requirementsPanel = document.getElementById('requirements-panel');
+  const paymentsPanel = document.getElementById('payments-panel');
+  // default filter may be overridden by `?filter=...` in the URL
+  const urlParams = new URLSearchParams(window.location.search);
+  let activeFilter = urlParams.get('filter') || 'pending';
+
+  function updateSummaries() {
+    const counts = { total: 0, pending: 0, approved: 0, completed: 0 };
+    for (const row of tableRows) {
+      const stage = row.dataset.stage || 'pending';
+      // Exclude requirement/issue/exception rows from the main totals
+      if (stage === 'requirements' || stage === 'issue' || stage === 'exceptions') continue;
+      counts.total += 1;
+      if (stage === 'completed') {
+        counts.completed += 1;
+      } else if (stage === 'payment' || stage === 'processing' || stage === 'in-progress') {
+        counts.approved += 1;
+      } else if (stage === 'pending') {
+        counts.pending += 1;
+      }
+    }
+    for (const key of Object.keys(summaryElements)) {
+      if (summaryElements[key]) summaryElements[key].textContent = (counts[key] || 0).toString();
+    }
+  }
+
+  function applyFilters() {
+    if (!tableRows.length) return;
+    const searchTerm = (searchInput?.value || '').trim().toLowerCase();
+    let visibleCount = 0;
+
+    for (const row of tableRows) {
+      const stage = row.dataset.stage || '';
+      let matchesStatus = true;
+      if (activeFilter === 'payment') {
+        matchesStatus = stage === 'payment' || stage === 'processing' || stage === 'in-progress';
+      } else {
+        matchesStatus = stage === activeFilter;
+      }
+
+      const rowText = row.textContent.toLowerCase();
+      const matchesSearch = !searchTerm || rowText.includes(searchTerm);
+      const shouldShow = matchesStatus && matchesSearch;
+      row.classList.toggle('d-none', !shouldShow);
+      if (shouldShow) visibleCount += 1;
+    }
+
+    if (noMatches) noMatches.classList.toggle('d-none', visibleCount > 0);
+
+    // Show/hide the standalone panels depending on the active filter.
+    if (requirementsPanel) requirementsPanel.classList.toggle('d-none', activeFilter !== 'requirements');
+    if (paymentsPanel) paymentsPanel.classList.toggle('d-none', activeFilter !== 'payment');
+  }
+
+  // highlight the active filter button from URL or default
+  for (const b of filterButtons) b.classList.toggle('active', b.dataset.filter === activeFilter);
+
+  for (const btn of filterButtons) {
+    btn.addEventListener('click', () => {
+      for (const b of filterButtons) b.classList.remove('active');
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      applyFilters();
+    });
+  }
+
+  if (searchInput) searchInput.addEventListener('input', () => applyFilters());
+
+  updateSummaries();
+  applyFilters();
+
+  // --- Modal: Submit Requirements handlers ---
+  const submitButtons = Array.from(document.querySelectorAll('.submit-requirements-btn'));
+  const requirementsModal = document.getElementById('requirementsModal');
+  const requirementsDialog = document.getElementById('requirementsDialog');
+  const modalClose = document.getElementById('requirementsModalClose');
+  const modalCancel = document.getElementById('requirementsModalCancel');
+  const modalUpload = document.getElementById('requirementsModalUpload');
+  const modalForm = document.getElementById('requirementsModalForm');
+  const modalInstructions = document.getElementById('modalInstructions');
+  const modalDocumentName = document.getElementById('modalDocumentName');
+  const dropZone = document.getElementById('dropZone');
+  const dropBrowse = document.getElementById('dropBrowse');
+  const fileInput = document.getElementById('modal_requirements_file');
+  const filesPreview = document.getElementById('filesPreview');
+  const endpointPrefix = "{% url 'submit_requirements' 0 %}";
+  const getUploadsPrefix = "{% url 'get_requirement_uploads' 0 %}";
+  // cache of uploaded files per request (populated from AJAX responses)
+  const uploadedFilesByRequest = {};
+  // track currently-open request id for the modal
+  let modalCurrentRequestId = null;
+  // number of required items for the currently-open modal
+  let modalRequiredCount = 0;
+
+  // Requirements mapping for common document types
+  const documentRequirements = {
+    'transcript of records': [
+      'Valid School ID or Government ID',
+      'Official Receipt of TOR payment',
+      'Clearance from: Finance Office, Library, Department/Program Chair',
+      'PSA Birth Certificate (optional)',
+      'Exit Interview Form (for graduating/transfer students)',
+      'For alumni: Proof of graduation (Diploma or Certificate of Graduation)'
+    ],
+    'certificate of enrollment': [
+      'Valid School ID',
+      'Currently enrolled in the semester (auto-verified by system)',
+      'Official Receipt (if your school charges a fee)'
+    ],
+    'diploma copy': [
+      'Valid School ID or Government ID',
+      'Official Receipt of payment',
+      'For lost original diploma: Affidavit of Loss, PSA Birth Certificate',
+      'For alumni: Name verification from registrar records (auto-check)'
+    ],
+    'good moral certificate': [
+      'Valid School ID',
+      'Official Receipt of payment',
+      'Clearance from Guidance Office (no disciplinary record)',
+      'For alumni: Barangay Clearance or Police Clearance (optional)'
+    ],
+    'certificate of graduation': [
+      'Valid School ID or Government ID',
+      'Official Receipt of payment',
+      'Clearance from Finance and Library',
+      'Proof of graduation (already recorded in system)',
+      'For alumni: Name verification'
+    ],
+    'honorable dismissal': [
+      'Valid School ID or Government ID',
+      'Clearance from: Finance Office, Library, Department, Registrar',
+      'Exit/Transfer Interview Form',
+      'Official Receipt of payment',
+      'Parent/Guardian Consent (if student is a minor)'
+    ]
+  };
+
+  function findMatchingRequirementKey(docName) {
+    if (!docName) return null;
+    const stopWords = new Set(['of','the','and','a','an']);
+    const norm = (s) => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean).filter(w=>!stopWords.has(w));
+    const docTokens = norm(docName);
+    if (!docTokens.length) return null;
+    let bestKey = null;
+    let bestScore = 0;
+    for (const key of Object.keys(documentRequirements)) {
+      const keyTokens = norm(key);
+      const common = keyTokens.filter(t => docTokens.includes(t));
+      const score = common.length / Math.min(keyTokens.length, docTokens.length);
+      if (score > bestScore) { bestScore = score; bestKey = key; }
+    }
+    // require reasonable overlap
+    return bestScore >= 0.5 ? bestKey : null;
+  }
+
+  function openRequirementsModal(requestId, instructions) {
+    if (modalInstructions) {
+      // Start with provided instructions text (do not render raw instruction paragraph
+      // to avoid duplicating the bulletized requirements below)
+      const baseInstr = (instructions || '').trim();
+      let instrHtml = '';
+      // populate requirements into the instructions area as a bullet list
+      const submitButton = document.querySelector('.submit-requirements-btn[data-request-id="' + requestId + '"]');
+      const viewButton = document.querySelector('.view-requirements-btn[data-request-id="' + requestId + '"]');
+      // prefer the submit button; fall back to the view button so modal works for both actions
+      const activeButton = submitButton || viewButton;
+      if (activeButton) {
+        if (modalDocumentName) modalDocumentName.textContent = activeButton.dataset.documentName || '';
+        const rawName = activeButton.dataset.documentName || '';
+        const key = findMatchingRequirementKey(rawName);
+        if (key && documentRequirements[key]) {
+          const reqs = documentRequirements[key];
+          // count required vs optional items (optional items include the word '(optional)')
+          const requiredCount = reqs.filter(x => !/\(optional\)/i.test(x)).length;
+          instrHtml += `<div class="requirements-note mb-2"><strong>Note:</strong> You may submit requirements only once. Please upload all required items (${requiredCount} required) before clicking Upload.</div>`;
+          instrHtml += '<ul class="requirements-list">';
+          for (const r of reqs) {
+            const isOptional = /\(optional\)/i.test(r);
+            instrHtml += `<li${isOptional ? ' class="optional"' : ''}>\u2714&nbsp; ${r}</li>`;
+          }
+          instrHtml += '</ul>';
+          // expose required count to the upload handler
+          modalRequiredCount = requiredCount;
+        } else {
+          modalRequiredCount = 0;
+        }
+      }
+      modalInstructions.innerHTML = instrHtml;
+    }
+    if (modalForm) {
+      // set action to the correct request endpoint (try safe replace of '/0/' first)
+      try {
+        if (endpointPrefix.includes('/0/')) {
+          modalForm.action = endpointPrefix.replace('/0/', `/${requestId}/`);
+        } else {
+          modalForm.action = endpointPrefix.replace(/0\/?$/, requestId + '/');
+        }
+      } catch (err) {
+        // fallback: build a relative path
+        modalForm.action = `/dashboard/requested_documents/${requestId}/requirements/`;
+      }
+      modalCurrentRequestId = String(requestId);
+      // Render any previously uploaded files: prefer client cache, otherwise fetch from server
+      try {
+        const rid = modalCurrentRequestId || String(requestId || '');
+        if (rid && uploadedFilesByRequest[rid] && uploadedFilesByRequest[rid].length) {
+          renderExistingUploadedFiles(rid);
+        } else if (rid) {
+          // fetch persisted uploads from server using the Django-generated URL
+          try {
+            let uploadsUrl = getUploadsPrefix;
+            if (uploadsUrl && uploadsUrl.includes('/0/')) {
+              uploadsUrl = uploadsUrl.replace('/0/', `/${rid}/`);
+            } else {
+              uploadsUrl = uploadsUrl.replace(/0\/?$/, rid + '/');
+            }
+            fetch(uploadsUrl, { credentials: 'same-origin' })
+              .then(resp => resp.ok ? resp.json() : Promise.reject(new Error('Failed to load')))
+              .then(data => {
+                if (data && Array.isArray(data.files) && data.files.length) {
+                  uploadedFilesByRequest[rid] = data.files;
+                } else {
+                  uploadedFilesByRequest[rid] = [];
+                }
+                renderExistingUploadedFiles(rid);
+              })
+              .catch(err => {
+                console.warn('Could not load persisted uploads', err);
+                renderExistingUploadedFiles(rid);
+              });
+          } catch (e) {
+            console.warn('Error building uploads URL', e);
+            renderExistingUploadedFiles(rid);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to render existing uploaded files', e);
+      }
+    }
+    if (requirementsModal) {
+      // reveal modal container to assistive tech
+      requirementsModal.classList.remove('d-none');
+      requirementsModal.removeAttribute('aria-hidden');
+    }
+    if (requirementsDialog && typeof requirementsDialog.showModal === 'function') {
+      requirementsDialog.showModal();
+      // move focus into the dialog (close button preferred)
+      try {
+        if (modalClose && typeof modalClose.focus === 'function') modalClose.focus();
+        else if (requirementsDialog && typeof requirementsDialog.focus === 'function') requirementsDialog.focus();
+      } catch (e) {
+        /* ignore focus errors */
+      }
+    }
+  }
+
+  // Payment modal interactions
+  function openPaymentModal(requestId) {
+    const modalWrapper = document.getElementById('paymentModal');
+    const dialog = document.getElementById('paymentDialog');
+    const form = document.getElementById('paymentModalForm');
+    if (!modalWrapper || !dialog || !form) return;
+    // set form action to POST to the view (use absolute path to avoid duplicating segments)
+    form.action = `/dashboard/requested_documents/${requestId}/payment/`;
+    console.debug('payment form action set to', form.action);
+    modalWrapper.classList.remove('d-none');
+    try { dialog.showModal(); } catch (e) { dialog.style.display = 'block'; }
+  }
+
+  function closePaymentModal() {
+    const modalWrapper = document.getElementById('paymentModal');
+    const dialog = document.getElementById('paymentDialog');
+    if (!modalWrapper || !dialog) return;
+    try { dialog.close(); } catch (e) { dialog.style.display = 'none'; }
+    modalWrapper.classList.add('d-none');
+  }
+
+  document.addEventListener('click', function (e) {
+    const t = e.target.closest('.upload-receipt-btn');
+    if (t) {
+      const rid = t.getAttribute('data-request-id');
+      openPaymentModal(rid);
+    }
+  });
+
+  const payCancel = document.getElementById('paymentModalCancel');
+  if (payCancel) payCancel.addEventListener('click', function () { closePaymentModal(); });
+
+  const payUpload = document.getElementById('paymentModalUpload');
+  if (payUpload) payUpload.addEventListener('click', function () {
+    const form = document.getElementById('paymentModalForm');
+    const fileInput = document.getElementById('payment_receipt_file');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+      alert('Please choose a receipt file to upload.');
+      return;
+    }
+    const f = fileInput.files[0];
+    // Basic client validation: max 10MB
+    if (f.size > 10 * 1024 * 1024) {
+      alert('File too large. Max 10MB allowed.');
+      return;
+    }
+    // submit the form normally so CSRF and session cookies are applied
+    form.submit();
+  });
+
+  // Wire up file preview and filename display
+  const paymentFileInput = document.getElementById('payment_receipt_file');
+  const paymentFileDisplay = document.getElementById('paymentFileDisplay');
+  const paymentPreview = document.getElementById('paymentPreview');
+  if (paymentFileInput) {
+    // clicking the visual label will trigger the hidden file input due to `for` attr
+    paymentFileInput.addEventListener('change', function (ev) {
+      const file = this.files && this.files[0];
+      if (!file) {
+        paymentFileDisplay.textContent = 'Choose a file…';
+        paymentPreview.classList.add('d-none');
+        paymentPreview.src = '';
+        return;
+      }
+      // show filename
+      paymentFileDisplay.textContent = file.name;
+      // if it's an image, show preview
+      if (file.type && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          paymentPreview.src = e.target.result;
+          paymentPreview.classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
+      } else {
+        paymentPreview.classList.add('d-none');
+        paymentPreview.src = '';
+      }
+    });
+  }
+
+  // modal close button
+  const paymentModalClose = document.getElementById('paymentModalClose');
+  if (paymentModalClose) paymentModalClose.addEventListener('click', closePaymentModal);
+
+  function closeRequirementsModal() {
+    // close the dialog first
+    if (requirementsDialog && typeof requirementsDialog.close === 'function') {
+      try { requirementsDialog.close(); } catch (e) { /* ignore */ }
+    }
+
+    // restore focus to the originating button (if available) before hiding
+    try {
+      const trigger = (modalCurrentRequestId && (
+        document.querySelector('.view-requirements-btn[data-request-id="' + modalCurrentRequestId + '"]') ||
+        document.querySelector('.submit-requirements-btn[data-request-id="' + modalCurrentRequestId + '"]')
+      ));
+      if (trigger && typeof trigger.focus === 'function') trigger.focus();
+    } catch (e) { /* ignore focus restore errors */ }
+
+    if (requirementsModal) {
+      // hide from assistive tech
+      requirementsModal.setAttribute('aria-hidden', 'true');
+      requirementsModal.classList.add('d-none');
+    }
+
+    // reset form
+    if (modalForm) modalForm.reset();
+  }
+
+  for (const b of submitButtons) {
+    b.addEventListener('click', (ev) => {
+      const id = b.dataset.requestId;
+      const instr = b.dataset.requirementsInstructions || '';
+      openRequirementsModal(id, instr);
+    });
+  }
+
+  if (modalClose) modalClose.addEventListener('click', closeRequirementsModal);
+  if (modalCancel) modalCancel.addEventListener('click', closeRequirementsModal);
+
+  if (modalUpload) {
+    modalUpload.addEventListener('click', async () => {
+      // require at least the required number of files (and minimum 2 as extra safeguard)
+      const files = fileInput ? fileInput.files : null;
+      const fileCount = (files && files.length) ? files.length : 0;
+      if (modalRequiredCount && fileCount < modalRequiredCount) {
+        alert(`Please upload all required documents before submitting. ${modalRequiredCount} required, you have attached ${fileCount}.`);
+        return;
+      }
+      if (!files || fileCount < 2) {
+        alert('Please attach at least two files.');
+        return;
+      }
+      // ensure file sizes under 5MB
+      for (const f of files) {
+        if (f.size > 5 * 1024 * 1024) { alert(`File "${f.name}" exceeds 5MB.`); return; }
+      }
+
+      if (!modalForm) return;
+
+      modalUpload.disabled = true;
+      const originalText = modalUpload.textContent;
+      modalUpload.textContent = 'Uploading...';
+      try {
+        // Ensure the form action is not still using the placeholder '0'
+        if (modalForm && /\/(0)(\/|$)/.test(modalForm.action) && modalCurrentRequestId) {
+          if (endpointPrefix.includes('/0/')) {
+            modalForm.action = endpointPrefix.replace('/0/', `/${modalCurrentRequestId}/`);
+          } else {
+            modalForm.action = endpointPrefix.replace(/0\/?$/, modalCurrentRequestId + '/');
+          }
+        }
+        // build FormData explicitly so multiple files are appended correctly
+        const formData = new FormData();
+        const csrfInput = modalForm.querySelector('input[name="csrfmiddlewaretoken"]');
+        const noteInput = modalForm.querySelector('textarea[name="student_note"]');
+        const headers = {};
+        if (csrfInput && csrfInput.value) {
+          // also include token in form data for backends expecting it there
+          formData.append('csrfmiddlewaretoken', csrfInput.value);
+          headers['X-CSRFToken'] = csrfInput.value;
+        }
+        // Identify this request as AJAX so server can return JSON on error paths
+        headers['X-Requested-With'] = 'XMLHttpRequest';
+        headers['Accept'] = 'application/json';
+        if (noteInput && noteInput.value) formData.append('student_note', noteInput.value);
+        // append each selected file under the array name
+        for (const f of Array.from(fileInput.files || [])) {
+          formData.append('requirements_file[]', f, f.name);
+        }
+
+        const resp = await fetch(modalForm.action, {
+          method: 'POST',
+          body: formData,
+          headers: headers,
+          credentials: 'same-origin'
+        });
+
+        if (resp.ok) {
+            try { console.debug('submit_requirements response status', resp.status, 'headers', Object.fromEntries(resp.headers.entries())); } catch (e) {}
+          // try to parse JSON response with details of uploaded files
+          const ct = resp.headers.get('Content-Type') || '';
+          if (ct.includes('application/json')) {
+            const data = await resp.json();
+              try { console.debug('submit_requirements payload', data); } catch (e) {}
+            const requestId = modalForm.action.replace(/\D+$/g, '').replace(/\/$/, '');
+            // store returned files for this request (if provided)
+            if (data && Array.isArray(data.files)) {
+              const rid = data.request_id || requestId || (modalForm.action.match(/(\d+)\/?$/) || [])[1];
+              if (rid) uploadedFilesByRequest[rid] = data.files;
+              updateRowAfterUpload(rid || requestId, data.files);
+              // make sure the updated row/action is visible to the user
+              try {
+                activeFilter = 'requirements';
+                for (const b of filterButtons) b.classList.toggle('active', b.dataset.filter === activeFilter);
+                applyFilters();
+                const finalId = rid || requestId;
+                const newViewBtn = document.querySelector('.view-requirements-btn[data-request-id="' + finalId + '"]');
+                const updatedRow = newViewBtn ? newViewBtn.closest('tr') : document.querySelector('.request-row[data-stage="requirements"]');
+                if (updatedRow) {
+                  updatedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  // subtle temporary highlight to draw attention
+                  const originalBg = updatedRow.style.backgroundColor;
+                  updatedRow.style.transition = 'background-color 0.5s';
+                  updatedRow.style.backgroundColor = '#fff7ed';
+                  setTimeout(() => { updatedRow.style.backgroundColor = originalBg || ''; }, 1800);
+                }
+              } catch (e) {
+                console.warn('Could not auto-show updated row', e);
+              }
+            }
+            // close modal
+            closeRequirementsModal();
+          } else {
+              // Non-JSON response: capture text for debugging
+              try { const txt = await resp.text(); console.warn('submit_requirements non-json response', resp.status, txt.substring(0,1000)); } catch (e) {}
+            // fallback: reload to requirements filter so staff can see uploads
+            window.location.href = window.location.pathname + '?filter=requirements';
+          }
+        } else {
+            const text = await resp.text();
+            console.error('Upload failed', resp.status, text.substring(0, 200));
+          alert('Upload failed. Please try again.');
+          modalUpload.disabled = false;
+          modalUpload.textContent = originalText;
+        }
+      } catch (err) {
+        console.error('Upload error', err);
+        alert('Upload failed. Please try again.');
+        modalUpload.disabled = false;
+        modalUpload.textContent = originalText;
+      }
+    });
+  }
+
+  // Drag & drop and preview logic
+  function renderFilePreviewList(fileList) {
+    if (!filesPreview) return;
+    filesPreview.innerHTML = '';
+    const files = Array.from(fileList || []);
+    // sort newest first (by lastModified when available)
+    files.sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
+    // debug: show count
+    console.debug('renderFilePreviewList: files count=', files.length);
+    files.forEach((f, i) => {
+      const row = document.createElement('div');
+      row.className = 'd-flex align-items-center justify-content-between mb-2 border rounded p-2 bg-white';
+      const info = document.createElement('div');
+      info.innerHTML = `<strong style="font-size:0.95rem">${f.name}</strong><div class="text-muted small">${(f.size/1024/1024).toFixed(2)} MB</div>`;
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn btn-sm btn-outline-danger';
+      removeBtn.textContent = 'Remove';
+      removeBtn.addEventListener('click', () => {
+        // remove file from DataTransfer by matching name+size+lastModified
+        const dt = new DataTransfer();
+        const current = Array.from(fileInput.files || []);
+        for (const cur of current) {
+          if (!(cur.name === f.name && cur.size === f.size && cur.lastModified === f.lastModified)) {
+            dt.items.add(cur);
+          }
+        }
+        fileInput.files = dt.files;
+        renderFilePreviewList(fileInput.files);
+      });
+      row.appendChild(info);
+      row.appendChild(removeBtn);
+      filesPreview.appendChild(row);
+    });
+  }
+
+  if (dropBrowse) dropBrowse.addEventListener('click', (e) => { e.preventDefault(); if (fileInput) fileInput.click(); });
+  if (fileInput) {
+    fileInput.addEventListener('change', () => {
+      console.debug('fileInput.change, files=', fileInput.files.length);
+      renderFilePreviewList(fileInput.files);
+    });
+  }
+  if (dropZone) {
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-primary'); });
+    dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('border-primary'); });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault(); dropZone.classList.remove('border-primary');
+      const dt = new DataTransfer();
+      // merge existing files
+      const dropped = e.dataTransfer.files;
+      // add dropped files first so they appear at the top (recent-first)
+      for (const d of dropped) dt.items.add(d);
+      const existing = fileInput.files;
+      for (const f of existing) dt.items.add(f);
+      fileInput.files = dt.files;
+      renderFilePreviewList(fileInput.files);
+    });
+  }
+
+  // Render previously uploaded files (from server JSON) inside the modal
+  function renderExistingUploadedFiles(requestId) {
+    if (!filesPreview) return;
+    filesPreview.innerHTML = '';
+    const existing = uploadedFilesByRequest[requestId] || [];
+    if (!existing.length) return;
+    for (const ef of existing) {
+      const row = document.createElement('div');
+      row.className = 'd-flex align-items-center justify-content-between mb-2 border rounded p-2 bg-white';
+      const info = document.createElement('div');
+      if (ef.url) info.innerHTML = `<a href="${ef.url}" target="_blank" rel="noopener">${ef.name}</a><div class="text-muted small">Uploaded</div>`;
+      else info.innerHTML = `<strong>${ef.name}</strong><div class="text-muted small">Uploaded</div>`;
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn btn-sm btn-outline-danger';
+      removeBtn.textContent = 'Remove';
+      removeBtn.addEventListener('click', async () => {
+        // require a server-provided delete_url to remove persisted files
+        if (!ef.delete_url) {
+          alert('Cannot remove this file from the server.');
+          return;
+        }
+        const csrfInput = modalForm ? modalForm.querySelector('input[name="csrfmiddlewaretoken"]') : null;
+        const headers = {};
+        if (csrfInput && csrfInput.value) headers['X-CSRFToken'] = csrfInput.value;
+        try {
+          const resp = await fetch(ef.delete_url, { method: 'DELETE', headers: headers, credentials: 'same-origin' });
+          if (resp.ok) {
+            // remove from cache and DOM
+            const arr = uploadedFilesByRequest[requestId] || [];
+            uploadedFilesByRequest[requestId] = arr.filter(x => x.id !== ef.id);
+            row.remove();
+          } else {
+            alert('Failed to remove file.');
+          }
+        } catch (err) {
+          console.error('Delete error', err);
+          alert('Failed to remove file.');
+        }
+      });
+      row.appendChild(info);
+      row.appendChild(removeBtn);
+      filesPreview.appendChild(row);
+    }
+  }
+
+  // After a successful upload, replace the action button with a 'View' button
+  function updateRowAfterUpload(requestId, files) {
+    const submitBtn = document.querySelector('.submit-requirements-btn[data-request-id="' + requestId + '"]');
+    const row = submitBtn ? submitBtn.closest('tr') : document.querySelector('.request-row[data-stage-key]');
+    if (submitBtn && submitBtn.parentElement) {
+      const submittedLabel = document.createElement('span');
+      submittedLabel.className = 'btn btn-sm btn-outline-secondary disabled submitted-label';
+      submittedLabel.setAttribute('aria-disabled', 'true');
+      submittedLabel.textContent = 'Submitted';
+      submitBtn.parentElement.replaceChild(submittedLabel, submitBtn);
+      // update the stage on the row so filters will show it if needed
+      if (row) row.dataset.stage = 'requirements';
+      // cache the files
+      if (files) uploadedFilesByRequest[requestId] = files;
+    }
+  }
+
+  // Attach listeners for existing view buttons (if any)
+  const existingViewButtons = Array.from(document.querySelectorAll('.view-requirements-btn'));
+  for (const vb of existingViewButtons) {
+    vb.addEventListener('click', () => {
+      const id = vb.dataset.requestId;
+      openRequirementsModal(id, vb.dataset.requirementsInstructions || '');
+    });
+  }
+}
 </script>
 {% endblock %}
