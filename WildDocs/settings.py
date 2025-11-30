@@ -8,12 +8,12 @@ from dotenv import load_dotenv
 import dj_database_url
 from urllib.parse import urlparse # render deployment
 
-# Load environment variables
-if os.environ.get("RENDER", "") != "true": # render deployment
-    load_dotenv() # render deployment
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables (always point to the project-level .env)
+if os.environ.get("RENDER", "").lower() != "true": # render deployment
+    load_dotenv(BASE_DIR / ".env", override=True) # render deployment
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-0y$vp&@l-h)yylg#lr2e9h!d9+$p9*)@96(f8lh+b24xmt0*@0')
@@ -29,7 +29,6 @@ if os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "True").lower() == "true":
  
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*.supabase.co']
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()] # render deployment
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()] # render deployment
 
@@ -154,10 +153,9 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Media (for uploaded profile pictures) - Update for Supabase Storage
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-# MEDIA_ROOT = BASE_DIR / 'media'
+# Media (legacy local uploads are still referenced, so serve them in dev)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
