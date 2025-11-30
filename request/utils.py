@@ -5,7 +5,7 @@ Utility functions for request management and processing.
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
-from accounts.models import Request, StudentAccount, Notification
+from accounts.models import Request, StudentAccount, Notification, RequestWorkflow
 from datetime import datetime, timedelta
 import logging
 
@@ -18,9 +18,9 @@ def send_status_notification(request_obj, old_status, new_status):
         # Create database notification
         message = f"Your request #{request_obj.id} for {request_obj.document.name} has been updated from {old_status} to {new_status}."
         
-        if new_status == 'Approved':
-            message += " Please visit the Registrar's Office to claim your document."
-        elif new_status == 'Completed':
+        if new_status in {RequestWorkflow.APPROVED_FOR_PAYMENT, RequestWorkflow.READY_FOR_PICKUP, RequestWorkflow.LEGACY_APPROVED}:
+            message += " Please proceed with the next instructions shown in your portal."
+        elif new_status in RequestWorkflow.completed_statuses():
             message += " Thank you for using WildDocs!"
         
         Notification.objects.create(
@@ -103,9 +103,9 @@ def generate_request_summary(student):
     
     summary = {
         'total_requests': requests.count(),
-        'pending_requests': requests.filter(status='Pending').count(),
-        'approved_requests': requests.filter(status='Approved').count(),
-        'completed_requests': requests.filter(status='Completed').count(),
+        'pending_requests': requests.filter(status__in=RequestWorkflow.pending_statuses()).count(),
+        'approved_requests': requests.filter(status__in=RequestWorkflow.approval_statuses()).count(),
+        'completed_requests': requests.filter(status__in=RequestWorkflow.completed_statuses()).count(),
         'recent_requests': requests.order_by('-date_requested')[:5],
         'most_requested_document': None,
         'average_processing_time': None
@@ -121,7 +121,7 @@ def generate_request_summary(student):
         summary['most_requested_document'] = max(document_counts, key=document_counts.get)
     
     # Calculate average processing time (this would be more accurate with completion dates)
-    completed_requests = requests.filter(status='Completed')
+    completed_requests = requests.filter(status__in=RequestWorkflow.completed_statuses())
     if completed_requests:
         total_days = sum((timezone.now() - req.date_requested).days for req in completed_requests)
         summary['average_processing_time'] = total_days / completed_requests.count()
@@ -133,7 +133,11 @@ def check_overdue_requests():
     """Check for overdue approved requests and send reminders"""
     threshold_date = timezone.now() - timedelta(days=14)  # 14 days threshold
     overdue_requests = Request.objects.filter(
-        status='Approved',
+        status__in={
+            RequestWorkflow.APPROVED_FOR_PAYMENT,
+            RequestWorkflow.READY_FOR_PICKUP,
+            RequestWorkflow.LEGACY_APPROVED
+        },
         date_requested__lt=threshold_date
     )
     
@@ -170,51 +174,76 @@ def format_request_timeline(request_obj):
         'status': 'completed',
         'icon': 'fas fa-paper-plane'
     })
-    
-    # Add status-specific events
-    if request_obj.status in ['Approved', 'Completed']:
-        timeline.append({
-            'date': request_obj.date_requested,  # Would use actual approval date
-            'title': 'Request Approved',
-            'description': 'Request has been reviewed and approved for processing',
-            'status': 'completed',
-            'icon': 'fas fa-check-circle'
-        })
-    
-    if request_obj.status == 'Completed':
-        timeline.append({
-            'date': request_obj.date_requested,  # Would use actual completion date
-            'title': 'Document Ready',
-            'description': 'Document has been processed and is ready for pickup',
-            'status': 'completed',
-            'icon': 'fas fa-file-check'
-        })
-        
-        timeline.append({
-            'date': request_obj.date_requested,  # Would use actual pickup date
-            'title': 'Document Collected',
-            'description': 'Document successfully collected from Registrar\'s Office',
-            'status': 'completed',
-            'icon': 'fas fa-hand-holding'
-        })
-    
-    # Add pending/future events
-    if request_obj.status == 'Pending':
+
+    if request_obj.requirements_instructions:
         timeline.append({
             'date': None,
-            'title': 'Under Review',
-            'description': 'Request is being reviewed by administration',
-            'status': 'pending',
-            'icon': 'fas fa-hourglass-half'
+            'title': 'Requirements Posted',
+            'description': request_obj.requirements_instructions,
+            'status': 'current' if request_obj.status in RequestWorkflow.requirements_upload_statuses() else 'completed',
+            'icon': 'fas fa-list-check'
         })
-    
-    if request_obj.status in ['Pending', 'Approved']:
+
+    if request_obj.requirements_submitted_at:
         timeline.append({
-            'date': None,
-            'title': 'Ready for Pickup',
-            'description': 'Document will be ready for collection',
-            'status': 'pending' if request_obj.status == 'Pending' else 'current',
+            'date': request_obj.requirements_submitted_at,
+            'title': 'Requirements Submitted',
+            'description': request_obj.requirements_submission_note or 'Files uploaded by student',
+            'status': 'completed' if request_obj.requirements_verified_at else 'current',
+            'icon': 'fas fa-upload'
+        })
+
+    if request_obj.requirements_verified_at:
+        timeline.append({
+            'date': request_obj.requirements_verified_at,
+            'title': 'Requirements Verified',
+            'description': request_obj.requirements_feedback or 'Registrar verified the uploaded requirements.',
+            'status': 'completed',
             'icon': 'fas fa-clipboard-check'
+        })
+
+    if request_obj.payment_submitted_at:
+        timeline.append({
+            'date': request_obj.payment_submitted_at,
+            'title': 'Payment Submitted',
+            'description': request_obj.payment_reference_code or 'Receipt uploaded by student.',
+            'status': 'completed' if request_obj.payment_verified_at else 'current',
+            'icon': 'fas fa-receipt'
+        })
+
+    if request_obj.payment_verified_at:
+        timeline.append({
+            'date': request_obj.payment_verified_at,
+            'title': 'Payment Verified',
+            'description': request_obj.payment_feedback or 'Registrar validated the payment.',
+            'status': 'completed',
+            'icon': 'fas fa-badge-check'
+        })
+
+    if request_obj.ready_for_pickup_at:
+        timeline.append({
+            'date': request_obj.ready_for_pickup_at,
+            'title': 'Ready for Pickup',
+            'description': 'Document prepared and awaiting collection.',
+            'status': 'current' if request_obj.status != RequestWorkflow.COMPLETED else 'completed',
+            'icon': 'fas fa-box-archive'
+        })
+
+    if request_obj.completed_at:
+        timeline.append({
+            'date': request_obj.completed_at,
+            'title': 'Completed',
+            'description': 'Document claimed by student.',
+            'status': 'completed',
+            'icon': 'fas fa-handshake'
+        })
+    elif request_obj.status in RequestWorkflow.approval_statuses():
+        timeline.append({
+            'date': None,
+            'title': 'Processing',
+            'description': 'Registrar is preparing your document.',
+            'status': 'current',
+            'icon': 'fas fa-spinner'
         })
     
     return timeline
