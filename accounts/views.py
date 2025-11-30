@@ -10,6 +10,8 @@ from .models import StudentAccount, AdminAccount
 from .forms import StudentProfileForm
 from services.supabase_client import create_user_admin, delete_user_admin
 from django.views.decorators.cache import never_cache
+from django.conf import settings
+import logging
 
 @never_cache
 def login(request):
@@ -225,6 +227,29 @@ def register(request):
 
 @never_cache
 def logout(request):
-    auth_logout(request)
-    request.session.flush()
-    return redirect('login')
+    # Attempt to log the user out and clear their session.
+    # Session operations may hit the DB (sessions stored in DB). If the DB
+    # is unavailable this can raise OperationalError and cause a 500.
+    # We defensively catch exceptions here so logout still redirects the user
+    # and we remove the session cookie client-side.
+    logger = logging.getLogger(__name__)
+    try:
+        auth_logout(request)
+    except Exception as e:
+        # If logout itself fails for any reason, log and continue.
+        logger.exception('auth_logout failed during logout: %s', e)
+
+    try:
+        request.session.flush()
+        return redirect('login')
+    except Exception as e:
+        # Could be a DB connection error while flushing the session.
+        logger.exception('Session flush failed during logout: %s', e)
+        # Redirect anyway and remove session cookie so client is effectively logged out.
+        response = redirect('login')
+        try:
+            response.delete_cookie(settings.SESSION_COOKIE_NAME)
+        except Exception:
+            # If deleting the cookie fails for any reason, ignore.
+            pass
+        return response
