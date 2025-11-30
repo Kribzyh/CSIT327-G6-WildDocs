@@ -1,11 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+    --maroon-500: #8B1538;
+    --maroon-600: #6A0F2A;
+    --gold-400: #F7C948;
+    --neutral-25: #fdfcfb;
+    --neutral-50: #f7f4f2;
+    --neutral-100: #efe9e3;
+    --shadow-soft: 0 18px 40px rgba(10, 0, 0, 0.12);
+}
+
+body {
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    background: var(--neutral-25);
+    color: #2b2b2b;
+    letter-spacing: 0.01em;
+}
+
+.navbar {
+    border-bottom: 1px solid rgba(139, 21, 56, 0.08);
+    backdrop-filter: blur(6px);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.navbar .nav-link {
+    font-weight: 600;
+    color: #4c4646;
+    position: relative;
+    margin-left: 1rem;
+}
+
+.navbar .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(120deg, var(--gold-400), var(--maroon-500));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+}
+
+.navbar .nav-link:hover::after,
+.navbar .nav-link:focus-visible::after,
+.navbar .nav-link.active::after {
+    transform: scaleX(1);
+}
+
 /* Hero Section Styles */
 .hero-section {
-    background: linear-gradient(135deg, #800000 0%, #a00000 100%);
+    background: radial-gradient(circle at top, rgba(247, 201, 72, 0.35), transparent 55%),
+                linear-gradient(135deg, var(--maroon-500) 0%, var(--maroon-600) 100%);
     color: white;
     padding: 80px 0;
     min-height: 70vh;
     display: flex;
     align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('data:image/svg+xml,%3Csvg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M80 0v160M0 80h160" stroke="rgba(255,255,255,0.05)" stroke-width="1"/%3E%3C/svg%3E');
+    opacity: 0.7;
+    pointer-events: none;
 }
 
 .hero-section h1 {
@@ -25,29 +92,28 @@
 .hero-section .btn {
     padding: 12px 30px;
     font-weight: 600;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    border-radius: 999px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
     text-decoration: none;
+    letter-spacing: 0.02em;
 }
 
-.hero-section .btn-light:hover {
-    background-color: #f8f9fa;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.hero-section .btn-light {
+    color: var(--maroon-500);
 }
 
+.hero-section .btn-light:hover,
 .hero-section .btn-outline-light:hover {
-    background-color: white;
-    color: #800000;
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
 }
 
 /* Quick Access Card */
 .quick-access-card {
     background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-soft);
+    padding: 2.25rem;
     max-width: 400px;
     margin: 0 auto;
     transition: transform 0.3s ease;
@@ -58,25 +124,27 @@
 }
 
 .quick-access-card h3 {
-    color: #800000;
+    color: var(--maroon-500);
     font-weight: 700;
     margin-bottom: 1.5rem;
 }
 
 .quick-access-item {
-    padding: 1rem;
-    border-radius: 10px;
+    padding: 1.1rem;
+    border-radius: 14px;
     transition: all 0.3s ease;
     cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.05);
 }
 
 .quick-access-item:hover {
-    background-color: #f8f9fa;
-    transform: scale(1.05);
+    background-color: #fdf8f3;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
 }
 
 .quick-access-item i {
-    color: #800000;
+    color: var(--gold-400);
     margin-bottom: 0.75rem;
 }
 
@@ -90,7 +158,7 @@
 /* Features Section */
 #features {
     padding: 80px 0;
-    background-color: #f8f9fa;
+    background: var(--neutral-50);
 }
 
 #features h2 {
@@ -107,15 +175,15 @@
 
 .feature-card {
     border: none;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
+    border-radius: 22px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     height: 100%;
 }
 
 .feature-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    transform: translateY(-12px);
+    box-shadow: var(--shadow-soft);
 }
 
 .feature-card .card-body {
@@ -123,13 +191,14 @@
 }
 
 .feature-card i {
-    color: #800000;
+    color: var(--gold-400);
     margin-bottom: 1.5rem;
+    font-size: 2rem;
 }
 
 .feature-card .card-title {
     font-weight: 700;
-    color: #333;
+    color: #2d2d2d;
     margin-bottom: 1rem;
     font-size: 1.25rem;
 }
@@ -159,9 +228,9 @@
 }
 
 .step-number {
-    width: 50px;
-    height: 50px;
-    background: #800000;
+    width: 52px;
+    height: 52px;
+    background: var(--maroon-500);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -190,14 +259,14 @@
 /* Available Documents Card */
 .documents-card {
     background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-soft);
+    padding: 2.25rem;
     text-align: center;
 }
 
 .documents-card h5 {
-    color: #800000;
+    color: var(--maroon-500);
     font-weight: 700;
     margin-bottom: 1.5rem;
     font-size: 1.3rem;
@@ -224,22 +293,22 @@
 }
 
 .documents-list li i {
-    color: #28a745;
+    color: var(--gold-400);
     margin-right: 0.75rem;
     font-size: 1.1rem;
 }
 
 /* Footer */
 footer {
-    background-color: #343a40;
+    background: #1f1f1f;
     color: white;
-    padding: 2rem 0;
+    padding: 2.5rem 0;
     margin-top: 0;
 }
 
 footer p {
     margin-bottom: 0;
-    opacity: 0.8;
+    opacity: 0.85;
 }
 
 /* Responsive Design */
@@ -299,20 +368,26 @@ footer p {
 
 /* Utility Classes */
 .text-maroon {
-    color: #800000;
+    color: var(--maroon-500);
 }
 
 .bg-maroon {
-    background-color: #800000;
+    background-color: var(--maroon-500);
 }
 
 .btn-maroon {
-    background-color: #800000;
+    background: linear-gradient(120deg, var(--maroon-500), var(--maroon-600));
     color: white;
     border: none;
+    border-radius: 999px;
+    padding: 0.65rem 1.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 0 12px 20px rgba(139, 21, 56, 0.25);
 }
 
 .btn-maroon:hover {
-    background-color: #a00000;
+    background: linear-gradient(120deg, var(--maroon-600), #4b0b1f);
     color: white;
+    transform: translateY(-1px);
 }
