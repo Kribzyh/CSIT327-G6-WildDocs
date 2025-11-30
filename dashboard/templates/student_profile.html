@@ -6,60 +6,98 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <style>
-  /* Custom button styling to match website theme */
-  .btn-primary {
-    background-color: #8B1538 !important;
-    border-color: #8B1538 !important;
-    transition: all 0.3s ease;
+  .info-grid-split,
+  .edit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.1rem 1.35rem;
   }
-  
-  .btn-primary:hover {
-    background-color: #6d1028 !important;
-    border-color: #6d1028 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(139, 21, 56, 0.3);
+
+  @media (max-width: 768px) {
+    .info-grid-split,
+    .edit-grid {
+      grid-template-columns: 1fr;
+    }
   }
-  
-  .btn-success {
-    background-color: #28a745 !important;
-    border-color: #28a745 !important;
-    transition: all 0.3s ease;
+
+  .info-field,
+  .edit-field {
+    position: relative;
+    padding: 1rem 1.15rem 1.15rem;
+    border: 1px solid rgba(139, 21, 56, 0.12);
+    border-radius: 16px;
+    background: #ffffff;
+    min-height: 94px;
+    box-shadow: 0 12px 28px rgba(23, 7, 9, 0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   }
-  
-  .btn-success:hover {
-    background-color: #218838 !important;
-    border-color: #218838 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+
+  .edit-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: stretch;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+    padding-top: 0.5rem;
+    width: 100%;
   }
-  
-  .btn-secondary {
-    background-color: #6c757d !important;
-    border-color: #6c757d !important;
-    transition: all 0.3s ease;
+
+  .edit-actions .btn {
+    border-radius: 999px;
+    padding: 0.85rem 1.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+    color: #fff;
+    border: none;
+    flex: 1 1 0;
+    min-width: 0;
   }
-  
-  .btn-secondary:hover {
-    background-color: #5a6268 !important;
-    border-color: #5a6268 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+
+  #saveBtn {
+    background: #1fa345;
   }
-  
+
+  #saveBtn:hover {
+    background: #18923b;
+  }
+
+  #cancelBtn {
+    background: #5f6673;
+  }
+
+  #cancelBtn:hover {
+    background: #515864;
+  }
+
+  @media (max-width: 768px) {
+    .edit-actions {
+      flex-direction: column;
+    }
+    .edit-actions .btn {
+      width: 100%;
+    }
+  }
   /* Profile info styling */
   .profile-info-section {
     background: white;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 20px;
-    margin-bottom: 20px;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #7a4453;
+    font-weight: 600;
   }
-  
-  /* Form styling */
   .form-control {
     border-radius: 8px;
     border: 2px solid #e9ecef;
-    transition: border-color 0.3s ease;
+    font-size: 0.95rem;
+    color: #8B1538;
   }
   
   .form-control:focus {
@@ -79,6 +117,374 @@
   .profile-upload-area:hover {
     border-color: #8B1538 !important;
     background-color: #f8f9fa;
+  }
+
+  .profile-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .profile-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .identity-panel {
+    flex: 0 0 320px;
+    background: linear-gradient(180deg, #fff, #f8f4f5);
+    border: 1px solid #f0d9df;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+    margin-top: -3rem;
+  }
+
+  .identity-panel .profile-avatar {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #8B1538;
+    background: #f8f9fa;
+  }
+
+  .profile-name {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    color: #2f2a2c;
+  }
+
+  .profile-id {
+    color: #7a7a88;
+    margin-bottom: 0.75rem;
+  }
+
+  .profile-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+
+  .status-chip.status-active {
+    background: rgba(139, 21, 56, 0.12);
+    color: #5c0f26;
+    border-color: rgba(139, 21, 56, 0.3);
+  }
+
+  .status-chip.status-verified {
+    background: rgba(46, 204, 113, 0.12);
+    color: #0f5c32;
+    border-color: rgba(22, 134, 72, 0.25);
+  }
+
+  .status-chip.status-pending {
+    background: rgba(255, 193, 7, 0.15);
+    color: #6a4400;
+    border-color: rgba(164, 107, 0, 0.25);
+  }
+
+  .profile-stat-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.25rem 0 0;
+    text-align: left;
+  }
+
+  .profile-stat-list li {
+    display: flex;
+    flex-direction: column;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid #efe4e7;
+  }
+
+  .profile-stat-list li:last-child {
+    border-bottom: none;
+  }
+
+  .profile-stat-list .label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #9c8b90;
+  }
+
+  .profile-stat-list .value {
+    font-weight: 600;
+    color: #2c2c35;
+  }
+
+  .details-panel {
+    flex: 1;
+    min-width: 320px;
+    background: linear-gradient(145deg, #ffffff 0%, #fbf6f7 90%);
+    border: 1px solid rgba(139, 21, 56, 0.08);
+    border-radius: 22px;
+    padding: 2rem;
+    box-shadow: 0 25px 55px rgba(27, 5, 11, 0.08);
+    position: relative;
+    overflow: hidden;
+    z-index: 0;
+    margin-top: -3rem;
+  }
+
+  .details-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(139, 21, 56, 0.08), transparent 55%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+
+  .panel-header h5 {
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.35rem;
+  }
+
+  .profile-hint {
+    font-size: 0.9rem;
+    color: #7a7a88;
+    margin-bottom: 1.25rem;
+  }
+
+  .info-grid-split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, auto);
+    gap: 1.25rem 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .info-grid-split {
+      grid-template-columns: 1fr;
+      grid-template-rows: none;
+    }
+  }
+
+  .info-field {
+    position: relative;
+    padding: 1.15rem 1.25rem 1.25rem;
+    border: 1px solid rgba(139, 21, 56, 0.08);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.92);
+    min-height: 90px;
+    box-shadow: 0 15px 35px rgba(16, 5, 7, 0.04);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    backdrop-filter: blur(2px);
+  }
+
+  .info-action-field {
+    grid-column: span 2;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    min-height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .info-action-field::after {
+    display: none;
+  }
+
+  .info-action-field .btn-primary {
+    width: 100%;
+    padding: 0.95rem 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    box-shadow: 0 12px 20px rgba(139, 21, 56, 0.2);
+    background-color: #8B1538;
+    border-color: #8B1538;
+  }
+
+  #editMode {
+    margin-top: 1.75rem;
+  }
+
+  .edit-guidance {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(139, 21, 56, 0.08);
+    border: 1px dashed rgba(139, 21, 56, 0.35);
+    border-radius: 14px;
+    padding: 0.85rem 1.1rem;
+    font-size: 0.9rem;
+    color: #5c0f26;
+    margin-bottom: 1.25rem;
+  }
+
+  .edit-guidance i {
+    font-size: 1.1rem;
+  }
+
+  .edit-field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #7a4453;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.45rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .edit-field label i {
+    color: #8B1538;
+    font-size: 0.95rem;
+  }
+
+  .edit-field input,
+  .edit-field select {
+    border-radius: 10px;
+    border: 1.5px solid rgba(0,0,0,0.08);
+    padding: 0.65rem 0.85rem;
+    font-size: 0.95rem;
+  }
+
+  .edit-field small {
+    display: block;
+    margin-top: 0.35rem;
+    color: #9f8d92;
+    font-size: 0.8rem;
+  }
+
+  .info-field::after {
+    content: '';
+    position: absolute;
+    top: 0.65rem;
+    left: 0.9rem;
+    right: 0.9rem;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(139, 21, 56, 0.65), rgba(247, 201, 72, 0.35));
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .info-field:hover {
+    transform: translateY(-4px);
+    border-color: rgba(139, 21, 56, 0.25);
+    box-shadow: 0 22px 45px rgba(16, 5, 7, 0.09);
+  }
+
+  .info-field:hover::after {
+    opacity: 1;
+  }
+
+  .info-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9b7a84;
+    font-weight: 600;
+  }
+
+  .info-label i {
+    font-size: 0.95rem;
+    color: #8B1538;
+  }
+
+  .info-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c2c30;
+    margin-top: 0.5rem;
+    word-break: break-word;
+  }
+
+  .profile-guides {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+  }
+
+  .guide-card {
+    border: 1px solid #f0eced;
+    border-radius: 12px;
+    padding: 1.25rem;
+    background: #fff9fb;
+  }
+
+  .guide-card h6 {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  .progress-list {
+    list-style: none;
+    padding-left: 1rem;
+    margin-bottom: 0;
+  }
+
+  .progress-list li {
+    position: relative;
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+    color: #4a4a55;
+  }
+
+  .progress-list li::before {
+    content: '•';
+    color: #8B1538;
+    position: absolute;
+    left: -0.6rem;
+  }
+
+  .action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .action-controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 768px) {
+    .identity-panel {
+      flex: 1 1 100%;
+    }
+
+    .details-panel {
+      padding: 1.25rem;
+    }
   }
 </style>
 {% endblock %}
@@ -149,101 +555,110 @@
         <div class="col-12">
           <div class="card">
             <div class="card-body">
+              <div class="profile-card">
+                <div class="profile-layout">
+                  <section class="identity-panel">
+                    <div class="profile-avatar mb-3">
+                      {% comment %}Only use profile_picture if it's a non-empty URL to avoid broken images{% endcomment %}
+                      {% if student.profile_picture %}
+                        <img id="profileImage" src="{{ student.profile_picture }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                      {% else %}
+                        <div id="profilePlaceholder" class="d-flex align-items-center justify-content-center h-100 bg-light">
+                          <svg width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" fill="#f1f1f1" />
+                            <path d="M12 12c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z" fill="#cfcfcf"/>
+                            <path d="M4 20c0-2.761 4.03-5 8-5s8 2.239 8 5v1H4v-1z" fill="#e6e6e6"/>
+                          </svg>
+                        </div>
+                      {% endif %}
+                    </div>
+                    <button type="button" id="uploadBtn" class="btn btn-outline-primary btn-sm mb-3 w-100">
+                      <i class="fas fa-camera me-1"></i>
+                      Upload Photo
+                    </button>
+                    <h5 class="profile-name">{{ student_name }}</h5>
+                    <p class="profile-id">{{ student_id_number }}</p>
+                    <ul class="profile-stat-list">
+                      <li>
+                        <span class="label">Course</span>
+                        <span class="value">{{ student.course|default:"Set your course" }}</span>
+                      </li>
+                      <li>
+                        <span class="label">Year Level</span>
+                        <span class="value">{{ student.year_level|default:"Select year" }}</span>
+                      </li>
+                      <li>
+                        <span class="label">Contact</span>
+                        <span class="value">{{ student.contact_number|default:"Add a number" }}</span>
+                      </li>
+                    </ul>
+                  </section>
 
-              
-              <div class="row">
-                <div class="col-md-4 text-center">
-                  <div class="profile-avatar mb-3" style="width: 150px; height: 150px; margin: 0 auto; border-radius: 50%; overflow: hidden; border: 3px solid #8B1538; position: relative; background: #f8f9fa;">
-                    {% comment %}Only use profile_picture if it's a non-empty URL (starts with http/https)
-                        This prevents rendering a broken <img> when the field contains an empty string or invalid value.{% endcomment %}
-                    {% if student.profile_picture %}
-                      <img id="profileImage" src="{{ student.profile_picture }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
-                    {% else %}
-                      <div id="profilePlaceholder" class="d-flex align-items-center justify-content-center h-100 bg-light">
-                        <!-- Inline default avatar SVG (no external static file needed) -->
-                        <svg width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <circle cx="12" cy="12" r="10" fill="#f1f1f1" />
-                          <path d="M12 12c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z" fill="#cfcfcf"/>
-                          <path d="M4 20c0-2.761 4.03-5 8-5s8 2.239 8 5v1H4v-1z" fill="#e6e6e6"/>
-                        </svg>
-                      </div>
-                    {% endif %}
-                    <!-- camera overlay removed: using simple avatar and Upload Photo button that opens edit mode -->
-                  </div>
-                  <!-- view-mode file input removed; uploads handled via edit form and Save Changes -->
-                  <button type="button" id="uploadBtn" class="btn btn-outline-primary btn-sm mb-2">
-                    <i class="fas fa-camera me-1"></i>
-                    Upload Photo
-                  </button>
-                  <h5>{{ student_name }}</h5>
-                  <p class="text-muted">{{ student_id_number }}</p>
-                </div>
-                
-                <div class="col-md-8">
-                  <!-- View Mode -->
-                  <div id="viewMode">
-                    <div class="row">
-                      <div class="col-md-6">
-                        <strong>First Name:</strong>
-                        <p id="displayFirstName">{{ student.first_name|default:"Not specified" }}</p>
-                      </div>
-                      <div class="col-md-6">
-                        <strong>Last Name:</strong>
-                        <p id="displayLastName">{{ student.last_name|default:"Not specified" }}</p>
-                      </div>
-                      <div class="col-md-6">
-                        <strong>Course:</strong>
-                        <p id="displayCourse">{{ student.course|default:"Not specified" }}</p>
-                      </div>
-                      <div class="col-md-6">
-                        <strong>Program:</strong>
-                        <p id="displayProgram">{{ student.program|default:"Not specified" }}</p>
-                      </div>
-                      <div class="col-md-6">
-                        <strong>Year Level:</strong>
-                        <p id="displayYearLevel">{{ student.year_level|default:"Not specified" }}</p>
-                      </div>
-                      <div class="col-md-6">
-                        <strong>Email:</strong>
-                        <p id="displayEmail">{{ student.email|default:"Not specified" }}</p>
-                      </div>
-                      <div class="col-md-6">
-                        <strong>Contact Number:</strong>
-                        <p id="displayContact">{{ student.contact_number|default:"Not specified" }}</p>
+                  <section class="details-panel">
+                    <div class="panel-header">
+                      <h5>Student Details</h5>
+                    </div>
+                    <p class="profile-hint">Review your personal and academic information. Keep everything up to date so the Registrar can process your requests faster.</p>
+                    <div id="viewMode">
+                      <div class="info-grid-split">
+                        <div class="info-field">
+                          <span class="info-label"><i class="fas fa-id-badge me-2"></i>First Name</span>
+                          <div class="info-value" id="displayFirstName">{{ student.first_name|default:"Not specified" }}</div>
+                        </div>
+                        <div class="info-field">
+                          <span class="info-label"><i class="fas fa-id-badge me-2"></i>Last Name</span>
+                          <div class="info-value" id="displayLastName">{{ student.last_name|default:"Not specified" }}</div>
+                        </div>
+                        <div class="info-field">
+                          <span class="info-label"><i class="fas fa-laptop-code me-2"></i>Course</span>
+                          <div class="info-value" id="displayCourse">{{ student.course|default:"Not specified" }}</div>
+                        </div>
+                        <div class="info-field">
+                          <span class="info-label"><i class="fas fa-school me-2"></i>Program</span>
+                          <div class="info-value" id="displayProgram">{{ student.program|default:"Not specified" }}</div>
+                        </div>
+                        <div class="info-field">
+                          <span class="info-label"><i class="fas fa-calendar-alt me-2"></i>Year Level</span>
+                          <div class="info-value" id="displayYearLevel">{{ student.year_level|default:"Not specified" }}</div>
+                        </div>
+                        <div class="info-field">
+                          <span class="info-label"><i class="fas fa-envelope me-2"></i>Email</span>
+                          <div class="info-value" id="displayEmail">{{ student.email|default:"Not specified" }}</div>
+                        </div>
+                        <div class="info-field">
+                          <span class="info-label"><i class="fas fa-phone me-2"></i>Contact Number</span>
+                          <div class="info-value" id="displayContact">{{ student.contact_number|default:"Not specified" }}</div>
+                        </div>
+                        <div class="info-field info-action-field">
+                          <button id="editBtn" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>
+                            Edit Information
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <!-- Edit Mode -->
-                  <div id="editMode" style="display: none;">
-                    <form id="profileEditForm" enctype="multipart/form-data">
-                      {% csrf_token %}
-                      <input type="hidden" name="action" value="update_profile">
-                      <div class="row">
-                        <div class="col-12 mb-3 text-center">
-                          <label class="form-label">Profile Picture:</label>
-                          <div id="previewContainer">
-                            {% if student.profile_picture %}
-                              <img id="editPreviewImage" src="{{ student.profile_picture }}" alt="Profile Preview" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
-                            {% else %}
-                              <i class="fas fa-user-circle fa-3x text-muted mb-2"></i>
-                            {% endif %}
+
+                    <div id="editMode" style="display: none;">
+                      <form id="profileEditForm" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_profile">
+                        <input type="file" id="editProfilePictureInput" name="profile_picture" accept="image/*" style="display: none;" onchange="previewEditProfilePicture(event)">
+                        <div class="edit-guidance">
+                          <i class="fas fa-magic"></i>
+                          <span>Update only the fields that changed. Save when you are happy with the preview—your profile refreshes instantly.</span>
+                        </div>
+                        <div class="edit-grid">
+                          <div class="edit-field">
+                            <label for="first_name"><i class="fas fa-id-badge"></i>First Name</label>
+                            <input type="text" id="first_name" name="first_name" value="{{ student.first_name|default:'' }}" required>
                           </div>
-                          <p class="mb-0">Use the 'Upload Photo' button on the profile view to choose a new image, then click Save Changes.</p>
-                          <small class="text-muted">Supports: JPG, PNG, GIF (Max: 5MB)</small>
-                          <input type="file" id="editProfilePictureInput" name="profile_picture" accept="image/*" style="display: none;" onchange="previewEditProfilePicture(event)">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                          <label for="first_name" class="form-label">First Name:</label>
-                          <input type="text" class="form-control" id="first_name" name="first_name" value="{{ student.first_name|default:'' }}" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                          <label for="last_name" class="form-label">Last Name:</label>
-                          <input type="text" class="form-control" id="last_name" name="last_name" value="{{ student.last_name|default:'' }}" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                          <label for="course" class="form-label">Course:</label>
-                          <select class="form-control" id="course" name="course">
+                          <div class="edit-field">
+                            <label for="last_name"><i class="fas fa-id-badge"></i>Last Name</label>
+                            <input type="text" id="last_name" name="last_name" value="{{ student.last_name|default:'' }}" required>
+                          </div>
+                          <div class="edit-field">
+                            <label for="course"><i class="fas fa-laptop-code"></i>Course</label>
+                            <select id="course" name="course">
                             <option value="">Select your course</option>
                             <!-- Engineering & Architecture Courses -->
                             <option value="BS Architecture" {% if student.course == "BS Architecture" %}selected{% endif %}>BS Architecture</option>
@@ -279,14 +694,14 @@
                             <option value="BS Criminology" {% if student.course == "BS Criminology" %}selected{% endif %}>BS Criminology</option>
                           </select>
                         </div>
-                        <div class="col-md-6 mb-3">
-                          <label for="program" class="form-label">Program:</label>
-                          <input type="text" class="form-control" id="program" name="program" value="{{ student.program|default:'' }}" readonly>
-                          <small class="text-muted">Program is automatically determined by course</small>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                          <label for="year_level" class="form-label">Year Level:</label>
-                          <select class="form-control" id="year_level" name="year_level">
+                          <div class="edit-field">
+                            <label for="program"><i class="fas fa-building"></i>Program</label>
+                            <input type="text" id="program" name="program" value="{{ student.program|default:'' }}" readonly>
+                            <small>Program is automatically determined by course</small>
+                          </div>
+                          <div class="edit-field">
+                            <label for="year_level"><i class="fas fa-calendar"></i>Year Level</label>
+                            <select id="year_level" name="year_level">
                             <option value="1" {% if student.year_level == 1 %}selected{% endif %}>1st Year</option>
                             <option value="2" {% if student.year_level == 2 %}selected{% endif %}>2nd Year</option>
                             <option value="3" {% if student.year_level == 3 %}selected{% endif %}>3rd Year</option>
@@ -294,36 +709,29 @@
                             <option value="5" {% if student.year_level == 5 %}selected{% endif %}>5th Year</option>
                           </select>
                         </div>
-                        <div class="col-md-6 mb-3">
-                          <label for="email" class="form-label">Email:</label>
-                          <input type="email" class="form-control" id="email" name="email" value="{{ student.email|default:'' }}">
+                          <div class="edit-field">
+                            <label for="email"><i class="fas fa-envelope"></i>Email</label>
+                            <input type="email" id="email" name="email" value="{{ student.email|default:'' }}">
+                          </div>
+                          <div class="edit-field">
+                            <label for="contact_number"><i class="fas fa-phone"></i>Contact Number</label>
+                            <input type="text" id="contact_number" name="contact_number" value="{{ student.contact_number|default:'' }}">
+                          </div>
+                          <div class="edit-actions">
+                            <button id="saveBtn" type="button" class="btn">
+                              <i class="fas fa-save"></i>
+                              Save Changes
+                            </button>
+                            <button id="cancelBtn" type="button" class="btn">
+                              <i class="fas fa-times"></i>
+                              Cancel
+                            </button>
+                          </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                          <label for="contact_number" class="form-label">Contact Number:</label>
-                          <input type="text" class="form-control" id="contact_number" name="contact_number" value="{{ student.contact_number|default:'' }}">
-                        </div>
-                      </div>
-                    </form>
-                  </div>
+                      </form>
+                    </div>
+                  </section>
                 </div>
-              </div>
-              
-              <!-- Action Buttons -->
-              <div class="row mt-4">
-                <div class="col-12 text-center">
-                  <button id="editBtn" class="btn btn-primary" style="background-color: #8B1538; border-color: #8B1538; padding: 10px 30px; font-weight: 600;">
-                    <i class="fas fa-edit me-2"></i>
-                    Edit Information
-                  </button>
-                  <div id="editControls" style="display: none;">
-                    <button id="saveBtn" class="btn btn-success me-3" style="padding: 10px 30px; font-weight: 600;">
-                      <i class="fas fa-save me-2"></i>
-                      Save Changes
-                    </button>
-                    <button id="cancelBtn" class="btn btn-secondary" style="padding: 10px 30px; font-weight: 600;">
-                      <i class="fas fa-times me-2"></i>
-                      Cancel
-                    </button>
                   </div>
                 </div>
               </div>
@@ -350,12 +758,10 @@ function confirmLogout(event) {
 function triggerFileUpload() {
   // Show edit mode (reuse existing edit UI) and open the edit file input
   const editBtn = document.getElementById('editBtn');
-  const editControls = document.getElementById('editControls');
   const viewMode = document.getElementById('viewMode');
   const editMode = document.getElementById('editMode');
-  if (editBtn && editControls && viewMode && editMode) {
+  if (editBtn && viewMode && editMode) {
     editBtn.style.display = 'none';
-    editControls.style.display = 'block';
     viewMode.style.display = 'none';
     editMode.style.display = 'block';
   }
@@ -383,17 +789,25 @@ document.addEventListener('DOMContentLoaded', function() {
 // previewProfilePicture removed (view-mode immediate upload disabled). Use edit-mode preview instead.
 
 function previewEditProfilePicture(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const previewContainer = document.getElementById('previewContainer');
-            previewContainer.innerHTML = `
-                <img src="${e.target.result}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; object-position: center; margin-bottom: 10px;">
-            `;
-        };
-        reader.readAsDataURL(file);
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const avatarImg = document.getElementById('profileImage');
+    const placeholder = document.getElementById('profilePlaceholder');
+    if (avatarImg) {
+      avatarImg.src = e.target.result;
+    } else if (placeholder) {
+      const wrapper = placeholder.parentElement;
+      if (wrapper) {
+        wrapper.innerHTML = `
+          <img id="profileImage" src="${e.target.result}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+        `;
+      }
     }
+  };
+  reader.readAsDataURL(file);
 }
 
 // uploadProfilePicture removed. File uploads are handled by the edit form and Save Changes button.
@@ -414,7 +828,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Edit functionality
     const editBtn = document.getElementById('editBtn');
-    const editControls = document.getElementById('editControls');
     const saveBtn = document.getElementById('saveBtn');
     const cancelBtn = document.getElementById('cancelBtn');
     const viewMode = document.getElementById('viewMode');
@@ -463,7 +876,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Toggle visibility
         editBtn.style.display = 'none';
-        editControls.style.display = 'block';
         viewMode.style.display = 'none';
         editMode.style.display = 'block';
     });
@@ -481,7 +893,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
   // Toggle visibility back (use inline-block so text-center keeps it centered)
   editBtn.style.display = 'inline-block';
-        editControls.style.display = 'none';
         viewMode.style.display = 'block';
         editMode.style.display = 'none';
     });
@@ -527,15 +938,10 @@ document.addEventListener('DOMContentLoaded', function() {
               avatarContainer.innerHTML = `\n                                <img id="profileImage" src="${newUrl}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">\n                            `;
             }
           }
-          const editPreview = document.getElementById('editPreviewImage');
-          if (editPreview) {
-            editPreview.src = newUrl;
-          }
         }
 
   // Toggle visibility back (use inline-block so text-center keeps it centered)
   editBtn.style.display = 'inline-block';
-        editControls.style.display = 'none';
         viewMode.style.display = 'block';
         editMode.style.display = 'none';
 
