@@ -13,4 +13,4 @@ tzdata==2025.2
 urllib3==2.5.0
 gunicorn>=21.2
 whitenoise>=6.6
-supabase-py>=1.0.0
+supabase>=2.5.0
