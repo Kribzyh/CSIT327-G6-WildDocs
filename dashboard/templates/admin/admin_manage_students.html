@@ -8,61 +8,85 @@
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container d-flex">
+<div class="dashboard-container">
   {% include 'admin/includes/sidebar.html' %}
 
-  <div class="main-content flex-grow-1 p-4">
-    <div class="container-fluid">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Manage Students</h2>
-        <p class="text-muted">View and manage registered student accounts</p>
-      </div>
-
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          {% if students %}
-          <div class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead class="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Student ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Course</th>
-                  <th>Year</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for s in students %}
-                <tr>
-                  <td>{{ forloop.counter }}</td>
-                  <td>{{ s.student_number }}</td>
-                  <td>{{ s.first_name }} {{ s.last_name }}</td>
-                  <td>{{ s.email }}</td>
-                  <td>{{ s.course }}</td>
-                  <td>{{ s.year_level }}</td>
-                  <td>
-                    <a href="#" class="btn btn-sm btn-outline-primary">View</a>
-                    <a href="#" class="btn btn-sm btn-outline-secondary">Edit</a>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+  <div class="main-content">
+    <div class="welcome-section admin-welcome">
+      <div class="welcome-content">
+        <div class="welcome-left">
+          <div class="date-display-welcome">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="welcomeDate">Loading...</span>
           </div>
-          {% else %}
-          <div class="text-center py-5">
-            <i class="fas fa-users fa-4x text-muted mb-3"></i>
-            <h5>No Students Found</h5>
-            <p class="text-muted">No students are registered in the system yet.</p>
+          <div class="welcome-text">
+            <h3>Manage Students</h3>
+            <p>Browse and support every registered student account</p>
           </div>
-          {% endif %}
+        </div>
+        <div class="welcome-right">
+          <h1 class="welcome-title">Records</h1>
         </div>
       </div>
+    </div>
+
+    <div class="dashboard-content admin-dashboard-content">
+      <section class="admin-table-card">
+        <div class="section-header">
+          <div>
+            <h4>Student Directory</h4>
+            <p class="text-muted mb-0">{{ students|length }} accounts synced from the portal</p>
+          </div>
+          <div class="section-actions">
+          </div>
+        </div>
+
+        {% if students %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle admin-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Course</th>
+                <th>Year</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in students %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ s.student_number }}</td>
+                <td>{{ s.first_name }} {{ s.last_name }}</td>
+                <td>{{ s.email }}</td>
+                <td>{{ s.course }}</td>
+                <td>{{ s.year_level }}</td>
+                <td>
+                  <button type="button" class="btn btn-sm btn-outline-primary" disabled>View</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" disabled>Edit</button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="notification-empty py-5">
+          <i class="fas fa-users-slash"></i>
+          <p class="mb-1 fw-semibold">No students found</p>
+          <small class="text-muted">New accounts will appear here once registered.</small>
+        </div>
+        {% endif %}
+      </section>
     </div>
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}?v=2"></script>
 {% endblock %}
