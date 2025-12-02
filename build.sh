@@ -11,3 +11,5 @@ pipenv run python manage.py migrate --noinput
 
 echo "==> Collecting static files"
 pipenv run python manage.py collectstatic --noinput
+
+echo "==> Build complete!"
