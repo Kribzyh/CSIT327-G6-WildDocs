@@ -346,6 +346,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Password confirmation validation
   function validatePasswordMatch() {
+    // Only validate if confirm field has been touched and has value
+    if (!confirmPasswordInput.value) {
+      confirmPasswordInput.classList.remove('is-valid', 'is-invalid');
+      confirmPasswordInput.setCustomValidity('');
+      return true;
+    }
     if (passwordInput.value !== confirmPasswordInput.value) {
       confirmPasswordInput.setCustomValidity("Passwords don't match");
       confirmPasswordInput.classList.remove('is-valid');
@@ -359,20 +365,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  passwordInput.addEventListener('input', function() {
+  passwordInput.addEventListener('blur', function() {
+    // Only validate if field has value
+    if (!passwordInput.value) {
+      passwordInput.classList.remove('is-valid', 'is-invalid');
+      return;
+    }
     // validate length
     if (passwordInput.value.length >= 6) {
       passwordInput.classList.remove('is-invalid');
       passwordInput.classList.add('is-valid');
     } else {
       passwordInput.classList.remove('is-valid');
-      if (passwordInput.value.length > 0) passwordInput.classList.add('is-invalid');
-      else passwordInput.classList.remove('is-invalid');
+      passwordInput.classList.add('is-invalid');
     }
     validatePasswordMatch();
   });
 
-  confirmPasswordInput.addEventListener('input', function() {
+  confirmPasswordInput.addEventListener('blur', function() {
     validatePasswordMatch();
   });
 
@@ -392,59 +402,105 @@ document.addEventListener('DOMContentLoaded', function() {
     el.classList.remove('is-valid');
     el.classList.add('is-invalid');
   }
+  function clearValidation(el) {
+    el.classList.remove('is-valid', 'is-invalid');
+  }
 
   function validateNotEmpty(el) {
-    if (!el.value || el.value.trim() === '') { setInvalid(el); return false; }
-    setValid(el); return true;
+    // If empty, don't show any validation state (no X for empty)
+    if (!el.value || el.value.trim() === '') { 
+      clearValidation(el);
+      return false; 
+    }
+    setValid(el); 
+    return true;
   }
 
   function validateStudentIdField() {
+    // If empty, don't show any validation state
+    if (!studentId.value || studentId.value.trim() === '') {
+      clearValidation(studentId);
+      return false;
+    }
     const sidRegex = /^\d{2}-\d{4}-\d{3}$/;
-    if (!sidRegex.test(studentId.value.trim())) { setInvalid(studentId); return false; }
-    setValid(studentId); return true;
+    if (!sidRegex.test(studentId.value.trim())) { 
+      setInvalid(studentId); 
+      return false; 
+    }
+    setValid(studentId); 
+    return true;
   }
 
   function validateEmailField() {
+    // If empty, don't show any validation state
+    if (!email.value || email.value.trim() === '') {
+      clearValidation(email);
+      return false;
+    }
     const emailRegex = /^[A-Za-z0-9._%+-]+@cit\.edu$/i;
-    if (!emailRegex.test(email.value.trim())) { setInvalid(email); return false; }
-    setValid(email); return true;
+    if (!emailRegex.test(email.value.trim())) { 
+      setInvalid(email); 
+      return false; 
+    }
+    setValid(email); 
+    return true;
   }
 
   function validateSelect(el) {
-    if (!el.value || el.value === '') { setInvalid(el); return false; }
-    setValid(el); return true;
+    // If not selected, don't show any validation state
+    if (!el.value || el.value === '') { 
+      clearValidation(el);
+      return false; 
+    }
+    setValid(el); 
+    return true;
   }
 
-  // Attach input/change listeners
-  firstName.addEventListener('input', () => validateNotEmpty(firstName));
-  lastName.addEventListener('input', () => validateNotEmpty(lastName));
-  studentId.addEventListener('input', validateStudentIdField);
-  email.addEventListener('input', validateEmailField);
+  // Attach blur listeners (only validate when user leaves the field)
+  firstName.addEventListener('blur', () => validateNotEmpty(firstName));
+  lastName.addEventListener('blur', () => validateNotEmpty(lastName));
+  studentId.addEventListener('blur', validateStudentIdField);
+  email.addEventListener('blur', validateEmailField);
+  course.addEventListener('blur', () => validateSelect(course));
   course.addEventListener('change', () => validateSelect(course));
+  yearLevel.addEventListener('blur', () => validateSelect(yearLevel));
   yearLevel.addEventListener('change', () => validateSelect(yearLevel));
-
-    // Run initial validation to pick up autofilled values and set classes
-    validateNotEmpty(firstName);
-    validateNotEmpty(lastName);
-    validateStudentIdField();
-    validateEmailField();
-    validateSelect(course);
-    validateSelect(yearLevel);
-    if (passwordInput.value && passwordInput.value.length >= 6) passwordInput.classList.add('is-valid');
-    validatePasswordMatch();
 
     // On form submit, validate all fields and prevent submit if any invalid.
   if (form) {
     form.addEventListener('submit', function(e) {
       let ok = true;
-      if (!validateNotEmpty(firstName)) ok = false;
-      if (!validateNotEmpty(lastName)) ok = false;
-      if (!validateStudentIdField()) ok = false;
-      if (!validateEmailField()) ok = false;
-      if (!validateSelect(course)) ok = false;
-      if (!validateSelect(yearLevel)) ok = false;
+      
+      // On submit, show X for empty required fields
+      if (!firstName.value || firstName.value.trim() === '') { setInvalid(firstName); ok = false; }
+      else { setValid(firstName); }
+      
+      if (!lastName.value || lastName.value.trim() === '') { setInvalid(lastName); ok = false; }
+      else { setValid(lastName); }
+      
+      const sidRegex = /^\d{2}-\d{4}-\d{3}$/;
+      if (!studentId.value || !sidRegex.test(studentId.value.trim())) { setInvalid(studentId); ok = false; }
+      else { setValid(studentId); }
+      
+      const emailRegex = /^[A-Za-z0-9._%+-]+@cit\.edu$/i;
+      if (!email.value || !emailRegex.test(email.value.trim())) { setInvalid(email); ok = false; }
+      else { setValid(email); }
+      
+      if (!course.value || course.value === '') { setInvalid(course); ok = false; }
+      else { setValid(course); }
+      
+      if (!yearLevel.value || yearLevel.value === '') { setInvalid(yearLevel); ok = false; }
+      else { setValid(yearLevel); }
+      
       if (!(passwordInput.value.length >= 6)) { setInvalid(passwordInput); ok = false; }
-      if (!validatePasswordMatch()) ok = false;
+      else { setValid(passwordInput); }
+      
+      if (!confirmPasswordInput.value || passwordInput.value !== confirmPasswordInput.value) { 
+        setInvalid(confirmPasswordInput); 
+        ok = false; 
+      } else { 
+        setValid(confirmPasswordInput); 
+      }
 
       if (!ok) {
         // prevent submission and ensure no green check marks are shown for invalid fields
