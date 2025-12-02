@@ -72,7 +72,7 @@ class RequestWorkflow:
     REQUIREMENTS_NEEDED = "Requirements Needed"
     REQUIREMENTS_SUBMITTED = "Requirements Submitted – For Verification"
     REQUIREMENTS_ISSUE = "Requirements Issue"
-    APPROVED_FOR_PAYMENT = "Approved – For Payment"
+    APPROVED_FOR_PAYMENT = "Requirements Approved – For Payment"
     PAYMENT_SUBMITTED = "Payment Submitted – For Verification"
     PAYMENT_ISSUE = "Payment Issue"
     PROCESSING = "Processing"
