@@ -32,9 +32,78 @@
   .qa-item { display:flex; flex-direction:column; gap:8px }
   .q-bubble { align-self:flex-start; background:#f3f4f6; padding:10px 14px; border-radius:18px; max-width:100%; cursor:pointer; font-weight:600 }
   .q-bubble.open { background:#e9d5ff; }
-  .a-bubble { align-self:flex-start; background:#ffffff; padding:12px 16px; border-radius:12px; box-shadow:0 6px 18px rgba(15,23,42,0.06); display:none }
-  .a-bubble.show { display:block }
+  .a-bubble { align-self:flex-start; background:#ffffff; padding:10px 12px; border-radius:12px; box-shadow:0 6px 18px rgba(15,23,42,0.06); }
   @media(min-width:768px){ .q-bubble { max-width:80% } .a-bubble { max-width:85% } }
+  /* FAQ card grid matching requested design */
+  /* Make cards stretch to fill the available left-column width */
+  .faq-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px; margin-top: 12px; }
+  @media(max-width:1100px){ .faq-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } }
+  @media(max-width:700px){ .faq-grid { grid-template-columns: 1fr; } }
+  .faq-card-item { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 10px 30px rgba(15,23,42,0.06); position:relative; display:flex; flex-direction:column; transition: transform .22s cubic-bezier(.2,.9,.2,1), box-shadow .22s cubic-bezier(.2,.9,.2,1); }
+  /* Fixed card sizing so all cards in the grid match in 'All' view; answers reveal inside the card using max-height so icons don't move */
+  /* Use min-height so cards can expand when opened to show full answers */
+  .faq-card-item { min-height: 160px; }
+  .faq-card-item.opened { box-shadow: 0 20px 40px rgba(15,23,42,0.12); transform: translateY(-6px); height: auto; overflow: visible }
+  .faq-card-item:hover { transform: translateY(-4px); box-shadow:0 16px 36px rgba(15,23,42,0.08) }
+  .faq-card-content { flex:1; display:flex; flex-direction:column; }
+  .faq-card-content .faq-excerpt { flex:1; }
+  @media(max-width:767px){ .faq-card-item { height:auto } }
+  /* Increase the icon band height and give the icon more room */
+  .faq-image { background:#800000; height:110px; display:flex; align-items:center; justify-content:center; color:#fff; padding:10px 0 }
+  .faq-image i { font-size:34px }
+  .faq-card-content { padding:16px; display:flex; flex-direction:column; gap:8px; }
+  .faq-card-content .q-bubble { align-self:stretch; background:transparent; box-shadow:none; padding:0; font-size:18px; text-align:left; font-weight:700; color:#111; border:none; }
+  /* Title box: remove default button styling and make it a soft rounded white box */
+  .faq-title-box { background:#fff; padding:10px 12px; border-radius:10px; box-shadow:0 6px 18px rgba(15,23,42,0.04); display:block; }
+  .faq-title-box .q-bubble { display:block; width:100%; text-align:left; border:0; background:transparent; padding:0; margin:0; }
+  .faq-title-box .q-bubble:focus { outline:none; box-shadow:0 0 0 3px rgba(128,0,0,0.12); }
+  /* Remove unwanted black border/outline on question hover/active */
+  .q-bubble, .faq-title-box .q-bubble { border:0; }
+  .q-bubble:hover, .faq-title-box .q-bubble:hover,
+  .q-bubble:active, .faq-title-box .q-bubble:active { outline: none; box-shadow: none; }
+  /* Ensure focused state does not show default browser outline for any q-bubble (maroon focus above remains for .faq-title-box .q-bubble:focus) */
+  .q-bubble:focus { outline: none; }
+  /* Prevent odd black outlines and force consistent wrapping */
+  .faq-title-box .q-main { white-space:normal; word-break:break-word; font-size:1.05rem; line-height:1.15; }
+  /* Round the top band corners (image) so it aligns with card corners */
+  .faq-image { border-top-left-radius:12px; border-top-right-radius:12px; }
+  /* Keep card clipped and neat */
+  .faq-card-item { overflow:hidden; }
+  /* Hide the short excerpt under the question; answers will appear inside the card when clicked */
+  .faq-excerpt { display:none }
+  /* animated inline answer: hidden by default, reveal with max-height to avoid reflow of icon band */
+  .faq-card-item .a-bubble { margin:8px 12px 12px; max-height:0; opacity:0; overflow:hidden; transition: max-height .36s ease, opacity .22s ease; }
+  .faq-card-item .a-bubble.open { max-height: 1200px; opacity:1 }
+  /* When card is opened, allow the answer to fully expand without clipping */
+  .faq-card-item.opened .a-bubble { max-height: 1200px }
+  /* subtle icon micro-interaction when card opens */
+  .faq-card-item .faq-image i { transition: transform .22s cubic-bezier(.2,.9,.2,1) }
+  .faq-card-item.opened .faq-image i { transform: scale(1.06) }
+  /* Panel inserted after a card when opened; spans the grid width */
+  .faq-answer-panel { grid-column: 1 / -1; background: #ffffff; padding: 16px; border-radius: 10px; box-shadow: 0 8px 26px rgba(15,23,42,0.06); margin: 12px 0; }
+  .faq-answer-panel p, .faq-answer-panel ul { margin: 0; }
+  /* Pills and search tweaks to match design */
+  /* Ensure pills have breathing room from the card edges */
+  .faq-pills { width:100%; box-sizing:border-box; padding:6px 12px 0 12px; margin:0 0 12px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:stretch }
+  /* Pills fill available space and center their text */
+  .faq-pill { border:0; background:#fff; color:#444; padding:10px 16px; border-radius:999px; font-weight:600; cursor:pointer; flex:1 1 0; min-width:120px; max-width:320px; text-align:center; display:flex; align-items:center; justify-content:center; position:relative; z-index:0; transition:transform .12s ease, box-shadow .12s ease; -webkit-appearance:none; -moz-appearance:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  /* Selected pill: gold fill with maroon halo (no black outline) */
+  .faq-pill.active { background: #f6c84c !important; color: #800000 !important; border: none !important; z-index:2; box-shadow: 0 0 0 6px rgba(128,0,0,0.14) }
+  .faq-pill.active * { color: inherit !important }
+  /* Hover: soft maroon-tinted shadow and slight lift; no black border */
+  .faq-pill:hover { box-shadow: 0 8px 20px rgba(128,0,0,0.08); transform: translateY(-2px); border: none }
+  .faq-pill:focus { outline: none; box-shadow: 0 0 0 4px rgba(128,0,0,0.08); border: none }
+  .input-group.qa-search { align-items:center }
+  .search-icon { background:transparent; border:none; color:#6b7280 }
+  .btn-clear { background:transparent; border:1px solid #e5e7eb; width:38px; height:38px; border-radius:50%; font-size:18px; line-height:18px; padding:0 }
+  .btn-maroon { background:#800000; color:#fff; border:none }
+  .help-panel { background:#fff; border-radius:12px; box-shadow:0 8px 26px rgba(15,23,42,0.06) }
+  .help-links { background:#fff; border-radius:12px; box-shadow:0 8px 26px rgba(15,23,42,0.06) }
+  /* Narrow and center the maroon hero inside the right panel */
+  .help-panel .help-hero { overflow:hidden; border-radius:10px; height:80px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; background:#800000; width:78%; max-width:280px; }
+  .faq-title-box { background:#fff; padding:10px 12px; border-radius:10px; box-shadow:0 6px 18px rgba(15,23,42,0.04) }
+  @media(max-width:767px){ .faq-grid { grid-template-columns:1fr } .col-md-7, .col-md-5 { width:100% } }
+  @media(min-width:768px){ .card.faq-card .col-md-9 { padding-left: 16px; } }
 </style>
 {% endblock %}
 
@@ -105,76 +174,141 @@
         <div class="col-12">
           <!-- Hero banner removed per user request -->
 
-          <div class="faq-shortcuts">
-            <div class="faq-shortcut faq-card">
-              <i class="fas fa-clock"></i>
-              <div>
-                <strong>Processing Times</strong>
-                <div class="small text-muted">Typical turnaround for common documents</div>
-              </div>
-            </div>
-            <div class="faq-shortcut faq-card">
-              <i class="fas fa-money-bill-wave"></i>
-              <div>
-                <strong>Fees</strong>
-                <div class="small text-muted">See fee breakdown and payment options</div>
-              </div>
-            </div>
-            <div class="faq-shortcut faq-card">
-              <i class="fas fa-map-marker-alt"></i>
-              <div>
-                <strong>Pickup Info</strong>
-                <div class="small text-muted">Where and when to collect documents</div>
-              </div>
-            </div>
-          </div>
+          <!-- Shortcut cards removed per user request -->
 
           <div class="card faq-card p-3">
               <div class="row">
-              <div class="col-md-7">
+              <div class="col-md-9">
                 <div class="chat-qa">
-                  <input class="form-control qa-search" id="qaSearch" placeholder="Search questions...">
-                  <div class="qa-list" id="qaList">
-                    <div class="qa-item">
-                      <div class="q-bubble" data-target="a1">How long does it take to process document requests?</div>
-                      <div class="a-bubble" id="a1">
-                        Processing depends on document type and workload. Typical:
-                        <ul>
-                          <li><strong>Certificate of Enrollment:</strong> 2–3 business days</li>
-                          <li><strong>Good Moral Certificate:</strong> 3–5 business days</li>
-                          <li><strong>Transcript of Records:</strong> 7–10 business days</li>
-                          <li><strong>Diploma / Graduation docs:</strong> 10–14 business days</li>
-                        </ul>
+                  <div class="faq-pills mb-3">
+                    <button type="button" class="faq-pill active" data-filter="all">All</button>
+                    <button type="button" class="faq-pill" data-filter="processing">Processing Times</button>
+                    <button type="button" class="faq-pill" data-filter="tracking">Tracking</button>
+                    <button type="button" class="faq-pill" data-filter="fees">Fees</button>
+                    <button type="button" class="faq-pill" data-filter="pickup">Pickup</button>
+                  </div>
+                  <div class="input-group qa-search">
+                    <span class="input-group-text search-icon"><i class="fas fa-search"></i></span>
+                    <input class="form-control" id="qaSearch" placeholder="Search questions...">
+                    <button id="clearQaSearch" class="btn btn-clear" type="button" title="Clear search">&times;</button>
+                  </div>
+                  <div class="faq-grid" id="qaList">
+                    <article class="faq-card-item" data-filter="processing">
+                      <div class="faq-image"><i class="fas fa-clock" aria-hidden="true"></i></div>
+                      <div class="faq-card-content">
+                        <div class="faq-title-box"><button type="button" class="q-bubble" data-target="a1" aria-expanded="false" aria-controls="a1"><div class="q-main">How long does it take to process document requests?</div></button></div>
+                        <div class="faq-excerpt">Typical turnaround times for common documents like certificates and transcripts.</div>
+                        <div class="a-bubble" id="a1">Processing depends on document type and workload. Typical:
+                          <ul>
+                            <li><strong>Certificate of Enrollment:</strong> 2–3 business days</li>
+                            <li><strong>Good Moral Certificate:</strong> 3–5 business days</li>
+                            <li><strong>Transcript of Records:</strong> 7–10 business days</li>
+                            <li><strong>Diploma / Graduation docs:</strong> 10–14 business days</li>
+                          </ul>
+                        </div>
                       </div>
-                    </div>
-                    <div class="qa-item">
-                      <div class="q-bubble" data-target="a2">How can I track my request?</div>
-                      <div class="a-bubble" id="a2">Track requests from your dashboard. Statuses and notifications are updated automatically. Use your Request ID when contacting support.</div>
-                    </div>
-                    <div class="qa-item">
-                      <div class="q-bubble" data-target="a3">What fees apply?</div>
-                      <div class="a-bubble" id="a3">See the quick fee list on the right. Fees may change; the Registrar will confirm final amount.</div>
-                    </div>
-                    <div class="qa-item">
-                      <div class="q-bubble" data-target="a4">Where do I pick up documents?</div>
-                      <div class="a-bubble" id="a4">Documents are issued at the Registrar's Office (Ground Floor, Admin Building). Bring a valid ID. Authorized representatives must present a signed authorization and ID.</div>
-                    </div>
+                    </article>
+
+                    <article class="faq-card-item" data-filter="tracking">
+                      <div class="faq-image"><i class="fas fa-route" aria-hidden="true"></i></div>
+                      <div class="faq-card-content">
+                        <button type="button" class="q-bubble" data-target="a2" aria-expanded="false" aria-controls="a2">
+                          <div class="q-main">How can I track my request?</div>
+                        </button>
+                        <div class="faq-excerpt">Use your dashboard and Request ID to follow status updates.</div>
+                        <div class="a-bubble" id="a2">Track requests from your dashboard. Statuses and notifications are updated automatically. Use your Request ID when contacting support.</div>
+                      </div>
+                    </article>
+
+                    <article class="faq-card-item" data-filter="fees">
+                      <div class="faq-image"><i class="fas fa-coins" aria-hidden="true"></i></div>
+                      <div class="faq-card-content">
+                        <button type="button" class="q-bubble" data-target="a3" aria-expanded="false" aria-controls="a3">
+                          <div class="q-main">What fees apply?</div>
+                        </button>
+                        <div class="faq-excerpt">Quick view of common service fees (final amount confirmed by Registrar).</div>
+                        <div class="a-bubble" id="a3">
+                          <p class="mb-2">Fees are subject to change; the Registrar confirms the final amount. Typical fees (for reference):</p>
+                          <ul>
+                            <li><strong>Certificate of Enrollment:</strong> ₱50</li>
+                            <li><strong>Good Moral Certificate:</strong> ₱75</li>
+                            <li><strong>Certificate of Graduation:</strong> ₱100</li>
+                            <li><strong>Transcript of Records:</strong> ₱150</li>
+                            <li><strong>Additional services (rush processing / courier):</strong> Variable — contact Registrar</li>
+                          </ul>
+                          <p class="small text-muted">If you need an exact total, please contact the Registrar or check your request details.</p>
+                        </div>
+                      </div>
+                    </article>
+
+                    <article class="faq-card-item" data-filter="pickup">
+                      <div class="faq-image"><i class="fas fa-map-marker-alt" aria-hidden="true"></i></div>
+                      <div class="faq-card-content">
+                        <button type="button" class="q-bubble" data-target="a4" aria-expanded="false" aria-controls="a4">
+                          <div class="q-main">Where do I pick up documents?</div>
+                        </button>
+                        <div class="faq-excerpt">Pickup locations, hours, and ID requirements.</div>
+                        <div class="a-bubble" id="a4">Documents are issued at the Registrar's Office (Ground Floor, Admin Building). Bring a valid ID. Authorized representatives must present a signed authorization and ID.</div>
+                      </div>
+                    </article>
+
+                    <article class="faq-card-item" data-filter="general">
+                      <div class="faq-image"><i class="fas fa-life-ring" aria-hidden="true"></i></div>
+                      <div class="faq-card-content">
+                        <button type="button" class="q-bubble" data-target="a5" aria-expanded="false" aria-controls="a5">
+                          <div class="q-main">How do I reset my password?</div>
+                        </button>
+                        <div class="faq-excerpt">Steps to reset your account password via email.</div>
+                        <div class="a-bubble" id="a5">Click 'Forgot password' on the login screen and follow the emailed link. If you don't receive an email, check spam or contact support.</div>
+                      </div>
+                    </article>
+
+                    <article class="faq-card-item" data-filter="general">
+                      <div class="faq-image"><i class="fas fa-envelope" aria-hidden="true"></i></div>
+                      <div class="faq-card-content">
+                        <button type="button" class="q-bubble" data-target="a6" aria-expanded="false" aria-controls="a6">
+                          <div class="q-main">How do I contact support?</div>
+                        </button>
+                        <div class="faq-excerpt">Contact methods for account help and general queries.</div>
+                        <div class="a-bubble" id="a6">For account issues or general help, email the Registrar or submit a request through the Contact form. Include your Request ID when relevant.</div>
+                      </div>
+                    </article>
                   </div>
                 </div>
               </div>
-              <div class="col-md-5">
-                <div class="p-3">
-                  <h6>Fees (Quick View)</h6>
-                  <div class="d-flex flex-column gap-2">
-                    <div class="d-flex justify-content-between align-items-center"><div>Certificate of Enrollment</div><div class="fee-pill">₱50</div></div>
-                    <div class="d-flex justify-content-between align-items-center"><div>Good Moral Certificate</div><div class="fee-pill">₱75</div></div>
-                    <div class="d-flex justify-content-between align-items-center"><div>Certificate of Graduation</div><div class="fee-pill">₱100</div></div>
-                    <div class="d-flex justify-content-between align-items-center"><div>Diploma Copy</div><div class="fee-pill">₱100</div></div>
-                    <div class="d-flex justify-content-between align-items-center"><div>Honorable Dismissal</div><div class="fee-pill">₱100</div></div>
-                    <div class="d-flex justify-content-between align-items-center"><div>Transcript of Records</div><div class="fee-pill">₱150</div></div>
-                  </div>
-                  </div>
-                </div>
+              <div class="col-md-3">
+                <aside style="position:sticky; top:18px">
+                  <div class="help-panel p-3 mb-2">
+
+                    <div class="suggestion-card p-3 mt-2" style="background:#fff;border-radius:10px;box-shadow:0 8px 20px rgba(15,23,42,0.06);">
+                      <div style="margin-bottom:8px;">
+                        <div style="font-size:1.02rem;color:#000;font-weight:600;">Share feedback or a question about this site.</div>
+                      </div>
+
+                      <form id="suggestionForm">
+                        <div class="mb-2">
+                          <label for="s_name" class="form-label small">Name (optional)</label>
+                          <input id="s_name" name="name" type="text" class="form-control form-control-sm" placeholder="Your name">
+                        </div>
+                        <div class="mb-2">
+                          <label for="s_email" class="form-label small">Email (optional)</label>
+                          <input id="s_email" name="email" type="email" class="form-control form-control-sm" placeholder="you@example.com">
+                        </div>
+                        <div class="mb-2">
+                          <label for="s_message" class="form-label small">Message</label>
+                          <textarea id="s_message" name="message" class="form-control form-control-sm" rows="4" required placeholder="Tell us a suggestion, bug, or question..."></textarea>
+                        </div>
+                        <div id="suggestionStatus" class="small text-muted mb-2" aria-live="polite" style="min-height:1.2em"></div>
+                        <div style="margin-top:8px;">
+                          <button type="submit" id="s_submit" class="btn btn-sm" style="background:#000;color:#fff;border:none;display:block;width:100%;box-sizing:border-box;padding:8px 12px;">Submit</button>
+                        </div>
+                      </form>
+
+                      <p class="small text-muted mt-2 mb-0">We respect your privacy — contact details are optional.</p>
+                    </div>
+
+                  
+                </aside>
               </div>
             </div>
           </div>
@@ -190,7 +324,7 @@
 function confirmLogout(event) {
     event.preventDefault();
     if (confirm('Are you sure you want to logout?')) {
-        window.location.href = '{% url "logout" %}';
+      globalThis.location.href = '{% url "logout" %}';
     }
 }
 
@@ -207,24 +341,126 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         dateElement.textContent = today.toLocaleDateString('en-US', options);
     }
-    // FAQ chat toggles
-    document.querySelectorAll('.q-bubble').forEach(q => {
-      q.addEventListener('click', () => {
-        const id = q.dataset.target;
-        const a = document.getElementById(id);
-        const open = a.classList.toggle('show');
-        q.classList.toggle('open', open);
+    // Ensure all answers are hidden on load and aria states are reset
+    for (const a of document.querySelectorAll('.a-bubble')) {
+      a.classList.remove('open');
+      const id = a.id;
+      const q = document.querySelector('.q-bubble[aria-controls="' + id + '"]');
+      if (q) q.setAttribute('aria-expanded', 'false');
+    }
+
+    // Clicking a card shows its answer inside the card (answers are kept hidden initially).
+    // Only one answer is open at a time to keep layout consistent.
+    for (const card of document.querySelectorAll('.faq-card-item')) {
+      card.addEventListener('click', (ev) => {
+        // Ignore clicks on actionable controls (links/buttons) to avoid accidental toggles
+        if (ev.target.closest('a') || (ev.target.closest('button') && !ev.target.classList.contains('q-bubble'))) return;
+        const a = card.querySelector('.a-bubble');
+        const q = card.querySelector('.q-bubble');
+        if (!a) return;
+
+        const wasOpen = a.classList.contains('open');
+        // Close any other open answers first
+        for (const other of document.querySelectorAll('.a-bubble')) {
+          other.classList.remove('open');
+          const oid = other.id;
+          const oq = document.querySelector('.q-bubble[aria-controls="' + oid + '"]');
+          if (oq) oq.setAttribute('aria-expanded', 'false');
+          if (oq) oq.classList.remove('open');
+          // also remove opened state from its card
+          const parentCard = other.closest('.faq-card-item');
+          if (parentCard) parentCard.classList.remove('opened');
+        }
+
+        if (!wasOpen) {
+          a.classList.add('open');
+          if (q) { q.classList.add('open'); q.setAttribute('aria-expanded', 'true'); }
+          card.classList.add('opened');
+        } else {
+          card.classList.remove('opened');
+        }
       });
-    });
+    }
     // Search
     const qaSearch = document.getElementById('qaSearch');
     if (qaSearch) {
       qaSearch.addEventListener('input', (e) => {
         const q = e.target.value.toLowerCase().trim();
-        document.querySelectorAll('.qa-item').forEach(item => {
-          const question = item.querySelector('.q-bubble').textContent.toLowerCase();
+        for (const item of document.querySelectorAll('.qa-item, .faq-card-item')) {
+          const qb = item.querySelector('.q-bubble');
+          const question = qb ? qb.textContent.toLowerCase() : '';
           item.style.display = question.includes(q) ? '' : 'none';
+        }
+      });
+      const clearBtn = document.getElementById('clearQaSearch');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          qaSearch.value = '';
+          qaSearch.dispatchEvent(new Event('input'));
+          qaSearch.focus();
         });
+      }
+    }
+    // Suggestion form: AJAX POST with mailto fallback
+    const suggestionForm = document.getElementById('suggestionForm');
+    if (suggestionForm) {
+      function getCookie(name) {
+        const match = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]+)'));
+        return match ? decodeURIComponent(match[2]) : null;
+      }
+      suggestionForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('s_submit');
+        const status = document.getElementById('suggestionStatus');
+        submitBtn.disabled = true;
+        status.textContent = 'Sending...';
+
+        const payload = {
+          name: document.getElementById('s_name').value.trim(),
+          email: document.getElementById('s_email').value.trim(),
+          message: document.getElementById('s_message').value.trim(),
+          page: window.location.pathname
+        };
+
+        try {
+          const resp = await fetch('/feedback/submit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookie('csrftoken') || ''
+            },
+            body: JSON.stringify(payload)
+          });
+          if (resp.ok) {
+            status.textContent = 'Thanks — your suggestion was submitted.';
+            suggestionForm.reset();
+          } else {
+            // fallback to mailto if server endpoint not available
+            throw new Error('Server returned ' + resp.status);
+          }
+        } catch (err) {
+          // Open user's mail client as a fallback with prefilled body
+          const body = encodeURIComponent('Feedback from ' + (payload.name || 'Anonymous') + '\n\n' + payload.message + '\n\nContact: ' + (payload.email || 'none'));
+          const mailto = 'mailto:registrar@example.com?subject=' + encodeURIComponent('Website suggestion') + '&body=' + body;
+          status.innerHTML = 'Unable to submit directly; <a href="' + mailto + '">send using your email client</a>.';
+        }
+        submitBtn.disabled = false;
+      });
+    }
+    // Pill filters
+    for (const pill of document.querySelectorAll('.faq-pill')) {
+      pill.addEventListener('click', () => {
+        const filter = pill.dataset.filter;
+        for (const p of document.querySelectorAll('.faq-pill')) p.classList.remove('active');
+        pill.classList.add('active');
+        for (const item of document.querySelectorAll('.faq-card-item')) {
+          item.style.display = (filter === 'all' || item.dataset.filter === filter) ? '' : 'none';
+        }
+        // Show fees panel in right column when 'fees' selected
+        const feesPanel = document.getElementById('feesPanel');
+        if (feesPanel) {
+          if (filter === 'fees') feesPanel.classList.remove('d-none'); else feesPanel.classList.add('d-none');
+        }
       });
     }
 });
