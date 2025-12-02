@@ -1,6 +1,6 @@
 {% extends "Request/requests_list.html" %}
 
-{% block title %}Approved Requests - WildDocs{% endblock %}
+{% block title %}Ready for Pick Up - WildDocs{% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
@@ -77,7 +77,7 @@
             </a>
             <a href="/requests/approved/" class="nav-item active">
                 <i class="fas fa-check-circle"></i>
-                Approved Requests
+                Ready for Pick Up
             </a>
             <a href="/requests/completed/" class="nav-item">
                 <i class="fas fa-check-double"></i>
@@ -98,7 +98,7 @@
     <div class="request-content">
         <div class="approved-header request-header">
             <h2 class="mb-0">
-                <i class="fas fa-check-circle mr-3"></i>Approved Requests
+                <i class="fas fa-box-open mr-3"></i>Ready for Pick Up
             </h2>
             <p class="mb-0 mt-2">Documents ready for pickup at the Registrar's Office</p>
         </div>
@@ -106,7 +106,7 @@
         {% if requests %}
             <div class="approved-alert">
                 <i class="fas fa-info-circle mr-2"></i>
-                <strong>{{ requests|length }}</strong> approved request{{ requests|length|pluralize }} ready for pickup. 
+                <strong>{{ requests|length }}</strong> request{{ requests|length|pluralize }} ready for pick up. 
                 Please visit the Registrar's Office during office hours.
             </div>
         {% endif %}
@@ -148,13 +148,16 @@
                                     <td>
                                         <div class="btn-group" role="group">
                                             <a href="{% url 'Request:detail' request.id %}" 
-                                               class="btn btn-sm btn-outline-primary mr-1">
+                                               class="btn btn-sm btn-outline-danger mr-1">
                                                 <i class="fas fa-eye mr-1"></i>View
                                             </a>
-                                            <button class="btn btn-sm btn-print" 
-                                                    data-action="print" data-id="{{ request.id }}">
-                                                <i class="fas fa-print mr-1"></i>Print Slip
-                                            </button>
+                                            {% if request.payment_receipt %}
+                                            <a href="{{ request.payment_receipt }}" 
+                                               class="btn btn-sm btn-primary"
+                                               target="_blank">
+                                                <i class="fas fa-download mr-1"></i>Receipt
+                                            </a>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -176,11 +179,11 @@
                     </div>
                 {% else %}
                     <div class="empty-state">
-                        <i class="fas fa-check-circle fa-4x"></i>
-                        <h4>No Approved Requests</h4>
+                        <i class="fas fa-box-open fa-4x"></i>
+                        <h4>No Documents Ready for Pick Up</h4>
                         <p class="mb-0">
-                            You don't have any approved requests waiting for pickup.<br>
-                            Check back later or submit a new request.
+                            You don't have any documents ready for pickup yet.<br>
+                            Check back later after staff has processed your request.
                         </p>
                     </div>
                 {% endif %}
