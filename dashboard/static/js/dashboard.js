@@ -262,7 +262,7 @@ function initStatCardNavigation() {
                     globalThis.location.href = '/requests/pending/';
                     break;
                 case 'Approved Requests':
-                    globalThis.location.href = '/requests/approved/';
+                    globalThis.location.href = '/requested_documents/';
                     break;
                 case 'Completed Requests':
                     globalThis.location.href = '/requests/completed/';
