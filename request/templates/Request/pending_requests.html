@@ -64,8 +64,8 @@
                 Pending Requests
             </a>
             <a href="/requests/approved/" class="nav-item">
-                <i class="fas fa-check-circle"></i>
-                Approved Requests
+                <i class="fas fa-box-open"></i>
+                Ready for Pick Up
             </a>
             <a href="/requests/completed/" class="nav-item">
                 <i class="fas fa-check-double"></i>
@@ -112,7 +112,6 @@
                                     <th>Copies</th>
                                     <th>Purpose</th>
                                     <th>Expected Processing</th>
-                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -127,18 +126,6 @@
                                     <td>{{ request.purpose|truncatewords:8 }}</td>
                                     <td>
                                         <small class="text-muted">3-5 business days</small>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{% url 'Request:detail' request.id %}" 
-                                               class="btn btn-sm btn-outline-primary mr-1">
-                                                <i class="fas fa-eye mr-1"></i>View
-                                            </a>
-                                            <button class="btn btn-sm btn-cancel" 
-                                                    data-action="cancel" data-id="{{ request.id }}">
-                                                <i class="fas fa-times mr-1"></i>Cancel
-                                            </button>
-                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -159,14 +146,4 @@
         </div>
     </div>
 </div>
-
-<script>
-function cancelRequest(requestId) {
-    if (confirm('Are you sure you want to cancel this pending request? This action cannot be undone.')) {
-        // Add AJAX call to cancel request
-        alert('Request #' + requestId + ' cancellation functionality would be implemented here.');
-        // You would typically make an AJAX call here to cancel the request
-    }
-}
-</script>
 {% endblock %}
