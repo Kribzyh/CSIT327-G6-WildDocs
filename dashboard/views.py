@@ -201,7 +201,7 @@ def get_dashboard_stats(student):
     if not student:
         return {
             'pending_count': 0,
-            'approved_count': 0,
+            'ready_pickup_count': 0,
             'completed_count': 0,
             'recent_requests': [],
             'approved_requests': [],
@@ -210,7 +210,7 @@ def get_dashboard_stats(student):
         }
 
     pending_count = Request.objects.filter(student=student, status__in=PENDING_STATUSES).count()
-    approved_count = Request.objects.filter(student=student, status__in=APPROVAL_STATUSES).count()
+    ready_pickup_count = Request.objects.filter(student=student, status=RequestWorkflow.READY_FOR_PICKUP).count()
     completed_count = Request.objects.filter(student=student, status__in=COMPLETED_STATUSES).count()
     recent_requests = Request.objects.filter(student=student).order_by('-date_requested')[:3]
     approved_requests = Request.objects.filter(
@@ -235,7 +235,7 @@ def get_dashboard_stats(student):
 
     return {
         'pending_count': pending_count,
-        'approved_count': approved_count,
+        'ready_pickup_count': ready_pickup_count,
         'completed_count': completed_count,
         'recent_requests': recent_requests,
         'approved_requests': approved_requests,
@@ -260,21 +260,22 @@ ACTION_STATUS_MAP = {
 }
 
 STATUS_BADGE_MAP = {
-    RequestWorkflow.PENDING_REVIEW: 'bg-warning text-dark',
-    RequestWorkflow.LEGACY_PENDING: 'bg-warning text-dark',
-    RequestWorkflow.REQUIREMENTS_NEEDED: 'bg-info text-dark',
-    RequestWorkflow.REQUIREMENTS_SUBMITTED: 'bg-info text-dark',
-    RequestWorkflow.REQUIREMENTS_ISSUE: 'bg-danger',
-    RequestWorkflow.APPROVED_FOR_PAYMENT: 'bg-secondary text-dark',
-    RequestWorkflow.LEGACY_APPROVED: 'bg-secondary text-dark',
-    RequestWorkflow.PAYMENT_SUBMITTED: 'bg-primary',
-    RequestWorkflow.PAYMENT_ISSUE: 'bg-danger',
-    RequestWorkflow.PROCESSING: 'bg-primary',
-    RequestWorkflow.READY_FOR_PICKUP: 'bg-success',
-    RequestWorkflow.COMPLETED: 'bg-success',
-    RequestWorkflow.LEGACY_COMPLETED: 'bg-success',
-    RequestWorkflow.CANCELLED: 'bg-secondary',
-    RequestWorkflow.REJECTED: 'bg-danger',
+    RequestWorkflow.PENDING_REVIEW: 'badge-pending-review',
+    RequestWorkflow.LEGACY_PENDING: 'badge-pending-review',
+    RequestWorkflow.REQUIREMENTS_NEEDED: 'badge-requirements-needed',
+    RequestWorkflow.REQUIREMENTS_SUBMITTED: 'badge-requirements-submitted',
+    RequestWorkflow.REQUIREMENTS_ISSUE: 'badge-requirements-issue',
+    RequestWorkflow.APPROVED_FOR_PAYMENT: 'badge-approved-payment',
+    RequestWorkflow.LEGACY_APPROVED: 'badge-approved-payment',
+    'Approved – For Payment': 'badge-approved-payment',  # Legacy status
+    RequestWorkflow.PAYMENT_SUBMITTED: 'badge-payment-submitted',
+    RequestWorkflow.PAYMENT_ISSUE: 'badge-payment-issue',
+    RequestWorkflow.PROCESSING: 'badge-processing',
+    RequestWorkflow.READY_FOR_PICKUP: 'badge-ready-pickup',
+    RequestWorkflow.COMPLETED: 'badge-completed',
+    RequestWorkflow.LEGACY_COMPLETED: 'badge-completed',
+    RequestWorkflow.CANCELLED: 'badge-cancelled',
+    RequestWorkflow.REJECTED: 'badge-rejected',
 }
 
 STATUS_STAGE_MAP = {
@@ -285,6 +286,7 @@ STATUS_STAGE_MAP = {
     RequestWorkflow.REQUIREMENTS_ISSUE: 'Requirements (Follow-up)',
     RequestWorkflow.APPROVED_FOR_PAYMENT: 'Payment (Student)',
     RequestWorkflow.LEGACY_APPROVED: 'Payment (Student)',
+    'Approved – For Payment': 'Payment (Student)',  # Legacy status
     RequestWorkflow.PAYMENT_SUBMITTED: 'Payment (Verify)',
     RequestWorkflow.PAYMENT_ISSUE: 'Payment (Follow-up)',
     RequestWorkflow.PROCESSING: 'Processing',
@@ -305,6 +307,7 @@ STATUS_STAGE_CATEGORY_MAP = {
     RequestWorkflow.REQUIREMENTS_ISSUE: 'requirements',
     RequestWorkflow.APPROVED_FOR_PAYMENT: 'payment',
     RequestWorkflow.LEGACY_APPROVED: 'payment',
+    'Approved – For Payment': 'payment',  # Legacy status
     RequestWorkflow.PAYMENT_SUBMITTED: 'payment',
     RequestWorkflow.PAYMENT_ISSUE: 'payment',
     RequestWorkflow.PROCESSING: 'processing',
