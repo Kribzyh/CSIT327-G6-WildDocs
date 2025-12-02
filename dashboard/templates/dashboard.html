@@ -191,17 +191,19 @@
                 </div>
               </div>
             </div>
+            <a href="{% url 'Request:approved' %}" style="text-decoration:none;">
             <div class="stat-card status-approved">
               <div class="stat-card-body">
                 <div class="stat-icon">
-                  <i class="fas fa-check-circle"></i>
+                  <i class="fas fa-box"></i>
                 </div>
                 <div>
-                  <div class="stat-header">Approved Requests</div>
-                  <div id="approvedCount" class="stat-number">{{ approved_count }}</div>
+                  <div class="stat-header">Ready to Pick Up</div>
+                  <div id="approvedCount" class="stat-number">{{ ready_pickup_count }}</div>
                 </div>
               </div>
             </div>
+            </a>
             <div class="stat-card status-completed">
               <div class="stat-card-body">
                 <div class="stat-icon">
