@@ -4,7 +4,7 @@ Views for handling pending requests.
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from accounts.models import StudentAccount, Request
+from accounts.models import StudentAccount, Request, RequestWorkflow
 
 
 @login_required
@@ -12,9 +12,10 @@ def requests_pending(request):
     """View for displaying pending requests"""
     try:
         student = StudentAccount.objects.get(user=request.user)
+        # Use RequestWorkflow.pending_statuses() to get all pending-related statuses
         pending_requests = Request.objects.filter(
             student=student, 
-            status='Pending'
+            status__in=RequestWorkflow.pending_statuses()
         ).order_by('-date_requested')
     except StudentAccount.DoesNotExist:
         pending_requests = []
@@ -33,11 +34,16 @@ def cancel_pending_request(request, request_id):
     """View for cancelling a pending request"""
     try:
         student = StudentAccount.objects.get(user=request.user)
-        req = Request.objects.get(id=request_id, student=student, status='Pending')
+        # Allow cancellation for any pending status
+        req = Request.objects.get(
+            id=request_id, 
+            student=student, 
+            status__in=RequestWorkflow.pending_statuses()
+        )
         
         if request.method == 'POST':
             # Update status to cancelled
-            req.status = 'Cancelled'
+            req.status = RequestWorkflow.CANCELLED
             req.notes = f"Cancelled by student on {request.user.date_joined.strftime('%Y-%m-%d')}"
             req.save()
             
