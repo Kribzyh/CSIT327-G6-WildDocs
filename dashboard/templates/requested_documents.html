@@ -219,6 +219,20 @@
       gap: 0.5rem;
     }
   }
+
+  /* Unique status badge colors - distinct dark primary colors */
+  .badge-pending-review { background-color: #9a7b16 !important; color: #fff !important; }           /* Dark Gold */
+  .badge-requirements-needed { background-color: #4b0082 !important; color: #fff !important; }      /* Royal Purple */
+  .badge-requirements-submitted { background-color: #065f63 !important; color: #fff !important; }   /* Deep Aqua */
+  .badge-requirements-issue { background-color: #7a0f2e !important; color: #fff !important; }       /* Crimson Plum */
+  .badge-approved-payment { background-color: #8a3b12 !important; color: #fff !important; }         /* Rust Orange */
+  .badge-payment-submitted { background-color: #0b2e6d !important; color: #fff !important; }        /* Navy Sapphire */
+  .badge-payment-issue { background-color: #5a0a0a !important; color: #fff !important; }            /* Blood Maroon */
+  .badge-processing { background-color: #e65100 !important; color: #fff !important; }               /* Deep Orange */
+  .badge-ready-pickup { background-color: #0b4f24 !important; color: #fff !important; }             /* Forest Emerald */
+  .badge-completed { background-color: #064d73 !important; color: #fff !important; }                /* Deep Cerulean */
+  .badge-cancelled { background-color: #8b0000 !important; color: #fff !important; }                /* Dark Red */
+  .badge-rejected { background-color: #0c0c0c !important; color: #fff !important; }                 /* Obsidian Black */
 </style>
 {% endblock %}
 
@@ -329,27 +343,31 @@
                         <td>
                           {% with status=request.status %}
                             {% if status == workflow.PENDING_REVIEW or status == workflow.LEGACY_PENDING %}
-                              <span class="badge bg-warning text-dark">{{ request.status_label }}</span>
+                              <span class="badge badge-pending-review">{{ request.status_label }}</span>
                             {% elif status == workflow.REQUIREMENTS_NEEDED %}
-                              <span class="badge bg-info text-dark">{{ request.status_label }}</span>
+                              <span class="badge badge-requirements-needed">{{ request.status_label }}</span>
                             {% elif status == workflow.REQUIREMENTS_SUBMITTED %}
-                              <span class="badge bg-primary">{{ request.status_label }}</span>
+                              <span class="badge badge-requirements-submitted">{{ request.status_label }}</span>
                             {% elif status == workflow.REQUIREMENTS_ISSUE %}
-                              <span class="badge bg-danger">{{ request.status_label }}</span>
-                            {% elif status == workflow.APPROVED_FOR_PAYMENT or status == workflow.LEGACY_APPROVED %}
-                              <span class="badge bg-success">{{ request.status_label }}</span>
+                              <span class="badge badge-requirements-issue">{{ request.status_label }}</span>
+                            {% elif status == workflow.APPROVED_FOR_PAYMENT or status == workflow.LEGACY_APPROVED or status == 'Approved – For Payment' %}
+                              <span class="badge badge-approved-payment">{{ request.status_label }}</span>
                             {% elif status == workflow.PAYMENT_SUBMITTED %}
-                              <span class="badge bg-primary">{{ request.status_label }}</span>
+                              <span class="badge badge-payment-submitted">{{ request.status_label }}</span>
                             {% elif status == workflow.PAYMENT_ISSUE %}
-                              <span class="badge bg-danger">{{ request.status_label }}</span>
+                              <span class="badge badge-payment-issue">{{ request.status_label }}</span>
                             {% elif status == workflow.PROCESSING %}
-                              <span class="badge bg-secondary">{{ request.status_label }}</span>
+                              <span class="badge badge-processing">{{ request.status_label }}</span>
                             {% elif status == workflow.READY_FOR_PICKUP %}
-                              <span class="badge bg-success">{{ request.status_label }}</span>
-                            {% elif status in workflow_sets.completed %}
-                              <span class="badge bg-primary">{{ request.status_label }}</span>
+                              <span class="badge badge-ready-pickup">{{ request.status_label }}</span>
+                            {% elif status == workflow.COMPLETED or status == workflow.LEGACY_COMPLETED %}
+                              <span class="badge badge-completed">{{ request.status_label }}</span>
+                            {% elif status == workflow.CANCELLED %}
+                              <span class="badge badge-cancelled">{{ request.status_label }}</span>
+                            {% elif status == workflow.REJECTED %}
+                              <span class="badge badge-rejected">{{ request.status_label }}</span>
                             {% else %}
-                              <span class="badge bg-secondary">{{ request.status_label }}</span>
+                              <span class="badge badge-pending-review">{{ request.status_label }}</span>
                             {% endif %}
                           {% endwith %}
                         </td>
@@ -1133,18 +1151,34 @@ function setupRequestInteractions() {
     }
   }
 
-  // After a successful upload, replace the action button with a 'View' button
+  // After a successful upload, replace the action button with a 'Submitted' label and update status badge
   function updateRowAfterUpload(requestId, files) {
     const submitBtn = document.querySelector('.submit-requirements-btn[data-request-id="' + requestId + '"]');
     const row = submitBtn ? submitBtn.closest('tr') : document.querySelector('.request-row[data-stage-key]');
     if (submitBtn && submitBtn.parentElement) {
+      // Update the action button to "Submitted"
       const submittedLabel = document.createElement('span');
       submittedLabel.className = 'btn btn-sm btn-outline-secondary disabled submitted-label';
       submittedLabel.setAttribute('aria-disabled', 'true');
       submittedLabel.textContent = 'Submitted';
       submitBtn.parentElement.replaceChild(submittedLabel, submitBtn);
-      // update the stage on the row so filters will show it if needed
-      if (row) row.dataset.stage = 'requirements';
+      
+      // Update the status badge in the same row
+      if (row) {
+        const statusCell = row.querySelector('td:nth-child(4)'); // Status is the 4th column
+        if (statusCell) {
+          const oldBadge = statusCell.querySelector('.badge');
+          if (oldBadge) {
+            // Create new badge with updated status
+            const newBadge = document.createElement('span');
+            newBadge.className = 'badge bg-primary';
+            newBadge.textContent = 'Requirements Submitted – For Verification';
+            oldBadge.replaceWith(newBadge);
+          }
+        }
+        // update the stage on the row so filters will show it if needed
+        row.dataset.stage = 'requirements';
+      }
       // cache the files
       if (files) uploadedFilesByRequest[requestId] = files;
     }
@@ -1159,5 +1193,79 @@ function setupRequestInteractions() {
     });
   }
 }
+
+// Real-time auto-refresh for student page
+function setupStudentAutoRefresh() {
+  const REFRESH_INTERVAL = 3000; // 3 seconds
+  
+  async function checkForUpdates() {
+    try {
+      const resp = await fetch(window.location.href, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      
+      if (!resp.ok) return;
+      
+      const html = await resp.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Get the new table body
+      const newTbody = doc.querySelector('.requests-table tbody');
+      const currentTbody = document.querySelector('.requests-table tbody');
+      
+      if (newTbody && currentTbody) {
+        const newRows = newTbody.querySelectorAll('tr[data-request-id]');
+        const currentRows = currentTbody.querySelectorAll('tr[data-request-id]');
+        
+        let hasChanges = newRows.length !== currentRows.length;
+        
+        if (!hasChanges) {
+          // Check if any status has changed
+          for (let i = 0; i < currentRows.length; i++) {
+            const currentStatus = currentRows[i]?.querySelector('.badge')?.textContent?.trim() || '';
+            const newRow = newTbody.querySelector(`tr[data-request-id="${currentRows[i]?.dataset?.requestId}"]`);
+            const newStatus = newRow?.querySelector('.badge')?.textContent?.trim() || '';
+            
+            if (currentStatus !== newStatus) {
+              hasChanges = true;
+              break;
+            }
+          }
+        }
+        
+        if (hasChanges) {
+          // Replace tbody content
+          currentTbody.innerHTML = newTbody.innerHTML;
+          
+          // Update stat cards
+          const newStats = doc.querySelectorAll('.stat-card .value');
+          const currentStats = document.querySelectorAll('.stat-card .value');
+          newStats.forEach((newStat, i) => {
+            if (currentStats[i]) {
+              currentStats[i].textContent = newStat.textContent;
+            }
+          });
+          
+          // Re-initialize action handlers
+          if (typeof initializeRequirementsUpload === 'function') {
+            initializeRequirementsUpload();
+          }
+          
+          console.log('Student page updated with new data');
+        }
+      }
+    } catch (err) {
+      console.warn('Auto-refresh check failed:', err);
+    }
+  }
+  
+  // Start polling
+  setInterval(checkForUpdates, REFRESH_INTERVAL);
+  console.log('Student auto-refresh enabled (every 3 seconds)');
+}
+
+// Initialize auto-refresh
+setupStudentAutoRefresh();
 </script>
 {% endblock %}
