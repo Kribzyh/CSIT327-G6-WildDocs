@@ -76,8 +76,8 @@
                 Pending Requests
             </a>
             <a href="/requests/approved/" class="nav-item">
-                <i class="fas fa-check-circle"></i>
-                Approved Requests
+                <i class="fas fa-box-open"></i>
+                Ready for Pick Up
             </a>
             <a href="/requests/completed/" class="nav-item active">
                 <i class="fas fa-check-double"></i>
@@ -149,10 +149,13 @@
                                                class="btn btn-sm btn-outline-primary mr-1">
                                                 <i class="fas fa-eye mr-1"></i>View
                                             </a>
-                                            <button class="btn btn-sm btn-download" 
-                                                    data-action="download" data-id="{{ request.id }}">
+                                            {% if request.payment_receipt %}
+                                            <a href="{{ request.payment_receipt }}" 
+                                               class="btn btn-sm btn-download"
+                                               target="_blank">
                                                 <i class="fas fa-download mr-1"></i>Receipt
-                                            </button>
+                                            </a>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -184,12 +187,4 @@
         </div>
     </div>
 </div>
-
-<script>
-function downloadReceipt(requestId) {
-    // Generate a completion receipt for download
-    alert('Receipt download for request #' + requestId + ' would be implemented here.');
-    // You would typically make an AJAX call here to generate and download a PDF receipt
-}
-</script>
 {% endblock %}
