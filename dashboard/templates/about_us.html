@@ -6,43 +6,35 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <style>
-  /* Creative About Us styles */
-  /* About page spacing: closer layout but visible separation */
+  /* About page spacing */
   .about-page .card { margin-bottom: 8px; }
-  .about-page .feature-card { margin-bottom: 8px; position: relative; z-index: 1; min-height: 140px; }
   .about-page .team-member { margin-bottom: 8px; }
-  /* Small row gap to keep subtle separation */
   .about-page .row { column-gap: 0; row-gap: 0.4rem; }
 
-  .hero-creative {
-    background: linear-gradient(135deg,#3b82f6 0%,#6d28d9 100%);
-    color: #fff;
-    padding: 40px 28px;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(45,55,72,0.12);
-  }
-  .hero-creative .title { font-size: 2rem; font-weight:700 }
-  .feature-card { border: none; border-radius: 10px; transition: transform .18s ease, box-shadow .18s ease; }
-  .feature-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(15,23,42,0.12); }
-  /* Feature row: single container with separators */
+  /* Feature row */
   .feature-row { display:flex; flex-direction:column; gap:0; }
   @media(min-width:768px){ .feature-row { flex-direction:row } }
   .feature-item { flex:1; padding:22px 24px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; }
   @media(min-width:768px){ .feature-item + .feature-item { border-left: 1px solid rgba(15,23,42,0.04); } }
-  /* Center team member cards */
+  .feature-item .icon-circle { width:64px; height:64px; border-radius:12px; background:#800000; display:flex; align-items:center; justify-content:center; color:#fff; margin-bottom:12px; box-shadow:0 6px 18px rgba(15,23,42,0.06) }
+  .feature-item h6 { margin:0 0 6px 0; font-weight:700 }
+  .feature-item p { margin:0 }
+
+  /* Team member cards */
   .about-page .team-member { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
-  /* Center timeline block within page */
-  .about-page .timeline { max-width: 680px; margin-left: auto; margin-right: auto; }
-  .timeline { list-style: none; padding: 0; margin: 0; }
-  .timeline li { display:flex; gap:16px; margin-bottom:18px; align-items:flex-start }
-  .timeline .step { min-width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff }
-  .step-1 { background: #0ea5e9 }
-  .step-2 { background: #34d399 }
-  .step-3 { background: #f59e0b }
   .team-member { text-align:center }
-  .avatar-placeholder { width:96px; height:96px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:1.25rem; color:#fff }
-  .cta-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.12); color: #fff }
-  @media (max-width:767px){ .hero-creative { text-align:center } }
+  .avatar-placeholder { width:96px; height:96px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:1.25rem; color:#fff; box-shadow:0 8px 20px rgba(15,23,42,0.06) }
+  .team-member.card { border-radius:12px; box-shadow:0 10px 28px rgba(15,23,42,0.06); padding:20px }
+  .team-member strong { display:block; margin-top:8px }
+  .team-member .small { color:#6b7280 }
+  .team-member { transition: transform .18s ease, box-shadow .18s ease }
+  .team-member:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(15,23,42,0.08) }
+
+  /* General card styling */
+  .card { border: 0; background: #fff; border-radius: 12px; }
+  .card .card-body { padding: 20px; }
+  
+  @media(max-width:767px){ .feature-item { padding:18px } .card .card-body { padding:16px } }
 </style>
 {% endblock %}
 
@@ -108,70 +100,76 @@
     </div>
 
   <!-- About Content -->
-  <div class="dashboard-content about-page" style="margin-top:1rem;">
-  <div class="row g-4 align-items-stretch">
-
-        <div class="col-12">
-          <div class="card p-0">
-            <div class="feature-row">
-              <div class="feature-item">
-                <i class="fas fa-paper-plane fa-2x text-primary mb-2"></i>
-                <h6>Fast Requests</h6>
-                <p class="small text-muted mb-0">Submit requests online and skip in-person queues. Track progress in real time.</p>
-              </div>
-              <div class="feature-item">
-                <i class="fas fa-shield-alt fa-2x text-primary mb-2"></i>
-                <h6>Secure Processing</h6>
-                <p class="small text-muted mb-0">Role-based access and secure records keep sensitive documents protected.</p>
-              </div>
-              <div class="feature-item">
-                <i class="fas fa-bell fa-2x text-primary mb-2"></i>
-                <h6>Proactive Alerts</h6>
-                <p class="small text-muted mb-0">Automated notifications keep students updated at every stage of the process.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+  <div class="dashboard-content about-page" style="margin-top:-2rem;">
+  <div class="row g-3 align-items-stretch">
 
         <div class="col-lg-8">
-          <div class="card p-3 h-100">
-            <div class="card-body">
-              <h6>Process Timeline</h6>
-              <ul class="timeline mt-3">
-                <li>
-                  <div class="step step-1">1</div>
-                  <div>
-                    <strong>Submit Request</strong>
-                    <div class="small text-muted">Fill the online request form and upload required documents.</div>
+          <div class="card p-0 h-100">
+            <div class="card-body p-4">
+              <h5 style="font-weight:700;color:#3b0c0f;margin-bottom:20px">Process Timeline</h5>
+              <div class="timeline-panel">
+                <div class="timeline-steps">
+                  <div class="timeline-row">
+                    <div class="timeline-marker">
+                      <div class="step step-1"><i class="fas fa-file-alt"></i></div>
+                    </div>
+                    <div class="timeline-step-content">
+                      <h6 class="timeline-title">Submit Request</h6>
+                      <p class="timeline-desc">Fill out the online request form and upload any required documents.</p>
+                    </div>
                   </div>
-                </li>
-                <li>
-                  <div class="step step-2">2</div>
-                  <div>
-                    <strong>Verification & Processing</strong>
-                    <div class="small text-muted">Registrar reviews, approves, and processes your request.</div>
+                  <div class="timeline-row">
+                    <div class="timeline-marker">
+                      <div class="step step-2"><i class="fas fa-search"></i></div>
+                    </div>
+                    <div class="timeline-step-content">
+                      <h6 class="timeline-title">Verification & Processing</h6>
+                      <p class="timeline-desc">The Registrar reviews, verifies, and processes your request. Processing time may vary.</p>
+                    </div>
                   </div>
-                </li>
-                <li>
-                  <div class="step step-3">3</div>
-                  <div>
-                    <strong>Ready for Pickup / Delivery</strong>
-                    <div class="small text-muted">Receive a pickup notice or delivery confirmation when ready.</div>
+                  <div class="timeline-row">
+                    <div class="timeline-marker">
+                      <div class="step step-3"><i class="fas fa-box"></i></div>
+                    </div>
+                    <div class="timeline-step-content">
+                      <h6 class="timeline-title">Ready for Pickup / Delivery</h6>
+                      <p class="timeline-desc">You will receive a pickup notice or delivery confirmation when your document is ready.</p>
+                    </div>
                   </div>
-                </li>
-              </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="col-lg-4">
-          <div class="card p-3 h-100 text-center">
-            <div class="card-body">
-              <i class="fas fa-university fa-3x text-primary mb-3"></i>
-              <h6>Contact Registrar</h6>
-              <p class="small text-muted mb-1"><strong>Registrar's Office</strong></p>
-              <p class="small text-muted">Ground Floor, Admin Building<br>Mon-Fri: 8:00 AM - 5:00 PM</p>
-              <p class="small mb-0">Tel: (123) 456-7890<br>Email: <a href="mailto:registrar@wilddocs.edu">registrar@wilddocs.edu</a></p>
+          <div class="card p-0 h-100 contact-card-wrapper">
+            <div class="contact-header">
+              <div class="contact-icon-circle">
+                <i class="fas fa-university"></i>
+              </div>
+            </div>
+            <div class="card-body text-center" style="padding-top:40px">
+              <h5 style="font-weight:700;color:#3b0c0f;margin-bottom:16px">Contact Registrar</h5>
+              
+              <div class="contact-info-block">
+                <div class="contact-label">Registrar's Office</div>
+                <p class="contact-detail">Ground Floor, Admin Building</p>
+                <p class="contact-detail"><i class="fas fa-clock" style="color:#800000;margin-right:6px"></i>Mon-Fri: 8:00 AM - 5:00 PM</p>
+              </div>
+              
+              <hr style="margin:16px 0;border-color:rgba(0,0,0,0.06)">
+              
+              <div class="contact-actions">
+                <a href="tel:1234567890" class="contact-link">
+                  <i class="fas fa-phone"></i>
+                  <span>(123) 456-7890</span>
+                </a>
+                <a href="mailto:registrar@wilddocs.edu" class="contact-link">
+                  <i class="fas fa-envelope"></i>
+                  <span>registrar@wilddocs.edu</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -181,21 +179,21 @@
           <div class="row g-3">
             <div class="col-sm-6 col-md-4">
               <div class="card team-member p-3">
-                <div class="avatar-placeholder mb-2" style="background:#6366f1">KD</div>
+                <div class="avatar-placeholder mb-2" style="background:#800000; width:84px; height:84px; font-size:1.1rem">KD</div>
                 <strong>Kerby Delposo</strong>
                 <div class="small text-muted">Lead Developer</div>
               </div>
             </div>
             <div class="col-sm-6 col-md-4">
               <div class="card team-member p-3">
-                <div class="avatar-placeholder mb-2" style="background:#ef4444">CR</div>
+                <div class="avatar-placeholder mb-2" style="background:#800000; width:84px; height:84px; font-size:1.1rem">CR</div>
                 <strong>Camila Rose Cordero</strong>
                 <div class="small text-muted">Frontend Developer</div>
               </div>
             </div>
             <div class="col-sm-6 col-md-4">
               <div class="card team-member p-3">
-                <div class="avatar-placeholder mb-2" style="background:#0ea5e9">DC</div>
+                <div class="avatar-placeholder mb-2" style="background:#800000; width:84px; height:84px; font-size:1.1rem">DC</div>
                 <strong>Denn Anton Marc Cayacap</strong>
                 <div class="small text-muted">Backend Developer</div>
               </div>
