@@ -51,23 +51,20 @@
                 <th>Name</th>
                 <th>Email</th>
                 <th>Course</th>
+                <th>Contact Number</th>
                 <th>Year</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {% for s in students %}
               <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ s.student_number }}</td>
-                <td>{{ s.first_name }} {{ s.last_name }}</td>
+                <td style="white-space: nowrap;">{{ s.student_number }}</td>
+                <td>{{ s.last_name }}, {{ s.first_name }}</td>
                 <td>{{ s.email }}</td>
                 <td>{{ s.course }}</td>
+                <td>{{ s.contact_number|default:"-" }}</td>
                 <td>{{ s.year_level }}</td>
-                <td>
-                  <button type="button" class="btn btn-sm btn-outline-primary" disabled>View</button>
-                  <button type="button" class="btn btn-sm btn-outline-secondary" disabled>Edit</button>
-                </td>
               </tr>
               {% endfor %}
             </tbody>

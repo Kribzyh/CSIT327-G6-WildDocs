@@ -87,13 +87,24 @@ def handle_profile_update(request, student):
             public_url = supabase.storage.from_("profile-pictures").get_public_url(unique_filename)
             profile_picture_url = public_url
 
+        # Validate contact number (Philippine format: 09XXXXXXXXX or +639XXXXXXXXX)
+        contact_number = request.POST.get('contact_number', '').strip()
+        if contact_number:
+            import re
+            # Remove spaces and dashes
+            cleaned = re.sub(r'[\s\-]', '', contact_number)
+            # Check Philippine mobile format
+            if not re.match(r'^(09\d{9}|\+639\d{9})$', cleaned):
+                return JsonResponse({'success': False, 'error': 'Invalid contact number. Please use format: 09XXXXXXXXX'})
+            contact_number = cleaned
+
         # Update fields
         student.first_name = request.POST.get('first_name', student.first_name)
         student.last_name = request.POST.get('last_name', student.last_name)
         student.email = request.POST.get('email', student.email)
         student.course = request.POST.get('course', student.course)
         student.year_level = request.POST.get('year_level', student.year_level)
-        student.contact_number = request.POST.get('contact_number', student.contact_number)
+        student.contact_number = contact_number if contact_number else student.contact_number
         student.profile_picture = profile_picture_url
 
         # Auto-determine program
@@ -394,12 +405,19 @@ def _apply_request_action(req_obj, admin, action, note):
 
 
 def _notify_request_update(req_obj):
+    """Create a notification for the student about request status update.
+    Uses get_or_create to prevent duplicate notifications."""
     try:
         from accounts.models import Notification
-        Notification.objects.create(
+        
+        status_label = RequestWorkflow.status_label(req_obj.status)
+        message = f"Request #{req_obj.id}: Status updated"
+        
+        # Use get_or_create to atomically prevent duplicates
+        Notification.objects.get_or_create(
             student=req_obj.student,
             request=req_obj,
-            message=f"Your request #{req_obj.id} has been updated to '{RequestWorkflow.status_label(req_obj.status)}'."
+            message=message
         )
     except Exception:
         pass
@@ -627,7 +645,7 @@ def submit_requirements(request, request_id):
     Notification.objects.create(
         student=req_obj.student,
         request=req_obj,
-        message=f"Requirements uploaded for request #{req_obj.id}."
+        message=f"Request #{req_obj.id}: Requirements submitted"
     )
 
     # Return uploaded metadata for the client to update the UI
@@ -711,7 +729,7 @@ def submit_payment_receipt(request, request_id):
     Notification.objects.create(
         student=req_obj.student,
         request=req_obj,
-        message=f"Payment receipt uploaded for request #{req_obj.id}."
+        message=f"Request #{req_obj.id}: Payment submitted"
     )
 
     messages.success(request, 'Payment receipt submitted and saved.')
@@ -1019,6 +1037,127 @@ def admin_request_action(request):
         'request_id': req_obj.id,
         'requires_requirements_upload': req_obj.requires_requirements_upload(),
         'requires_payment_upload': req_obj.requires_payment_upload(),
+    })
+
+
+@never_cache
+@login_required
+@student_required
+def get_notifications(request):
+    """API endpoint to fetch notifications for the current student (for real-time updates)."""
+    try:
+        student = StudentAccount.objects.get(user=request.user)
+    except StudentAccount.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Student not found'}, status=404)
+    
+    notifications = (
+        Notification.objects.filter(student=student)
+        .select_related('request', 'request__document')
+        .order_by('-date_sent')[:20]
+    )
+    
+    notifications_data = []
+    for notif in notifications:
+        notif_data = {
+            'id': notif.id,
+            'message': notif.message,
+            'date_sent': notif.date_sent.strftime('%B %d, %Y') if notif.date_sent else '',
+            'date_sent_iso': notif.date_sent.isoformat() if notif.date_sent else '',
+        }
+        if notif.request:
+            notif_data['request'] = {
+                'id': notif.request.id,
+                'status': notif.request.status,
+                'document_name': notif.request.document.name if notif.request.document else 'Unknown'
+            }
+        else:
+            notif_data['request'] = None
+        notifications_data.append(notif_data)
+    
+    # Also return dashboard stats for real-time stat updates
+    stats = get_dashboard_stats(student)
+    
+    return JsonResponse({
+        'success': True,
+        'notifications': notifications_data,
+        'stats': {
+            'pending_count': stats['pending_count'],
+            'ready_pickup_count': stats['ready_pickup_count'],
+            'completed_count': stats['completed_count'],
+        },
+        'recent_requests': [
+            {
+                'id': req.id,
+                'document_name': req.document.name if req.document else 'Unknown',
+                'status': req.status,
+                'status_label': RequestWorkflow.status_label(req.status),
+                'date_requested': req.date_requested.strftime('%b %d, %Y') if req.date_requested else '',
+            }
+            for req in stats['recent_requests']
+        ]
+    })
+
+
+@never_cache
+@login_required
+@student_required
+def get_student_requests(request):
+    """API endpoint to fetch all student requests for real-time table updates."""
+    try:
+        student = StudentAccount.objects.get(user=request.user)
+    except StudentAccount.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Student not found'}, status=404)
+    
+    all_requests = Request.objects.filter(student=student).select_related('document').order_by('-date_requested')
+    
+    requests_data = []
+    for req in all_requests:
+        req_data = {
+            'id': req.id,
+            'document_name': req.document.name if req.document else 'Unknown',
+            'purpose': req.purpose or '',
+            'copies': req.copies or 1,
+            'status': req.status,
+            'status_label': RequestWorkflow.status_label(req.status),
+            'badge_class': STATUS_BADGE_MAP.get(req.status, 'bg-light text-dark'),
+            'stage_category': STATUS_STAGE_CATEGORY_MAP.get(req.status, 'other'),
+            'date_requested': req.date_requested.strftime('%B %d, %Y') if req.date_requested else '',
+            'requirements_feedback': req.requirements_feedback or '',
+            'payment_feedback': req.payment_feedback or '',
+            'requirements_instructions': req.requirements_instructions or '',
+        }
+        # Determine if action is needed
+        if req.status == RequestWorkflow.REQUIREMENTS_SUBMITTED or req.status == RequestWorkflow.PAYMENT_SUBMITTED:
+            req_data['action_type'] = 'submitted'
+        elif STATUS_STAGE_CATEGORY_MAP.get(req.status) == 'pending':
+            req_data['action_type'] = 'cancel'
+        elif req.status in REQUIREMENT_ACTION_STATUSES or STATUS_STAGE_CATEGORY_MAP.get(req.status) == 'requirements':
+            req_data['action_type'] = 'submit_requirements'
+        elif req.status in PAYMENT_ACTION_STATUSES or STATUS_STAGE_CATEGORY_MAP.get(req.status) == 'payment':
+            req_data['action_type'] = 'upload_receipt'
+        else:
+            req_data['action_type'] = 'none'
+        
+        requests_data.append(req_data)
+    
+    # Calculate counts for stat cards
+    pending_count = sum(1 for r in requests_data if r['stage_category'] == 'pending')
+    requirements_count = sum(1 for r in requests_data if r['stage_category'] == 'requirements')
+    payment_count = sum(1 for r in requests_data if r['stage_category'] in ('payment', 'processing', 'pickup'))
+    completed_count = sum(1 for r in requests_data if r['stage_category'] == 'completed')
+    cancelled_count = sum(1 for r in requests_data if r['stage_category'] == 'exceptions')
+    
+    return JsonResponse({
+        'success': True,
+        'requests': requests_data,
+        'counts': {
+            'total': len(requests_data),
+            'pending': pending_count,
+            'requirements': requirements_count,
+            'payment': payment_count,
+            'completed': completed_count,
+            'cancelled': cancelled_count,
+        }
     })
 
 
@@ -1334,3 +1473,58 @@ def dashboard_redirect(request):
     elif hasattr(request.user, 'studentaccount'):
         return dashboard(request)
     return redirect('login')
+
+
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def submit_feedback(request):
+    """Handle feedback/suggestion submissions from FAQs page"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        message = data.get('message', '').strip()
+        page = data.get('page', '')
+        
+        if not message:
+            return JsonResponse({'error': 'Message is required'}, status=400)
+        
+        # Send email notification to admin
+        from django.core.mail import send_mail
+        from django.conf import settings
+        
+        subject = 'WildDocs Feedback/Suggestion'
+        body = f"""
+New feedback received:
+
+From: {name or 'Anonymous'}
+Email: {email or 'Not provided'}
+Page: {page}
+
+Message:
+{message}
+"""
+        
+        try:
+            send_mail(
+                subject,
+                body,
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.EMAIL_HOST_USER],  # Send to admin email
+                fail_silently=False
+            )
+        except Exception as e:
+            print(f"Failed to send feedback email: {e}")
+            # Still return success - feedback was received
+        
+        return JsonResponse({'success': True, 'message': 'Feedback submitted successfully'})
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

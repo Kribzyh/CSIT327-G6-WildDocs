@@ -15,13 +15,8 @@ logger = logging.getLogger(__name__)
 def send_status_notification(request_obj, old_status, new_status):
     """Send notification when request status changes"""
     try:
-        # Create database notification
-        message = f"Your request #{request_obj.id} for {request_obj.document.name} has been updated from {old_status} to {new_status}."
-        
-        if new_status in {RequestWorkflow.APPROVED_FOR_PAYMENT, RequestWorkflow.READY_FOR_PICKUP, RequestWorkflow.LEGACY_APPROVED}:
-            message += " Please proceed with the next instructions shown in your portal."
-        elif new_status in RequestWorkflow.completed_statuses():
-            message += " Thank you for using WildDocs!"
+        # Create database notification - short format for display
+        message = f"Request #{request_obj.id}: Status updated"
         
         Notification.objects.create(
             student=request_obj.student,
@@ -144,8 +139,8 @@ def check_overdue_requests():
     reminder_count = 0
     for request_obj in overdue_requests:
         try:
-            # Send reminder notification
-            message = f"Reminder: Your approved request #{request_obj.id} for {request_obj.document.name} is ready for pickup at the Registrar's Office. Please claim it within 30 days of approval."
+            # Send reminder notification - short format
+            message = f"Request #{request_obj.id}: Ready for pickup - please claim soon"
             
             Notification.objects.create(
                 student=request_obj.student,

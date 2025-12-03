@@ -12,8 +12,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initStatCardHoverEffects();
     initRecentRequestsFilter();
     initAllRequestsFilter();
-    globalThis.setInterval(refreshNotifications, 300000);
-    console.log('Dashboard loaded successfully');
+    // Refresh notifications every 3 seconds for real-time updates
+    globalThis.setInterval(refreshNotifications, 3000);
+    // Also refresh immediately on page load
+    refreshNotifications();
+    console.log('Dashboard loaded successfully - auto-refresh every 3 seconds');
     console.log('Philippines date:', currentDate.toLocaleDateString('en-US', headerDateOptions()));
 });
 
@@ -209,8 +212,175 @@ function initRequestForm() {
     }
 }
 
-function refreshNotifications() {
-    console.log('Refreshing notifications...');
+async function refreshNotifications() {
+    try {
+        const response = await fetch('/api/notifications/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+            console.warn('Failed to fetch notifications:', response.status);
+            return;
+        }
+        
+        const data = await response.json();
+        if (!data.success) {
+            console.warn('Notifications fetch unsuccessful:', data.error);
+            return;
+        }
+        
+        // Update notifications list
+        renderNotifications(data.notifications);
+        
+        // Update stat cards if data is available
+        if (data.stats) {
+            updateStatCards(data.stats);
+        }
+        
+        // Update recent requests if data is available
+        if (data.recent_requests) {
+            renderRecentRequests(data.recent_requests);
+        }
+        
+    } catch (error) {
+        console.warn('Error refreshing notifications:', error);
+    }
+}
+
+function renderNotifications(notifications) {
+    const notificationsList = document.querySelector('.notifications-list');
+    if (!notificationsList) {
+        return;
+    }
+    
+    if (!notifications || notifications.length === 0) {
+        notificationsList.innerHTML = `
+            <div class="notification-empty">
+                <i class="fas fa-bell-slash"></i>
+                <p class="mb-1 fw-semibold">No notifications yet</p>
+                <small>New updates will appear here once your requests move forward.</small>
+            </div>
+        `;
+        return;
+    }
+    
+    const notificationsHtml = notifications.map(notif => {
+        const status = notif.request?.status || '';
+        const documentName = notif.request?.document_name || 'Unknown';
+        
+        // Determine notification style based on status
+        let notifClass = 'notification-info';
+        let iconClass = 'fa-info-circle';
+        
+        if (status.includes('Approved') || status.includes('Ready')) {
+            notifClass = 'notification-ready';
+            iconClass = 'fa-check-circle';
+        } else if (status === 'Completed') {
+            notifClass = 'notification-complete';
+            iconClass = 'fa-clipboard-check';
+        } else if (status === 'Rejected' || status === 'Cancelled') {
+            notifClass = 'notification-overdue';
+            iconClass = 'fa-exclamation-triangle';
+        } else if (status.includes('Requirements')) {
+            notifClass = 'notification-info';
+            iconClass = 'fa-file-alt';
+        } else if (status.includes('Payment')) {
+            notifClass = 'notification-info';
+            iconClass = 'fa-credit-card';
+        }
+        
+        return `
+            <div class="notification-item ${notifClass}">
+                <div class="notification-icon">
+                    <i class="fas ${iconClass}"></i>
+                </div>
+                <div class="notification-body">
+                    <div class="notification-date">${notif.date_sent}</div>
+                    <div class="notification-title">
+                        ${documentName} — ${status}
+                    </div>
+                    <div class="notification-text">${notif.message}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    notificationsList.innerHTML = notificationsHtml;
+}
+
+function updateStatCards(stats) {
+    // Update pending count
+    const pendingCountEl = document.getElementById('pendingCount');
+    if (pendingCountEl && stats.pending_count !== undefined) {
+        pendingCountEl.textContent = stats.pending_count;
+    }
+    
+    // Update ready for pickup / approved count
+    const approvedCountEl = document.getElementById('approvedCount');
+    if (approvedCountEl && stats.ready_pickup_count !== undefined) {
+        approvedCountEl.textContent = stats.ready_pickup_count;
+    }
+    
+    // Update completed count
+    const completedCountEl = document.getElementById('completedCount');
+    if (completedCountEl && stats.completed_count !== undefined) {
+        completedCountEl.textContent = stats.completed_count;
+    }
+}
+
+function renderRecentRequests(requests) {
+    const recentContainer = document.getElementById('recentRequestsContainer');
+    if (!recentContainer) {
+        return;
+    }
+    
+    if (!requests || requests.length === 0) {
+        recentContainer.innerHTML = `
+            <div class="recent-item" id="noRecentRequests">
+                <div class="recent-title">No recent requests</div>
+                <div class="recent-status">Submit your first request above</div>
+                <div class="recent-date">Get started today</div>
+            </div>
+        `;
+        return;
+    }
+    
+    const requestsHtml = requests.map(req => {
+        // Determine status class
+        let statusClass = '';
+        const status = req.status || '';
+        
+        if (status.includes('Pending')) {
+            statusClass = 'text-warning';
+        } else if (status.includes('Approved') || status.includes('Ready')) {
+            statusClass = 'text-info';
+        } else if (status.includes('Completed')) {
+            statusClass = 'text-success';
+        } else if (status.includes('Rejected') || status.includes('Cancelled')) {
+            statusClass = 'text-danger';
+        } else if (status.includes('Requirements')) {
+            statusClass = 'text-primary';
+        } else if (status.includes('Payment')) {
+            statusClass = 'text-warning';
+        }
+        
+        return `
+            <div class="recent-item">
+                <div class="recent-title">${req.document_name}</div>
+                <div class="recent-status">
+                    <span class="${statusClass}">${req.status_label || req.status}</span>
+                </div>
+                <div class="recent-date">${req.date_requested}</div>
+            </div>
+        `;
+    }).join('');
+    
+    recentContainer.innerHTML = requestsHtml;
 }
 
 function initNotificationIcon() {

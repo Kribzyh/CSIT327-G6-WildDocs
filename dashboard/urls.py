@@ -16,6 +16,8 @@ urlpatterns = [
     path('about_us/', views.about_us, name='about_us'),
     path('faqs/', views.faqs, name='faqs'),
     path("request/cancel/<int:request_id>/", views.cancel_request, name="cancel_request"),
+    path('api/notifications/', views.get_notifications, name='get_notifications'),
+    path('api/student-requests/', views.get_student_requests, name='get_student_requests'),
 
     # Admin routes
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),

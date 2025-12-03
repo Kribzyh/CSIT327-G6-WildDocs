@@ -4,7 +4,7 @@
 {% block title %}All Document Requests - Admin{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=6">
 <style>
   /* Single rounded container for admin filters */
   .section-actions .status-filters {
@@ -318,7 +318,7 @@
 </div>
 
 {% block extra_js %}
-<script src="{% static 'js/dashboard.js' %}?v=2"></script>
+<script src="{% static 'js/dashboard.js' %}?v=6"></script>
 <script>
 window.STATUS_VALUES = window.STATUS_VALUES || {
   pendingReview: 'Pending (For Review)',
@@ -337,6 +337,7 @@ window.STATUS_VALUES = window.STATUS_VALUES || {
 window.STATUS_ACTIONS = window.STATUS_ACTIONS || {};
 
 // Allow 'Request Requirements' from review stage; action auto-sends preset requirements note
+// Note: 'Approve for Payment' removed - students must submit requirements first
 STATUS_ACTIONS[STATUS_VALUES.pendingReview] = [
   {
     action: 'need_requirements',
@@ -344,12 +345,6 @@ STATUS_ACTIONS[STATUS_VALUES.pendingReview] = [
     variant: 'btn-outline-info',
     // note will be populated automatically from presets
     noteRequired: false
-  },
-  {
-    action: 'approve',
-    label: 'Approve for Payment',
-    variant: 'btn-success',
-    confirm: 'Move this request to the payment stage?'
   },
   {
     action: 'reject',
@@ -393,7 +388,7 @@ STATUS_ACTIONS[STATUS_VALUES.requirementsSubmitted] = [
     action: 'requirements_accept',
     label: 'Accept Requirements',
     variant: 'btn-success',
-    confirm: 'Mark requirements as complete and send payment instructions?'
+    confirm: 'Mark requirements as complete and notify student for payment?'
   },
   {
     action: 'requirements_issue',
@@ -439,31 +434,8 @@ STATUS_ACTIONS[STATUS_VALUES.requirementsIssue] = [
 ];
 
 STATUS_ACTIONS[STATUS_VALUES.approvedForPayment] = [
-  {
-    action: 'payment_accept',
-    label: 'Verify Payment',
-    variant: 'btn-success',
-    confirm: 'Mark payment as verified and start processing?'
-  },
-  {
-    action: 'payment_issue',
-    label: 'Flag Payment Issue',
-    variant: 'btn-outline-warning',
-    noteRequired: true,
-    notePrompt: 'Describe the issue found in the receipt.'
-  },
-  {
-    action: 'reject',
-    label: 'Reject',
-    variant: 'btn-outline-danger',
-    confirm: 'Reject this request? This notifies the student.'
-  },
-  {
-    action: 'cancel',
-    label: 'Cancel',
-    variant: 'btn-outline-secondary',
-    confirm: 'Cancel this request?'
-  }
+  // No workflow actions - waiting for student to submit payment
+  // Will show "Waiting for student response" message
 ];
 STATUS_ACTIONS[STATUS_VALUES.approvedLegacy] = STATUS_ACTIONS[STATUS_VALUES.approvedForPayment];
 
@@ -523,18 +495,6 @@ STATUS_ACTIONS[STATUS_VALUES.processing] = [
     label: 'Ready for Pickup',
     variant: 'btn-success',
     confirm: 'Mark as ready for pickup?'
-  },
-  {
-    action: 'complete',
-    label: 'Mark Complete',
-    variant: 'btn-outline-primary',
-    confirm: 'Confirm that the document has been released?'
-  },
-  {
-    action: 'cancel',
-    label: 'Cancel',
-    variant: 'btn-outline-secondary',
-    confirm: 'Cancel this request?'
   }
 ];
 
@@ -544,12 +504,6 @@ STATUS_ACTIONS[STATUS_VALUES.readyForPickup] = [
     label: 'Mark Complete',
     variant: 'btn-success',
     confirm: 'Confirm the student picked up the document?'
-  },
-  {
-    action: 'cancel',
-    label: 'Cancel',
-    variant: 'btn-outline-secondary',
-    confirm: 'Cancel this request?'
   }
 ];
 
@@ -585,7 +539,18 @@ function getCookie(name) {
   return cookieValue;
 }
 
+// Track in-flight actions to prevent duplicate submissions
+const pendingActions = new Set();
+
 async function postAction(requestId, action, note = '') {
+  // Prevent duplicate submissions for the same request+action combo
+  const actionKey = `${requestId}-${action}`;
+  if (pendingActions.has(actionKey)) {
+    console.warn('Action already in progress:', actionKey);
+    return { success: false, error: 'Action already in progress' };
+  }
+  pendingActions.add(actionKey);
+
   const url = "{% url 'admin_request_action' %}";
   const form = new FormData();
   form.append('request_id', requestId);
@@ -611,14 +576,18 @@ async function postAction(requestId, action, note = '') {
     try {
       data = await resp.json();
     } catch (e) {
+      pendingActions.delete(actionKey);
       return { success: false, error: `Server returned status ${resp.status}` };
     }
     if (!resp.ok) {
+      pendingActions.delete(actionKey);
       return data || { success: false, error: `Request failed (${resp.status})` };
     }
+    pendingActions.delete(actionKey);
     return data;
   } catch (networkErr) {
     console.error('postAction network error', networkErr);
+    pendingActions.delete(actionKey);
     return { success: false, error: 'Network error' };
   }
 }
@@ -652,7 +621,7 @@ function renderWorkflowActions(row) {
 
   container.innerHTML = `
     <div class="workflow-dropdown">
-      <button type="button" onclick="toggleWorkflowMenu('${dropdownId}')" class="btn btn-sm workflow-dropdown-toggle pill-action" data-target="${dropdownId}">
+      <button type="button" class="btn btn-sm workflow-dropdown-toggle pill-action" data-target="${dropdownId}">
         Workflow Actions <i class="fas fa-chevron-down ms-1"></i>
       </button>
       <ul id="${dropdownId}" class="workflow-dropdown-menu">
@@ -1146,14 +1115,18 @@ document.addEventListener('DOMContentLoaded', () => {
 function wireAdminFilters() {
   const searchInput = document.getElementById('allRequestsSearch');
   const filterButtons = Array.from(document.querySelectorAll('.admin-filter-btn'));
-  const rows = Array.from(document.querySelectorAll('tbody tr[data-request-id]'));
   const emptyRow = document.getElementById('allRequestsEmptyRow');
 
-  let activeFilter = 'pending';
+  // Store active filter globally so it persists across refreshes
+  window.adminActiveFilter = window.adminActiveFilter || 'pending';
 
   function applyFilters() {
+    // Re-query rows each time to pick up new/updated rows after auto-refresh
+    const rows = Array.from(document.querySelectorAll('tbody tr[data-request-id]'));
     const q = (searchInput?.value || '').trim().toLowerCase();
     let visible = 0;
+    const activeFilter = window.adminActiveFilter;
+    
     for (const row of rows) {
       const stage = (row.dataset.stageCategory || '').toLowerCase();
       const stageKey = (row.dataset.stageKey || '').toLowerCase();
@@ -1167,9 +1140,8 @@ function wireAdminFilters() {
         } else if (activeFilter === 'requirements') {
           matchesFilter = (stage === 'requirements' || stageKey === 'requirements');
         } else if (activeFilter === 'payment') {
-          // Only show requests where payment has been submitted (not waiting for payment)
-          matchesFilter = (stage === 'payment' || stageKey === 'payment') && 
-                          (status.includes('payment submitted') || status.includes('payment issue'));
+          // Show all payment-related requests: waiting for payment, payment submitted, and payment issues
+          matchesFilter = (stage === 'payment' || stageKey === 'payment');
         } else if (activeFilter === 'processing') {
           // Show requests that are being processed or ready for pickup
           matchesFilter = status.includes('processing') || status.includes('ready for pickup');
@@ -1191,19 +1163,22 @@ function wireAdminFilters() {
     }
     if (emptyRow) emptyRow.style.display = visible ? 'none' : '';
   }
+  
+  // Make applyFilters globally accessible for auto-refresh
+  window.applyAdminFilters = applyFilters;
 
   for (const btn of filterButtons) {
     btn.addEventListener('click', (e) => {
       for (const b of filterButtons) b.classList.remove('active');
       btn.classList.add('active');
-      activeFilter = btn.dataset.filter || 'pending';
+      window.adminActiveFilter = btn.dataset.filter || 'pending';
       applyFilters();
     });
   }
 
   if (searchInput) searchInput.addEventListener('input', () => applyFilters());
 
-  // Apply pending filter on page load
+  // Apply current filter on page load
   applyFilters();
 }
 
@@ -1236,13 +1211,22 @@ function setupAutoRefresh() {
         let hasChanges = newRows.length !== currentRows.length;
         
         if (!hasChanges) {
-          // Check if any status has changed
+          // Check if any status or stage has changed
           for (let i = 0; i < currentRows.length; i++) {
-            const currentStatus = currentRows[i]?.dataset?.status || '';
-            const newRow = newTbody.querySelector(`tr[data-request-id="${currentRows[i]?.dataset?.requestId}"]`);
-            const newStatus = newRow?.dataset?.status || '';
+            const currentRow = currentRows[i];
+            const newRow = newTbody.querySelector(`tr[data-request-id="${currentRow?.dataset?.requestId}"]`);
             
-            if (currentStatus !== newStatus) {
+            if (!newRow) {
+              hasChanges = true;
+              break;
+            }
+            
+            const currentStatus = currentRow?.dataset?.status || '';
+            const newStatus = newRow?.dataset?.status || '';
+            const currentStage = currentRow?.dataset?.stageCategory || '';
+            const newStage = newRow?.dataset?.stageCategory || '';
+            
+            if (currentStatus !== newStatus || currentStage !== newStage) {
               hasChanges = true;
               break;
             }
@@ -1256,8 +1240,10 @@ function setupAutoRefresh() {
           // Re-initialize workflow actions for new rows
           initializeWorkflowActions();
           
-          // Re-apply current filters
-          wireAdminFilters();
+          // Re-apply current filters using the global function
+          if (typeof window.applyAdminFilters === 'function') {
+            window.applyAdminFilters();
+          }
           
           // Show a subtle notification
           console.log('Admin page updated with new data');

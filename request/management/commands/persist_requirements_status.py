@@ -59,7 +59,7 @@ class Command(BaseCommand):
                     Notification.objects.create(
                         student=req.student,
                         request=req,
-                        message=f"Payment receipt for request #{req.id} was recorded and marked as submitted."
+                        message=f"Request #{req.id}: Payment recorded"
                     )
                 except Exception:
                     pass
@@ -89,7 +89,7 @@ class Command(BaseCommand):
                     Notification.objects.create(
                         student=req.student,
                         request=req,
-                        message=f"Requirements for request #{req.id} were recorded and marked as submitted."
+                        message=f"Request #{req.id}: Requirements recorded"
                     )
                 except Exception:
                     pass

@@ -644,59 +644,28 @@
                         <input type="hidden" name="action" value="update_profile">
                         <input type="file" id="editProfilePictureInput" name="profile_picture" accept="image/*" style="display: none;" onchange="previewEditProfilePicture(event)">
                         <div class="edit-guidance">
-                          <i class="fas fa-magic"></i>
-                          <span>Update only the fields that changed. Save when you are happy with the preview—your profile refreshes instantly.</span>
+                          <i class="fas fa-info-circle"></i>
+                          <span>You can update your year level, email, and contact number. Name, course, and program are locked based on your registration.</span>
                         </div>
                         <div class="edit-grid">
                           <div class="edit-field">
                             <label for="first_name"><i class="fas fa-id-badge"></i>First Name</label>
-                            <input type="text" id="first_name" name="first_name" value="{{ student.first_name|default:'' }}" required>
+                            <input type="text" id="first_name" name="first_name" value="{{ student.first_name|default:'' }}" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                            <small>Name cannot be changed</small>
                           </div>
                           <div class="edit-field">
                             <label for="last_name"><i class="fas fa-id-badge"></i>Last Name</label>
-                            <input type="text" id="last_name" name="last_name" value="{{ student.last_name|default:'' }}" required>
+                            <input type="text" id="last_name" name="last_name" value="{{ student.last_name|default:'' }}" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                            <small>Name cannot be changed</small>
                           </div>
                           <div class="edit-field">
                             <label for="course"><i class="fas fa-laptop-code"></i>Course</label>
-                            <select id="course" name="course">
-                            <option value="">Select your course</option>
-                            <!-- Engineering & Architecture Courses -->
-                            <option value="BS Architecture" {% if student.course == "BS Architecture" %}selected{% endif %}>BS Architecture</option>
-                            <option value="BS Chemical Engineering" {% if student.course == "BS Chemical Engineering" %}selected{% endif %}>BS Chemical Engineering</option>
-                            <option value="BS Civil Engineering" {% if student.course == "BS Civil Engineering" %}selected{% endif %}>BS Civil Engineering</option>
-                            <option value="BS Computer Engineering" {% if student.course == "BS Computer Engineering" %}selected{% endif %}>BS Computer Engineering</option>
-                            <option value="BS Electrical Engineering" {% if student.course == "BS Electrical Engineering" %}selected{% endif %}>BS Electrical Engineering</option>
-                            <option value="BS Electronics Engineering" {% if student.course == "BS Electronics Engineering" %}selected{% endif %}>BS Electronics Engineering</option>
-                            <option value="BS Industrial Engineering" {% if student.course == "BS Industrial Engineering" %}selected{% endif %}>BS Industrial Engineering</option>
-                            <option value="BS Mechanical Engineering" {% if student.course == "BS Mechanical Engineering" %}selected{% endif %}>BS Mechanical Engineering</option>
-                            <option value="BS Mining Engineering" {% if student.course == "BS Mining Engineering" %}selected{% endif %}>BS Mining Engineering</option>
-                            <!-- Business & Accountancy Courses -->
-                            <option value="BS Accountancy" {% if student.course == "BS Accountancy" %}selected{% endif %}>BS Accountancy</option>
-                            <option value="BS Business Administration" {% if student.course == "BS Business Administration" %}selected{% endif %}>BS Business Administration</option>
-                            <option value="BS Hospitality Management" {% if student.course == "BS Hospitality Management" %}selected{% endif %}>BS Hospitality Management</option>
-                            <option value="BS Tourism Management" {% if student.course == "BS Tourism Management" %}selected{% endif %}>BS Tourism Management</option>
-                            <option value="BS Office Administration" {% if student.course == "BS Office Administration" %}selected{% endif %}>BS Office Administration</option>
-                            <!-- Computer Studies Courses -->
-                            <option value="BS Information Technology" {% if student.course == "BS Information Technology" %}selected{% endif %}>BS Information Technology</option>
-                            <option value="BS Computer Science" {% if student.course == "BS Computer Science" %}selected{% endif %}>BS Computer Science</option>
-                            <option value="BS Information Systems" {% if student.course == "BS Information Systems" %}selected{% endif %}>BS Information Systems</option>
-                            <!-- Arts, Sciences & Education Courses -->
-                            <option value="AB Communication" {% if student.course == "AB Communication" %}selected{% endif %}>AB Communication</option>
-                            <option value="Bachelor of Elementary Education" {% if student.course == "Bachelor of Elementary Education" %}selected{% endif %}>Bachelor of Elementary Education</option>
-                            <option value="Bachelor of Secondary Education" {% if student.course == "Bachelor of Secondary Education" %}selected{% endif %}>Bachelor of Secondary Education</option>
-                            <option value="BS Biology" {% if student.course == "BS Biology" %}selected{% endif %}>BS Biology</option>
-                            <option value="BS Psychology" {% if student.course == "BS Psychology" %}selected{% endif %}>BS Psychology</option>
-                            <!-- Nursing & Allied Health Sciences Courses -->
-                            <option value="BS Nursing" {% if student.course == "BS Nursing" %}selected{% endif %}>BS Nursing</option>
-                            <option value="BS Pharmacy" {% if student.course == "BS Pharmacy" %}selected{% endif %}>BS Pharmacy</option>
-                            <option value="BS Medical Technology" {% if student.course == "BS Medical Technology" %}selected{% endif %}>BS Medical Technology</option>
-                            <!-- Criminal Justice -->
-                            <option value="BS Criminology" {% if student.course == "BS Criminology" %}selected{% endif %}>BS Criminology</option>
-                          </select>
-                        </div>
+                            <input type="text" id="course" name="course" value="{{ student.course|default:'' }}" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                            <small>Course cannot be changed</small>
+                          </div>
                           <div class="edit-field">
                             <label for="program"><i class="fas fa-building"></i>Program</label>
-                            <input type="text" id="program" name="program" value="{{ student.program|default:'' }}" readonly>
+                            <input type="text" id="program" name="program" value="{{ student.program|default:'' }}" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
                             <small>Program is automatically determined by course</small>
                           </div>
                           <div class="edit-field">
@@ -899,6 +868,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Save button click
     saveBtn.addEventListener('click', function() {
+        // Validate contact number before submitting
+        const contactInput = document.getElementById('contact_number');
+        const contactValue = contactInput.value.trim().replace(/[\s\-]/g, '');
+        if (contactValue && !/^(09\d{9}|\+639\d{9})$/.test(contactValue)) {
+            alert('Invalid contact number. Please use format: 09XXXXXXXXX');
+            contactInput.focus();
+            return;
+        }
+        
         const formData = new FormData(profileForm);
         
         // Show loading state
@@ -924,6 +902,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('displayYearLevel').textContent = document.getElementById('year_level').selectedOptions[0].text || 'Not specified';
                 document.getElementById('displayEmail').textContent = document.getElementById('email').value || 'Not specified';
                 document.getElementById('displayContact').textContent = document.getElementById('contact_number').value || 'Not specified';
+                
+                // Update the right sidebar values immediately
+                const sidebarCourse = document.querySelector('.profile-stat-list li:nth-child(1) .value');
+                const sidebarYear = document.querySelector('.profile-stat-list li:nth-child(2) .value');
+                const sidebarContact = document.querySelector('.profile-stat-list li:nth-child(3) .value');
+                if (sidebarCourse) sidebarCourse.textContent = document.getElementById('course').value || 'Set your course';
+                if (sidebarYear) sidebarYear.textContent = document.getElementById('year_level').selectedOptions[0].text || 'Select year';
+                if (sidebarContact) sidebarContact.textContent = document.getElementById('contact_number').value || 'Add a number';
                 
         // If server returned a profile picture URL, update the left avatar and edit preview
         if (data.student && data.student.profile_picture_url) {

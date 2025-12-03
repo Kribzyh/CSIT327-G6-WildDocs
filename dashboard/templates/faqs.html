@@ -323,6 +323,67 @@ function confirmLogout(event) {
     }
 }
 
+// Toast notification function
+function showFeedbackToast(message, type = 'success') {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('feedbackToastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'feedbackToastContainer';
+        toastContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999;';
+        document.body.appendChild(toastContainer);
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 300px;
+        max-width: 400px;
+        animation: slideIn 0.3s ease-out;
+        font-size: 0.95rem;
+        font-weight: 500;
+    `;
+    
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    toast.innerHTML = `
+        <i class="fas ${icon}" style="font-size: 1.2rem;"></i>
+        <span style="flex: 1;">${message}</span>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 1.1rem;">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+}
+
+// Add CSS animation for toast
+const toastStyle = document.createElement('style');
+toastStyle.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(toastStyle);
+
 // Set current date
 document.addEventListener('DOMContentLoaded', function() {
     const dateElement = document.getElementById('welcomeDate');
@@ -427,8 +488,10 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify(payload)
           });
           if (resp.ok) {
-            status.textContent = 'Thanks — your suggestion was submitted.';
+            status.textContent = '';
             suggestionForm.reset();
+            // Show toast notification in upper right corner
+            showFeedbackToast('Thanks — your suggestion/question was submitted.', 'success');
           } else {
             // fallback to mailto if server endpoint not available
             throw new Error('Server returned ' + resp.status);

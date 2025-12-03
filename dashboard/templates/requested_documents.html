@@ -233,6 +233,14 @@
   .badge-completed { background-color: #064d73 !important; color: #fff !important; }                /* Deep Cerulean */
   .badge-cancelled { background-color: #8b0000 !important; color: #fff !important; }                /* Dark Red */
   .badge-rejected { background-color: #0c0c0c !important; color: #fff !important; }                 /* Obsidian Black */
+
+  /* Issue reason display styling */
+  .issue-reason {
+    max-width: 250px;
+    line-height: 1.3;
+    font-style: italic;
+    word-wrap: break-word;
+  }
 </style>
 {% endblock %}
 
@@ -336,7 +344,7 @@
                     </thead>
                     <tbody>
                       {% for request in all_requests %}
-                      <tr class="request-row" data-stage="{{ request.stage_category }}" data-stage-key="{{ request.stage_key }}">
+                      <tr class="request-row" data-request-id="{{ request.id }}" data-stage="{{ request.stage_category }}" data-stage-key="{{ request.stage_key }}">
                         <td>{{ request.document.name }}</td>
                         <td>{{ request.purpose }}</td>
                         <td>{{ request.copies }}</td>
@@ -350,12 +358,22 @@
                               <span class="badge badge-requirements-submitted">{{ request.status_label }}</span>
                             {% elif status == workflow.REQUIREMENTS_ISSUE %}
                               <span class="badge badge-requirements-issue">{{ request.status_label }}</span>
+                              {% if request.requirements_feedback %}
+                                <div class="issue-reason text-danger small mt-1" title="Staff Feedback">
+                                  <i class="fas fa-exclamation-circle me-1"></i>{{ request.requirements_feedback }}
+                                </div>
+                              {% endif %}
                             {% elif status == workflow.APPROVED_FOR_PAYMENT or status == workflow.LEGACY_APPROVED or status == 'Approved – For Payment' %}
                               <span class="badge badge-approved-payment">{{ request.status_label }}</span>
                             {% elif status == workflow.PAYMENT_SUBMITTED %}
                               <span class="badge badge-payment-submitted">{{ request.status_label }}</span>
                             {% elif status == workflow.PAYMENT_ISSUE %}
                               <span class="badge badge-payment-issue">{{ request.status_label }}</span>
+                              {% if request.payment_feedback %}
+                                <div class="issue-reason text-danger small mt-1" title="Staff Feedback">
+                                  <i class="fas fa-exclamation-circle me-1"></i>{{ request.payment_feedback }}
+                                </div>
+                              {% endif %}
                             {% elif status == workflow.PROCESSING %}
                               <span class="badge badge-processing">{{ request.status_label }}</span>
                             {% elif status == workflow.READY_FOR_PICKUP %}
@@ -808,6 +826,9 @@ function setupRequestInteractions() {
       }
     }
   }
+  
+  // Expose modal functions globally so auto-refresh can re-wire buttons
+  globalThis.openRequirementsModal = openRequirementsModal;
 
   // Payment modal interactions
   function openPaymentModal(requestId) {
@@ -829,6 +850,9 @@ function setupRequestInteractions() {
     try { dialog.close(); } catch (e) { dialog.style.display = 'none'; }
     modalWrapper.classList.add('d-none');
   }
+  
+  // Expose payment modal function globally for auto-refresh re-wiring
+  globalThis.openPaymentModal = openPaymentModal;
 
   document.addEventListener('click', function (e) {
     const t = e.target.closest('.upload-receipt-btn');
@@ -932,15 +956,19 @@ function setupRequestInteractions() {
 
   if (modalUpload) {
     modalUpload.addEventListener('click', async () => {
-      // require at least the required number of files (and minimum 2 as extra safeguard)
+      // Get files from the file input
       const files = fileInput ? fileInput.files : null;
       const fileCount = (files && files.length) ? files.length : 0;
-      if (modalRequiredCount && fileCount < modalRequiredCount) {
-        alert(`Please upload all required documents before submitting. ${modalRequiredCount} required, you have attached ${fileCount}.`);
+      
+      // Always require at least 1 file
+      if (!files || fileCount === 0) {
+        alert('Please attach at least one file before submitting.');
         return;
       }
-      if (!files || fileCount < 2) {
-        alert('Please attach at least two files.');
+      
+      // If we know the required count, enforce it
+      if (modalRequiredCount && modalRequiredCount > 0 && fileCount < modalRequiredCount) {
+        alert(`Please upload all required documents before submitting. ${modalRequiredCount} required, you have attached ${fileCount}.`);
         return;
       }
       // ensure file sizes under 5MB
@@ -1194,75 +1222,218 @@ function setupRequestInteractions() {
   }
 }
 
-// Real-time auto-refresh for student page
+// Badge class mapping for status
+const STATUS_BADGE_CLASSES = {
+  'Pending (For Review)': 'badge-pending-review',
+  'Pending': 'badge-pending-review',
+  'Requirements Needed': 'badge-requirements-needed',
+  'Requirements Submitted – For Verification': 'badge-requirements-submitted',
+  'Requirements Issue': 'badge-requirements-issue',
+  'Requirements Approved – For Payment': 'badge-approved-payment',
+  'Approved': 'badge-approved-payment',
+  'Payment Submitted – For Verification': 'badge-payment-submitted',
+  'Payment Issue': 'badge-payment-issue',
+  'Processing': 'badge-processing',
+  'Ready for Pickup': 'badge-ready-pickup',
+  'Completed': 'badge-completed',
+  'Cancelled': 'badge-cancelled',
+  'Rejected': 'badge-rejected'
+};
+
+// Real-time auto-refresh for student page using API
 function setupStudentAutoRefresh() {
   const REFRESH_INTERVAL = 3000; // 3 seconds
+  const API_URL = "{% url 'get_student_requests' %}";
+  
+  // Store last known state to detect changes
+  let lastDataHash = '';
+  
+  function getDataHash(requests) {
+    return requests.map(r => `${r.id}:${r.status}:${r.requirements_feedback}:${r.payment_feedback}`).join('|');
+  }
+  
+  function getBadgeClass(statusLabel) {
+    return STATUS_BADGE_CLASSES[statusLabel] || 'badge-pending-review';
+  }
+  
+  function renderStatusCell(req) {
+    const badgeClass = getBadgeClass(req.status_label);
+    let html = `<span class="badge ${badgeClass}">${req.status_label}</span>`;
+    
+    // Add issue reason if present
+    if (req.status_label === 'Requirements Issue' && req.requirements_feedback) {
+      html += `<div class="issue-reason text-danger small mt-1" title="Staff Feedback">
+        <i class="fas fa-exclamation-circle me-1"></i>${req.requirements_feedback}
+      </div>`;
+    } else if (req.status_label === 'Payment Issue' && req.payment_feedback) {
+      html += `<div class="issue-reason text-danger small mt-1" title="Staff Feedback">
+        <i class="fas fa-exclamation-circle me-1"></i>${req.payment_feedback}
+      </div>`;
+    }
+    
+    return html;
+  }
+  
+  function renderActionCell(req) {
+    const cancelUrl = "{% url 'cancel_request' 0 %}".replace('/0/', `/${req.id}/`);
+    
+    switch (req.action_type) {
+      case 'cancel':
+        return `<a href="${cancelUrl}" class="btn btn-sm btn-outline-danger">Cancel</a>`;
+      case 'submitted':
+        return `<span class="btn btn-sm btn-outline-secondary disabled submitted-label" aria-disabled="true">Submitted</span>`;
+      case 'submit_requirements':
+        return `<button type="button" 
+                class="btn btn-sm btn-primary submit-requirements-btn"
+                data-request-id="${req.id}"
+                data-document-name="${req.document_name}"
+                data-requirements-instructions="${req.requirements_instructions || ''}">
+          Submit Requirements
+        </button>`;
+      case 'upload_receipt':
+        return `<button type="button" 
+                class="btn btn-sm btn-primary upload-receipt-btn"
+                data-request-id="${req.id}">
+          Upload Receipt
+        </button>`;
+      default:
+        return `<span class="text-muted small">No action available</span>`;
+    }
+  }
+  
+  function renderTableRow(req) {
+    return `
+      <tr class="request-row" data-request-id="${req.id}" data-stage="${req.stage_category}" data-stage-key="${req.stage_category}">
+        <td>${req.document_name}</td>
+        <td>${req.purpose}</td>
+        <td>${req.copies}</td>
+        <td>${renderStatusCell(req)}</td>
+        <td>${req.date_requested}</td>
+        <td>${renderActionCell(req)}</td>
+      </tr>
+    `;
+  }
+  
+  function updateTable(requests) {
+    const tbody = document.querySelector('.request-table tbody');
+    if (!tbody) return;
+    
+    // Remember currently active filter
+    const activeFilterBtn = document.querySelector('[data-filter].active');
+    const activeFilter = activeFilterBtn?.dataset?.filter || 'pending';
+    
+    // Build new rows
+    const newRowsHtml = requests.map(req => renderTableRow(req)).join('');
+    tbody.innerHTML = newRowsHtml;
+    
+    // Re-apply filters
+    const tableRows = Array.from(tbody.querySelectorAll('.request-row'));
+    const searchInput = document.getElementById('requestSearch');
+    const searchTerm = (searchInput?.value || '').trim().toLowerCase();
+    const noMatches = document.getElementById('noRequestMatches');
+    
+    let visibleCount = 0;
+    for (const row of tableRows) {
+      const stage = row.dataset.stage || '';
+      let matchesStatus = true;
+      if (activeFilter === 'payment') {
+        matchesStatus = stage === 'payment' || stage === 'processing' || stage === 'pickup';
+      } else {
+        matchesStatus = stage === activeFilter;
+      }
+      
+      const rowText = row.textContent.toLowerCase();
+      const matchesSearch = !searchTerm || rowText.includes(searchTerm);
+      const shouldShow = matchesStatus && matchesSearch;
+      row.classList.toggle('d-none', !shouldShow);
+      if (shouldShow) visibleCount += 1;
+    }
+    
+    if (noMatches) noMatches.classList.toggle('d-none', visibleCount > 0);
+    
+    // Re-wire submit requirements buttons
+    wireSubmitRequirementsButtons();
+  }
+  
+  function wireSubmitRequirementsButtons() {
+    const submitButtons = Array.from(document.querySelectorAll('.submit-requirements-btn'));
+    for (const btn of submitButtons) {
+      // Remove any existing listeners by cloning
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      newBtn.addEventListener('click', () => {
+        const requestId = newBtn.dataset.requestId;
+        const instructions = newBtn.dataset.requirementsInstructions || '';
+        if (typeof globalThis.openRequirementsModal === 'function') {
+          globalThis.openRequirementsModal(requestId, instructions);
+        } else {
+          console.error('openRequirementsModal not available');
+        }
+      });
+    }
+    
+    // Also wire upload receipt buttons
+    const receiptButtons = Array.from(document.querySelectorAll('.upload-receipt-btn'));
+    for (const btn of receiptButtons) {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      newBtn.addEventListener('click', () => {
+        const requestId = newBtn.dataset.requestId;
+        if (typeof globalThis.openPaymentModal === 'function') {
+          globalThis.openPaymentModal(requestId);
+        } else {
+          console.error('openPaymentModal not available');
+        }
+      });
+    }
+  }
   
   async function checkForUpdates() {
     try {
-      const resp = await fetch(window.location.href, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      const resp = await fetch(API_URL, {
+        headers: { 
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
       });
       
       if (!resp.ok) return;
       
-      const html = await resp.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
+      const data = await resp.json();
+      if (!data.success) return;
       
-      // Get the new table body
-      const newTbody = doc.querySelector('.requests-table tbody');
-      const currentTbody = document.querySelector('.requests-table tbody');
+      const newHash = getDataHash(data.requests);
       
-      if (newTbody && currentTbody) {
-        const newRows = newTbody.querySelectorAll('tr[data-request-id]');
-        const currentRows = currentTbody.querySelectorAll('tr[data-request-id]');
-        
-        let hasChanges = newRows.length !== currentRows.length;
-        
-        if (!hasChanges) {
-          // Check if any status has changed
-          for (let i = 0; i < currentRows.length; i++) {
-            const currentStatus = currentRows[i]?.querySelector('.badge')?.textContent?.trim() || '';
-            const newRow = newTbody.querySelector(`tr[data-request-id="${currentRows[i]?.dataset?.requestId}"]`);
-            const newStatus = newRow?.querySelector('.badge')?.textContent?.trim() || '';
-            
-            if (currentStatus !== newStatus) {
-              hasChanges = true;
-              break;
-            }
-          }
-        }
-        
-        if (hasChanges) {
-          // Replace tbody content
-          currentTbody.innerHTML = newTbody.innerHTML;
-          
-          // Update stat cards
-          const newStats = doc.querySelectorAll('.stat-card .value');
-          const currentStats = document.querySelectorAll('.stat-card .value');
-          newStats.forEach((newStat, i) => {
-            if (currentStats[i]) {
-              currentStats[i].textContent = newStat.textContent;
-            }
-          });
-          
-          // Re-initialize action handlers
-          if (typeof initializeRequirementsUpload === 'function') {
-            initializeRequirementsUpload();
-          }
-          
-          console.log('Student page updated with new data');
-        }
+      if (newHash !== lastDataHash) {
+        console.log('Student requests updated');
+        lastDataHash = newHash;
+        updateTable(data.requests);
       }
     } catch (err) {
       console.warn('Auto-refresh check failed:', err);
     }
   }
   
+  // Initialize hash with current data
+  const initialRows = document.querySelectorAll('.request-row[data-request-id]');
+  const initialRequests = Array.from(initialRows).map(row => {
+    const badge = row.querySelector('.badge');
+    const feedback = row.querySelector('.issue-reason');
+    return {
+      id: row.dataset.requestId,
+      status: badge?.textContent?.trim() || '',
+      requirements_feedback: feedback?.textContent?.trim() || '',
+      payment_feedback: ''
+    };
+  });
+  lastDataHash = getDataHash(initialRequests);
+  
   // Start polling
   setInterval(checkForUpdates, REFRESH_INTERVAL);
-  console.log('Student auto-refresh enabled (every 3 seconds)');
+  console.log('Student auto-refresh enabled (every 3 seconds via API)');
 }
 
 // Initialize auto-refresh
