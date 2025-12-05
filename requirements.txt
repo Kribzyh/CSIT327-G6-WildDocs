@@ -14,3 +14,4 @@ urllib3==2.5.0
 gunicorn>=21.2
 whitenoise>=6.6
 supabase>=2.5.0
+django-anymail[sendgrid]>=10.0
