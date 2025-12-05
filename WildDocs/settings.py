@@ -165,14 +165,14 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 
 # Email configuration for forgot password reset
-# Use SendGrid API (works on Render free tier - SMTP is blocked)
-SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', '')
+# Use Resend API (works on Render free tier - SMTP is blocked)
+RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
 
-if SENDGRID_API_KEY:
-    # Use SendGrid HTTP API (bypasses SMTP port blocking)
-    EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
+if RESEND_API_KEY:
+    # Use Resend HTTP API (bypasses SMTP port blocking)
+    EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
     ANYMAIL = {
-        'SENDGRID_API_KEY': SENDGRID_API_KEY,
+        'RESEND_API_KEY': RESEND_API_KEY,
     }
 else:
     # Fallback to SMTP for local development
@@ -183,7 +183,7 @@ else:
     EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
     EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@wilddocs.com')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Logging for email debugging in production
