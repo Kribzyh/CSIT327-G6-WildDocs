@@ -166,14 +166,14 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 
 # Email configuration for forgot password reset
-# Use Resend API (works on Render free tier - SMTP is blocked)
-RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
+# Use Mailtrap API (works on Render free tier - SMTP is blocked)
+MAILTRAP_API_TOKEN = os.getenv('MAILTRAP_API_TOKEN', '')
 
-if RESEND_API_KEY:
-    # Use Resend HTTP API (bypasses SMTP port blocking)
-    EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
+if MAILTRAP_API_TOKEN:
+    # Use Mailtrap HTTP API (bypasses SMTP port blocking)
+    EMAIL_BACKEND = 'anymail.backends.mailtrap.EmailBackend'
     ANYMAIL = {
-        'RESEND_API_KEY': RESEND_API_KEY,
+        'MAILTRAP_API_TOKEN': MAILTRAP_API_TOKEN,
     }
 else:
     # Fallback to SMTP for local development
@@ -184,7 +184,7 @@ else:
     EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
     EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'hello@demomailtrap.com')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Logging for email debugging in production
