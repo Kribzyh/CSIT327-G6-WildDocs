@@ -24,7 +24,18 @@ from .decorators import student_required  # ✅ NEW IMPORT
 from request.models import RequestStatusHistory, RequirementUpload, PaymentUpload
 from django.urls import reverse
 from supabase import create_client, Client
-supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+
+# Lazy-load Supabase client to avoid import-time errors when credentials are missing
+_supabase_client = None
+
+def get_supabase_client() -> Client:
+    global _supabase_client
+    if _supabase_client is None:
+        if settings.SUPABASE_URL and settings.SUPABASE_SERVICE_KEY:
+            _supabase_client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+        else:
+            raise RuntimeError("Supabase credentials not configured")
+    return _supabase_client
 
 STAFF_ONLY_MESSAGE = "Access denied: staff accounts only."
 PENDING_STATUSES = RequestWorkflow.pending_statuses()
@@ -77,14 +88,14 @@ def handle_profile_update(request, student):
             unique_filename = f"{student.student_number}_{uuid.uuid4()}{file_extension}"
             file_data = profile_picture.read()
 
-            supabase.storage.from_("profile-pictures").upload(
+            get_supabase_client().storage.from_("profile-pictures").upload(
                 unique_filename,
                 file_data,
                 {"content-type": profile_picture.content_type}
             )
 
             # Get public URL
-            public_url = supabase.storage.from_("profile-pictures").get_public_url(unique_filename)
+            public_url = get_supabase_client().storage.from_("profile-pictures").get_public_url(unique_filename)
             profile_picture_url = public_url
 
         # Validate contact number (Philippine format: 09XXXXXXXXX or +639XXXXXXXXX)
@@ -575,9 +586,9 @@ def submit_requirements(request, request_id):
             file_data = f.read()
 
             # upload to Supabase storage
-            supabase.storage.from_(bucket).upload(unique_name, file_data, {"content-type": f.content_type or 'application/octet-stream'})
+            get_supabase_client().storage.from_(bucket).upload(unique_name, file_data, {"content-type": f.content_type or 'application/octet-stream'})
 
-            public_url = supabase.storage.from_(bucket).get_public_url(unique_name)
+            public_url = get_supabase_client().storage.from_(bucket).get_public_url(unique_name)
 
             # create DB record
             # create DB record. Some deployments have a NOT NULL constraint on
@@ -680,8 +691,8 @@ def submit_payment_receipt(request, request_id):
         unique_name = f"{req_obj.id}/{uuid.uuid4().hex}{ext}"
         file_data = upload.read()
 
-        supabase.storage.from_(bucket).upload(unique_name, file_data, {"content-type": upload.content_type or 'application/octet-stream'})
-        public_url = supabase.storage.from_(bucket).get_public_url(unique_name)
+        get_supabase_client().storage.from_(bucket).upload(unique_name, file_data, {"content-type": upload.content_type or 'application/octet-stream'})
+        public_url = get_supabase_client().storage.from_(bucket).get_public_url(unique_name)
 
         # create DB record for the uploaded receipt
         pu = PaymentUpload.objects.create(
@@ -756,7 +767,7 @@ def delete_requirement_upload(request, upload_id):
     bucket = getattr(settings, 'SUPABASE_REQUIREMENTS_BUCKET', 'requirements')
     try:
         if ru.supabase_id:
-            supabase.storage.from_(bucket).remove([ru.supabase_id])
+            get_supabase_client().storage.from_(bucket).remove([ru.supabase_id])
     except Exception as e:
         # log but continue to delete DB row
         print('Supabase delete error:', e)
@@ -1326,9 +1337,9 @@ def admin_request_detail(request):
                 # supabase client list may expect the prefix as the first positional
                 # argument depending on client version
                 try:
-                    listed = supabase.storage.from_(bucket).list(f"{req_obj.id}/")
+                    listed = get_supabase_client().storage.from_(bucket).list(f"{req_obj.id}/")
                 except TypeError:
-                    listed = supabase.storage.from_(bucket).list(prefix=f"{req_obj.id}/")
+                    listed = get_supabase_client().storage.from_(bucket).list(prefix=f"{req_obj.id}/")
             except Exception as e:
                 listed = None
                 print('Supabase list error for request', req_obj.id, e)
@@ -1361,7 +1372,7 @@ def admin_request_detail(request):
             # prefix). This is a best-effort fallback for existing uploads.
             if not items:
                 try:
-                    full_list = supabase.storage.from_(bucket).list()
+                    full_list = get_supabase_client().storage.from_(bucket).list()
                 except Exception as e:
                     full_list = None
                     print('Supabase full-list error for request', req_obj.id, e)
@@ -1414,7 +1425,7 @@ def admin_request_detail(request):
                 if not name:
                     continue
                 try:
-                    _public = supabase.storage.from_(bucket).get_public_url(name)
+                    _public = get_supabase_client().storage.from_(bucket).get_public_url(name)
                     # supabase client may return a string or a dict; extract common keys
                     public = None
                     if isinstance(_public, str):
