@@ -182,7 +182,7 @@ else:
     EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
 # Use your Mailjet sender email (must be verified in Mailjet)
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'camilarosecordero28@gmail.com')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'camsyyycordero@gmail.com')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Logging for email debugging in production
