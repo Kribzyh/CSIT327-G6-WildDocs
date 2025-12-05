@@ -21,7 +21,6 @@ tzdata = "==2025.2"
 urllib3 = "==2.5.0"
 gunicorn = "*"
 whitenoise = "*"
-mailtrap = "*"
 
 [dev-packages]
 

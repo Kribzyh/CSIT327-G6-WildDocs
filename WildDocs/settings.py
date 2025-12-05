@@ -165,22 +165,24 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 
 # Email configuration for forgot password reset
-# Use Mailtrap HTTP API (works on Render free tier - SMTP is blocked)
-MAILTRAP_API_TOKEN = os.getenv('MAILTRAP_API_TOKEN', '')
+# Use Mailjet HTTP API (works on Render free tier - SMTP is blocked)
+MAILJET_API_KEY = os.getenv('MAILJET_API_KEY', '')
+MAILJET_SECRET_KEY = os.getenv('MAILJET_SECRET_KEY', '')
 
-if MAILTRAP_API_TOKEN:
-    # Use custom Mailtrap backend that uses HTTP API (bypasses SMTP port blocking)
-    EMAIL_BACKEND = 'WildDocs.mailtrap_backend.MailtrapEmailBackend'
+if MAILJET_API_KEY and MAILJET_SECRET_KEY:
+    # Use custom Mailjet backend that uses HTTP API (bypasses SMTP port blocking)
+    EMAIL_BACKEND = 'WildDocs.mailjet_backend.MailjetEmailBackend'
 else:
     # Fallback to SMTP for local development
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = os.getenv('EMAIL_HOST', 'live.smtp.mailtrap.io')
+    EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
     EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
     EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
-    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'api')
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
     EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'hello@demomailtrap.com')
+# Use your Mailjet sender email (must be verified in Mailjet)
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'camilarosecordero28@gmail.com')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Logging for email debugging in production
