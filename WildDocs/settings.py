@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sessions',
-    'anymail',
     "accounts",
     "index",
     "dashboard",
@@ -166,22 +165,19 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 
 # Email configuration for forgot password reset
-# Use Mailtrap API (works on Render free tier - SMTP is blocked)
+# Use Mailtrap HTTP API (works on Render free tier - SMTP is blocked)
 MAILTRAP_API_TOKEN = os.getenv('MAILTRAP_API_TOKEN', '')
 
 if MAILTRAP_API_TOKEN:
-    # Use Mailtrap HTTP API (bypasses SMTP port blocking)
-    EMAIL_BACKEND = 'anymail.backends.mailtrap.EmailBackend'
-    ANYMAIL = {
-        'MAILTRAP_API_TOKEN': MAILTRAP_API_TOKEN,
-    }
+    # Use custom Mailtrap backend that uses HTTP API (bypasses SMTP port blocking)
+    EMAIL_BACKEND = 'WildDocs.mailtrap_backend.MailtrapEmailBackend'
 else:
     # Fallback to SMTP for local development
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_HOST = os.getenv('EMAIL_HOST', 'live.smtp.mailtrap.io')
     EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
     EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
-    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'api')
     EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'hello@demomailtrap.com')
