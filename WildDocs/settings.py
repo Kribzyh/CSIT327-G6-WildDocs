@@ -16,7 +16,7 @@ if os.environ.get("RENDER", "").lower() != "true": # render deployment
     load_dotenv(BASE_DIR / ".env", override=True) # render deployment
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-0y$vp&@l-h)yylg#lr2e9h!d9+$p9*)@96(f8lh+b24xmt0*@0')
+SECRET_KEY = os.environ["SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
