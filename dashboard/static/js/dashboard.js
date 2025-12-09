@@ -43,12 +43,12 @@ function initAllRequestsFilter() {
         const query = searchInput.value.trim().toLowerCase();
         let visibleCount = 0;
 
-        dataRows.forEach(row => {
+        for (const row of dataRows) {
             const haystack = (row.dataset.documentKey ? `${row.textContent} ${row.dataset.documentKey}` : row.textContent || '').toLowerCase();
             const matches = !query || haystack.includes(query);
             row.style.display = matches ? '' : 'none';
             if (matches) visibleCount += 1;
-        });
+        }
 
         if (emptyRow) {
             if (dataRows.length === 0) {
@@ -530,19 +530,19 @@ function initRecentRequestsFilter() {
         }
     });
 
-    stageButtons.forEach(button => {
+    for (const button of stageButtons) {
         button.addEventListener('click', () => {
             const nextStage = button.dataset.stageFilter || 'all';
             if (nextStage === activeStage) {
                 return;
             }
             activeStage = nextStage;
-            stageButtons.forEach(btn => {
+            for (const btn of stageButtons) {
                 btn.classList.toggle('active', btn === button);
-            });
+            }
             applyFilter();
         });
-    });
+    }
 
     applyFilter();
 
@@ -600,12 +600,7 @@ function showFormAlert(type, message) {
     alert.style.transition = 'opacity 0.3s ease';
     alert.style.opacity = '1';
 
-    const header = requestSection.querySelector('.section-title');
-    if (header) {
-        header.insertAdjacentElement('afterend', alert);
-    } else {
-        requestSection.prepend(alert);
-    }
+    requestSection.querySelector('.section-title')?.insertAdjacentElement('afterend', alert) ?? requestSection.prepend(alert);
 
     setTimeout(() => {
         if (!alert.parentNode) {
@@ -688,8 +683,8 @@ globalThis.confirmLogout = function confirmLogout(event) {
     const el = event.currentTarget || (event.target && event.target.closest && event.target.closest('a')) || event.target;
     let logoutUrl = null;
     try {
-        logoutUrl = el && el.getAttribute ? el.getAttribute('href') : null;
-    } catch (e) {
+        logoutUrl = el?.getAttribute?.('href') ?? null;
+    } catch (error_) {
         logoutUrl = null;
     }
     // Normalize common non-navigation hrefs to the actual logout endpoint.

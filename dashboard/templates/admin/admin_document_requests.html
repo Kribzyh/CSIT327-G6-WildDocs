@@ -39,7 +39,7 @@
   .section-actions .status-filters .admin-filter-btn {
     border: none !important;
     background: transparent !important;
-    color: #374151 !important;
+    color: #222 !important;
     padding: 6px 12px;
     border-radius: 999px !important;
     font-size: 0.88rem;
@@ -50,7 +50,7 @@
     color: #800000 !important;
   }
   .section-actions .status-filters .admin-filter-btn.active {
-    background: #800000 !important;
+    background: #a00000 !important;
     color: #fff !important;
   }
   /* Ensure actions column uses a consistent stacked layout */
@@ -82,7 +82,7 @@
     padding: 6px 10px;
     border-radius: 999px;
     background: #fff;
-    color: #800000;
+    color: #a00000;
     border: 1px solid #800000;
     font-weight: 500;
     font-size: 0.95rem;
@@ -92,8 +92,8 @@
   }
   .pill-action:hover,
   .pill-action:focus {
-    background: rgba(128,0,0,0.04);
-    color: #800000;
+    background: #fbe9e9;
+    color: #a00000;
     outline: none;
   }
   .workflow-dropdown .workflow-dropdown-toggle.pill-action {
@@ -203,18 +203,18 @@
   }
 
   /* Unique status badge colors - distinct dark primary colors */
-  .badge-pending-review { background-color: #9a7b16 !important; color: #fff !important; }           /* Dark Gold */
-  .badge-requirements-needed { background-color: #4b0082 !important; color: #fff !important; }      /* Royal Purple */
-  .badge-requirements-submitted { background-color: #065f63 !important; color: #fff !important; }   /* Deep Aqua */
-  .badge-requirements-issue { background-color: #7a0f2e !important; color: #fff !important; }       /* Crimson Plum */
-  .badge-approved-payment { background-color: #8a3b12 !important; color: #fff !important; }         /* Rust Orange */
-  .badge-payment-submitted { background-color: #0b2e6d !important; color: #fff !important; }        /* Navy Sapphire */
-  .badge-payment-issue { background-color: #5a0a0a !important; color: #fff !important; }            /* Blood Maroon */
-  .badge-processing { background-color: #e65100 !important; color: #fff !important; }               /* Deep Orange */
-  .badge-ready-pickup { background-color: #0b4f24 !important; color: #fff !important; }             /* Forest Emerald */
-  .badge-completed { background-color: #064d73 !important; color: #fff !important; }                /* Deep Cerulean */
-  .badge-cancelled { background-color: #8b0000 !important; color: #fff !important; }                /* Dark Red */
-  .badge-rejected { background-color: #0c0c0c !important; color: #fff !important; }                 /* Obsidian Black */
+  .badge-pending-review { background-color: #6a4a00 !important; color: #fff !important; border: 2px solid #222; }           /* Dark Gold - improved contrast */
+  .badge-requirements-needed { background-color: #4b0082 !important; color: #fff !important; border: 2px solid #222; }      /* Royal Purple */
+  .badge-requirements-submitted { background-color: #065f63 !important; color: #fff !important; border: 2px solid #222; }   /* Deep Aqua */
+  .badge-requirements-issue { background-color: #7a0f2e !important; color: #fff !important; border: 2px solid #222; }       /* Crimson Plum */
+  .badge-approved-payment { background-color: #8a3b12 !important; color: #fff !important; border: 2px solid #222; }         /* Rust Orange */
+  .badge-payment-submitted { background-color: #0b2e6d !important; color: #fff !important; border: 2px solid #222; }        /* Navy Sapphire */
+  .badge-payment-issue { background-color: #5a0a0a !important; color: #fff !important; border: 2px solid #222; }            /* Blood Maroon */
+  .badge-processing { background-color: #a23c00 !important; color: #fff !important; border: 2px solid #222; }               /* Deep Orange - improved contrast */
+  .badge-ready-pickup { background-color: #0b4f24 !important; color: #fff !important; border: 2px solid #222; }             /* Forest Emerald */
+  .badge-completed { background-color: #064d73 !important; color: #fff !important; border: 2px solid #222; }                /* Deep Cerulean */
+  .badge-cancelled { background-color: #8b0000 !important; color: #fff !important; border: 2px solid #222; }                /* Dark Red */
+  .badge-rejected { background-color: #0c0c0c !important; color: #fff !important; border: 2px solid #222; }                 /* Obsidian Black */
 </style>
 {% endblock %}
 
@@ -249,17 +249,19 @@
             <p class="text-muted mb-0">Total tracked: {{ all_requests|length }}</p>
           </div>
           <div class="section-actions d-flex align-items-center gap-3">
+            <div class="status-filters">
+              <button type="button" class="admin-filter-btn active" data-filter="pending">Pending</button>
+              <button type="button" class="admin-filter-btn" data-filter="requirements">Requirements</button>
+              <button type="button" class="admin-filter-btn" data-filter="payment">Payment</button>
+              <button type="button" class="admin-filter-btn" data-filter="processing">Processing</button>
+              <button type="button" class="admin-filter-btn" data-filter="ready">Ready for Pickup</button>
+              <button type="button" class="admin-filter-btn" data-filter="completed">Completed</button>
+              <button type="button" class="admin-filter-btn" data-filter="cancelled">Cancelled</button>
+              <button type="button" class="admin-filter-btn" data-filter="rejected">Rejected</button>
+            </div>
             <div class="input-group filter-search" style="min-width:280px; max-width:420px;">
               <span class="input-group-text"><i class="fas fa-search"></i></span>
               <input type="text" id="allRequestsSearch" class="form-control" placeholder="Search student, document, status, or stage" autocomplete="off">
-            </div>
-            <div class="status-filters d-flex gap-2">
-              <button class="btn btn-sm btn-outline-secondary admin-filter-btn active" data-filter="pending">Pending</button>
-              <button class="btn btn-sm btn-outline-secondary admin-filter-btn" data-filter="requirements">Requirements</button>
-              <button class="btn btn-sm btn-outline-secondary admin-filter-btn" data-filter="payment">Payment</button>
-              <button class="btn btn-sm btn-outline-secondary admin-filter-btn" data-filter="processing" style="background-color: #6c757d; color: white; border-color: #6c757d;">Processing</button>
-              <button class="btn btn-sm btn-outline-secondary admin-filter-btn" data-filter="completed">Completed</button>
-              <button class="btn btn-sm btn-outline-secondary admin-filter-btn" data-filter="exceptions">Exceptions</button>
             </div>
           </div>
         </div>
@@ -341,15 +343,15 @@
 <script src="{% static 'js/dashboard.js' %}?v=6"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.workflow-actions .dropdown-item[data-action="need_requirements"]').forEach(function(btn) {
+  for (const btn of document.querySelectorAll('.workflow-actions .dropdown-item[data-action="need_requirements"]')) {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
-      var requestId = btn.closest('tr').getAttribute('data-request-id');
+      const requestId = btn.closest('tr').dataset.requestId;
       document.getElementById('modalRequestId').value = requestId;
-      var modal = new bootstrap.Modal(document.getElementById('staffInstructionModal'));
+      const modal = new bootstrap.Modal(document.getElementById('staffInstructionModal'));
       modal.show();
     });
-  });
+  }
 
   document.getElementById('staffInstructionForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -374,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
-window.STATUS_VALUES = window.STATUS_VALUES || {
+globalThis.STATUS_VALUES = globalThis.STATUS_VALUES || {
   pendingReview: 'Pending (For Review)',
   pendingLegacy: 'Pending',
   requirementsNeeded: 'Requirements Needed',
@@ -388,7 +390,7 @@ window.STATUS_VALUES = window.STATUS_VALUES || {
   readyForPickup: 'Ready for Pickup'
 };
 
-window.STATUS_ACTIONS = window.STATUS_ACTIONS || {};
+globalThis.STATUS_ACTIONS = globalThis.STATUS_ACTIONS || {};
 
 // Allow 'Request Requirements' from review stage; action auto-sends preset requirements note
 // Note: 'Approve for Payment' removed - students must submit requirements first
@@ -561,15 +563,15 @@ STATUS_ACTIONS[STATUS_VALUES.readyForPickup] = [
   }
 ];
 
-window.WAITING_ON_STUDENT = window.WAITING_ON_STUDENT || new Set([
-  window.STATUS_VALUES.requirementsNeeded,
-  window.STATUS_VALUES.requirementsIssue,
-  window.STATUS_VALUES.approvedForPayment,
-  window.STATUS_VALUES.approvedLegacy,
-  window.STATUS_VALUES.paymentIssue
+globalThis.WAITING_ON_STUDENT = globalThis.WAITING_ON_STUDENT || new Set([
+  globalThis.STATUS_VALUES.requirementsNeeded,
+  globalThis.STATUS_VALUES.requirementsIssue,
+  globalThis.STATUS_VALUES.approvedForPayment,
+  globalThis.STATUS_VALUES.approvedLegacy,
+  globalThis.STATUS_VALUES.paymentIssue
 ]);
 
-window.DOCUMENT_REQUIREMENT_PRESETS = window.DOCUMENT_REQUIREMENT_PRESETS || {
+globalThis.DOCUMENT_REQUIREMENT_PRESETS = globalThis.DOCUMENT_REQUIREMENT_PRESETS || {
   'transcript-of-records-tor': `Transcript of Records (TOR) requirements:\n\n- Valid School ID or Government ID\n- Official Receipt of TOR payment\n- Clearance from Finance Office\n- Clearance from Library\n- Clearance from Department/Program Chair\n- PSA Birth Certificate (optional)\n- Exit Interview Form (for graduating/transfer students)\n- Proof of graduation (Diploma or Certificate of Graduation)` ,
   'certificate-of-enrollment': `Certificate of Enrollment requirements:\n\n- Valid School ID\n- Currently enrolled in the semester (auto-verified)\n- Official Receipt (if applicable)` ,
   'diploma-copy': `Diploma Copy requirements:\n\n- Valid School ID or Government ID\n- Official Receipt of payment\n- For lost diploma: Affidavit of Loss\n- PSA Birth Certificate\n- Proof of graduation from registrar records (auto-check)` ,
@@ -738,19 +740,39 @@ function collectActionNote(button, row) {
   const documentKey = row.dataset.documentKey || '';
 
   if (actionType === 'need_requirements') {
-    const preset = (DOCUMENT_REQUIREMENT_PRESETS[documentKey] || '').trim();
-    if (preset) {
-      return preset;
-    }
-    if (!notePrompt) {
-      return '';
-    }
-    const fallback = (globalThis.prompt(notePrompt, '') || '').trim();
-    if (noteRequired && !fallback) {
-      alert('A note is required for this action.');
-      return null;
-    }
-    return fallback;
+    // Enhanced: Show Bootstrap modal for staff instructions input
+    return new Promise((resolve) => {
+      const modal = document.getElementById('staffInstructionModal');
+      const textarea = document.getElementById('request_instructions');
+      const hiddenId = document.getElementById('modalRequestId');
+      // Clear previous value
+      textarea.value = '';
+      hiddenId.value = row.dataset.requestId;
+      // Show modal
+      const bsModal = new bootstrap.Modal(modal);
+      bsModal.show();
+      // Handle submit
+      const form = document.getElementById('staffInstructionForm');
+      function handleSubmit(e) {
+        e.preventDefault();
+        const value = textarea.value.trim();
+        if (!value) {
+          textarea.classList.add('is-invalid');
+          textarea.focus();
+          return;
+        }
+        textarea.classList.remove('is-invalid');
+        bsModal.hide();
+        form.removeEventListener('submit', handleSubmit);
+        resolve(value);
+      }
+      form.addEventListener('submit', handleSubmit);
+      // If modal is closed without submit, resolve with null
+      modal.addEventListener('hidden.bs.modal', () => {
+        form.removeEventListener('submit', handleSubmit);
+        resolve(null);
+      }, { once: true });
+    });
   }
 
   if (!notePrompt) {
@@ -1075,7 +1097,7 @@ async function handleViewButtonClick(event) {
         // - Bootstrap 5.x: getOrCreateInstance may exist
         // - Older setups may expose jQuery modal plugin
         let bsModal = null;
-        if (window.bootstrap && bootstrap.Modal) {
+        if (globalThis.bootstrap && bootstrap.Modal) {
           if (typeof bootstrap.Modal.getInstance === 'function') {
             // safe to call getInstance
             try { bsModal = bootstrap.Modal.getInstance(modalEl); } catch (_) { bsModal = null; }
@@ -1089,9 +1111,9 @@ async function handleViewButtonClick(event) {
           try { bsModal.show(); } catch (showErr) {
             console.warn('Bootstrap modal show failed', showErr);
           }
-        } else if (window.jQuery && typeof window.jQuery(modalEl).modal === 'function') {
+        } else if (globalThis.jQuery && typeof globalThis.jQuery(modalEl).modal === 'function') {
           // jQuery-based Bootstrap (v3/4) fallback
-          try { window.jQuery(modalEl).modal('show'); } catch (jqErr) { console.warn('jQuery modal show failed', jqErr); }
+          try { globalThis.jQuery(modalEl).modal('show'); } catch (error_) { console.warn('jQuery modal show failed', error_); }
         } else {
           // No modal API available; do nothing but log for debugging
           console.warn('No Bootstrap modal API found to programmatically show modal.');

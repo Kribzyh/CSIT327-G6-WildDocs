@@ -1,12 +1,129 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Staff Profile - WildDocs{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+  .profile-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .profile-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .identity-panel {
+    flex: 0 0 320px;
+    background: linear-gradient(180deg, #fff, #f8f4f5);
+    border: 1px solid #f0d9df;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+    margin-top: -2rem;
+  }
+  .profile-name {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    color: #2f2a2c;
+  }
+  .profile-id {
+    color: #7a7a88;
+    margin-bottom: 0.75rem;
+  }
+  .profile-stat-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.25rem 0 0;
+    text-align: left;
+  }
+  .profile-stat-list li {
+    display: flex;
+    flex-direction: column;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid #efe4e7;
+  }
+  .profile-stat-list li:last-child {
+    border-bottom: none;
+  }
+  .profile-stat-list .label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #9c8b90;
+  }
+  .profile-stat-list .value {
+    font-weight: 600;
+    color: #2c2c35;
+  }
+  .details-panel {
+    flex: 1;
+    min-width: 320px;
+    background: linear-gradient(145deg, #ffffff 0%, #fbf6f7 90%);
+    border: 1px solid rgba(139, 21, 56, 0.08);
+    border-radius: 22px;
+    padding: 2rem;
+    box-shadow: 0 25px 55px rgba(27, 5, 11, 0.08);
+    position: relative;
+    overflow: hidden;
+    z-index: 0;
+    margin-top: -2rem;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-  <h2>Staff Profile</h2>
-  <div class="card mt-3">
-    <div class="card-body">
-      <h4 class="card-title">{{ admin.full_name }}</h4>
-      <p class="card-text"><strong>Department:</strong> {{ admin.department }}</p>
-      <p class="card-text"><strong>Email:</strong> {{ admin.user.email }}</p>
+<div class="dashboard-container">
+  {% include 'admin/includes/sidebar.html' %}
+  <div class="main-content">
+    <div class="welcome-section">
+      <div class="welcome-content">
+        <div class="welcome-left">
+          <div class="date-display-welcome">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="welcomeDate">Loading...</span>
+          </div>
+          <div class="welcome-text">
+            <h3>Staff Profile</h3>
+            <p>View and manage your staff information</p>
+          </div>
+        </div>
+        <div class="welcome-right">
+          <h1 class="welcome-title">WildDocs</h1>
+        </div>
+      </div>
+    </div>
+    <div class="dashboard-content">
+      <div class="profile-card">
+        <div class="profile-layout">
+          <section class="identity-panel">
+            <h5 class="profile-name">{{ admin.full_name }}</h5>
+            <p class="profile-id">Staff Admin</p>
+            <ul class="profile-stat-list">
+              <li>
+                <span class="label">Department</span>
+                <span class="value">{{ admin.department }}</span>
+              </li>
+              <li>
+                <span class="label">Email</span>
+                <span class="value">{{ admin.user.email }}</span>
+              </li>
+            </ul>
+          </section>
+          <section class="details-panel">
+            <div class="panel-header">
+              <h5>Staff Details</h5>
+            </div>
+            <p class="profile-hint">Keep your staff information up to date for better communication and workflow.</p>
+            <!-- Add more staff details or actions here if needed -->
+          </section>
+        </div>
+      </div>
     </div>
   </div>
 </div>

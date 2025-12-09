@@ -227,7 +227,7 @@ class Attachment(models.Model):
     file_size = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
-        return f"Attachment {self.id} for Request {self.request.id}"
+        return f"Attachment {getattr(self, 'id', 'N/A')} for Request {getattr(self.request, 'id', 'N/A')}"
 
 
 # --- Notifications sent to students ---
