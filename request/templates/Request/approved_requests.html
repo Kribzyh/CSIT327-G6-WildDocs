@@ -121,6 +121,7 @@
                                     <th>Request ID</th>
                                     <th>Document Type</th>
                                     <th>Date Approved</th>
+                                    <th>Approved By</th>
                                     <th>Copies</th>
                                     <th>Pickup Location</th>
                                     <th>Office Hours</th>
@@ -135,6 +136,13 @@
                                     </td>
                                     <td>{{ request.document.name }}</td>
                                     <td>{{ request.date_requested|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if request.ready_for_pickup_by %}
+                                            {{ request.ready_for_pickup_by.full_name }}
+                                        {% else %}
+                                            Not set
+                                        {% endif %}
+                                    </td>
                                     <td>{{ request.copies }}</td>
                                     <td>
                                         <small class="text-muted">

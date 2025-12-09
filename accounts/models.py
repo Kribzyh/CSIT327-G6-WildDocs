@@ -157,14 +157,17 @@ class Request(models.Model):
     requirements_submitted_at = models.DateTimeField(blank=True, null=True)
     requirements_verified_at = models.DateTimeField(blank=True, null=True)
     requirements_feedback = models.TextField(blank=True, null=True)
+    requirements_verified_by = models.ForeignKey(AdminAccount, on_delete=models.SET_NULL, null=True, blank=True, related_name='requirements_verified_by')
     payment_reference_code = models.CharField(max_length=100, blank=True, null=True)
-    # Store primary payment receipt as a public URL (Supabase) for backward compatibility
     payment_receipt = models.URLField(max_length=500, blank=True, null=True)
     payment_submitted_at = models.DateTimeField(blank=True, null=True)
     payment_verified_at = models.DateTimeField(blank=True, null=True)
     payment_feedback = models.TextField(blank=True, null=True)
+    payment_verified_by = models.ForeignKey(AdminAccount, on_delete=models.SET_NULL, null=True, blank=True, related_name='payment_verified_by')
     ready_for_pickup_at = models.DateTimeField(blank=True, null=True)
+    ready_for_pickup_by = models.ForeignKey(AdminAccount, on_delete=models.SET_NULL, null=True, blank=True, related_name='ready_for_pickup_by')
     completed_at = models.DateTimeField(blank=True, null=True)
+    completed_by = models.ForeignKey(AdminAccount, on_delete=models.SET_NULL, null=True, blank=True, related_name='completed_by')
 
     def __str__(self):
         return f"Request #{self.id} by {self.student}"

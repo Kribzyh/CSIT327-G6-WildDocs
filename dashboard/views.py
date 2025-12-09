@@ -1053,6 +1053,15 @@ def admin_request_action(request):
         return JsonResponse({'success': False, 'error': 'Invalid action'}, status=400)
 
     old_status, new_status = _apply_request_action(req_obj, admin, action, note)
+    # Set staff name for each action
+    if new_status == RequestWorkflow.REQUIREMENTS_SUBMITTED or new_status == RequestWorkflow.REQUIREMENTS_ISSUE or new_status == RequestWorkflow.REQUIREMENTS_NEEDED:
+        req_obj.requirements_verified_by = admin
+    if new_status == RequestWorkflow.APPROVED_FOR_PAYMENT or new_status == RequestWorkflow.PAYMENT_ISSUE or new_status == RequestWorkflow.PAYMENT_SUBMITTED:
+        req_obj.payment_verified_by = admin
+    if new_status == RequestWorkflow.READY_FOR_PICKUP:
+        req_obj.ready_for_pickup_by = admin
+    if new_status == RequestWorkflow.COMPLETED:
+        req_obj.completed_by = admin
     req_obj.save()
     RequestStatusHistory.objects.create(
         request=req_obj,
