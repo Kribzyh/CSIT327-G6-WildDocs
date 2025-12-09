@@ -382,9 +382,9 @@
                         <td>
                           <div style="display:flex; flex-wrap:wrap; gap:8px;">
                             {% if request.stage_category == 'requirements' %}
-                              <a href="{% url 'submit_requirements' request.id %}" class="btn btn-sm btn-info" style="font-weight:bold; min-width:80px;">Submit Requirements</a>
+                              <button type="button" class="btn btn-sm btn-info submit-requirements-btn" style="font-weight:bold; min-width:80px;" data-request-id="{{ request.id }}" data-bs-toggle="modal" data-bs-target="#requirementsModal">Submit Requirements</button>
                             {% elif request.stage_category == 'payment' %}
-                              <a href="{% url 'submit_payment_receipt' request.id %}" class="btn btn-sm btn-warning" style="font-weight:bold; min-width:120px;">Upload Proof</a>
+                              <button type="button" class="btn btn-sm btn-warning submit-payment-btn" style="font-weight:bold; min-width:120px;" data-request-id="{{ request.id }}" data-bs-toggle="modal" data-bs-target="#paymentModal">Upload Proof</button>
                             {% endif %}
                           </div>
                         </td>
@@ -423,6 +423,7 @@
                         <div class="modal-dialog">
                           <form id="requirementsModalForm" method="post" enctype="multipart/form-data">
                             {% csrf_token %}
+                            <input type="hidden" id="modal_requirements_request_id" name="request_id" value="">
                             <div class="modal-content">
                               <div class="modal-header">
                                 <h5 class="modal-title" id="requirementsModalLabel">Submit Requirements</h5>
@@ -453,6 +454,7 @@
                         <div class="modal-dialog">
                           <form id="paymentModalForm" method="post" enctype="multipart/form-data">
                             {% csrf_token %}
+                            <input type="hidden" id="modal_payment_request_id" name="request_id" value="">
                             <div class="modal-content">
                               <div class="modal-header">
                                 <h5 class="modal-title" id="paymentModalLabel">Upload Payment Receipt</h5>
