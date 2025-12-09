@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 # ===== ADMIN AJAX: Save staff instructions for a request =====
 @csrf_exempt
