@@ -333,87 +333,66 @@
                 <div class="table-responsive request-table mt-4">
                   <table class="table align-middle request-table">
                     <thead>
-                      <tr>
-                        <th>Document</th>
-                        <th>Purpose</th>
-                        <th>Copies</th>
+                      <tr style="background:#002060; color:#fff;">
+                        <th>Application Type</th>
+                        <th>Date of Application</th>
                         <th>Status</th>
-                        <th>Date Requested</th>
+                        <th>Reviewed By</th>
+                        <th>Instructions</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {% for request in all_requests %}
                       <tr class="request-row" data-request-id="{{ request.id }}" data-stage="{{ request.stage_category }}" data-stage-key="{{ request.stage_key }}">
-                        <td>{{ request.document.name }}</td>
-                        <td>{{ request.purpose }}</td>
-                        <td>{{ request.copies }}</td>
-                        <td>
-                          {% with status=request.status %}
-                            {% if status == workflow.PENDING_REVIEW or status == workflow.LEGACY_PENDING %}
-                              <span class="badge badge-pending-review">{{ request.status_label }}</span>
-                            {% elif status == workflow.REQUIREMENTS_NEEDED %}
-                              <span class="badge badge-requirements-needed">{{ request.status_label }}</span>
-                            {% elif status == workflow.REQUIREMENTS_SUBMITTED %}
-                              <span class="badge badge-requirements-submitted">{{ request.status_label }}</span>
-                            {% elif status == workflow.REQUIREMENTS_ISSUE %}
-                              <span class="badge badge-requirements-issue">{{ request.status_label }}</span>
-                              {% if request.requirements_feedback %}
-                                <div class="issue-reason text-danger small mt-1" title="Staff Feedback">
-                                  <i class="fas fa-exclamation-circle me-1"></i>{{ request.requirements_feedback }}
-                                </div>
-                              {% endif %}
-                            {% elif status == workflow.APPROVED_FOR_PAYMENT or status == workflow.LEGACY_APPROVED or status == 'Approved – For Payment' %}
-                              <span class="badge badge-approved-payment">{{ request.status_label }}</span>
-                            {% elif status == workflow.PAYMENT_SUBMITTED %}
-                              <span class="badge badge-payment-submitted">{{ request.status_label }}</span>
-                            {% elif status == workflow.PAYMENT_ISSUE %}
-                              <span class="badge badge-payment-issue">{{ request.status_label }}</span>
-                              {% if request.payment_feedback %}
-                                <div class="issue-reason text-danger small mt-1" title="Staff Feedback">
-                                  <i class="fas fa-exclamation-circle me-1"></i>{{ request.payment_feedback }}
-                                </div>
-                              {% endif %}
-                            {% elif status == workflow.PROCESSING %}
-                              <span class="badge badge-processing">{{ request.status_label }}</span>
-                            {% elif status == workflow.READY_FOR_PICKUP %}
-                              <span class="badge badge-ready-pickup">{{ request.status_label }}</span>
-                            {% elif status == workflow.COMPLETED or status == workflow.LEGACY_COMPLETED %}
-                              <span class="badge badge-completed">{{ request.status_label }}</span>
-                            {% elif status == workflow.CANCELLED %}
-                              <span class="badge badge-cancelled">{{ request.status_label }}</span>
-                            {% elif status == workflow.REJECTED %}
-                              <span class="badge badge-rejected">{{ request.status_label }}</span>
-                            {% else %}
-                              <span class="badge badge-pending-review">{{ request.status_label }}</span>
-                            {% endif %}
-                          {% endwith %}
-                        </td>
-                        <td>{{ request.date_requested|date:"F j, Y" }}</td>
-                        <td>
-                          {% comment %} Allow students to cancel only when the request is in the pending stage.
-                             Otherwise, provide upload actions for requirements or payment where applicable. {% endcomment %}
-                          {% if request.stage_category == 'pending' %}
-                            <a href="{% url 'cancel_request' request.id %}" class="btn btn-sm btn-outline-danger">Cancel</a>
-                          {% elif request.status == workflow.REQUIREMENTS_SUBMITTED or request.status == workflow.PAYMENT_SUBMITTED %}
-                            <span class="btn btn-sm btn-outline-secondary disabled submitted-label" aria-disabled="true">Submitted</span>
-                          {% elif request.stage_category == 'requirements' or request.requires_requirements_upload %}
-                            <button type="button" 
-                                    class="btn btn-sm btn-primary submit-requirements-btn"
-                                    data-request-id="{{ request.id }}"
-                                    data-document-name="{{ request.document.name|escapejs }}"
-                                    data-requirements-instructions="{{ request.requirements_instructions|default:''|escape }}">
-                              Submit Requirements
-                            </button>
-                          {% elif request.stage_category == 'payment' or request.requires_payment_upload %}
-                            <button type="button" 
-                                    class="btn btn-sm btn-primary upload-receipt-btn"
-                                    data-request-id="{{ request.id }}">
-                              Upload Receipt
-                            </button>
+                        <td>{{ request.document.name }}{{ request.id }}</td>
+                        <td>{{ request.date_requested|date:"n/j/Y g:i A" }}</td>
+                        <td style="text-align:center;">
+                          {% if request.status == workflow.COMPLETED and request.is_approved %}
+                            <span style="color:green; font-weight:bold;">Approved<br>(Completed)</span>
+                            <br>
+                            <span style="font-size:11px; font-weight:bold;">{{ request.approved_by.get_full_name }}</span>
+                            <br>
+                            <span style="font-size:10px;">{{ request.approved_at|date:'n/j/Y g:i A' }}</span>
+                          {% elif request.status == workflow.COMPLETED and request.is_declined %}
+                            <span style="color:red; font-weight:bold;">Declined<br>(Completed)</span>
+                            <br>
+                            <span style="font-size:11px; font-weight:bold;">{{ request.declined_by.get_full_name }}</span>
+                            <br>
+                            <span style="font-size:10px;">{{ request.declined_at|date:'n/j/Y g:i A' }}</span>
                           {% else %}
-                            <span class="text-muted small">No action available</span>
+                            <span class="badge badge-pending-review">{{ request.status_label }}</span>
                           {% endif %}
+                        </td>
+                        <td style="font-weight:bold;">
+                          {% if request.is_approved %}
+                            {{ request.approved_by.email }}
+                          {% elif request.is_declined %}
+                            {{ request.declined_by.email }}
+                          {% else %}
+                            N/A
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if request.is_approved %}
+                            You may now proceed with the self enrollment.
+                          {% elif request.is_declined %}
+                            Your application has been declined, please visit FAO.
+                          {% else %}
+                            {{ request.instructions|default:"-" }}
+                          {% endif %}
+                        </td>
+                        <td>
+                          <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                            <a href="#" class="btn btn-sm" style="background:#0096d6; color:#fff; font-weight:bold; min-width:80px;">Details</a>
+                            <a href="#" class="btn btn-sm" style="background:#e65c0e; color:#fff; font-weight:bold; min-width:80px;">Messages</a>
+                            <a href="#" class="btn btn-sm" style="background:#e65c0e; color:#fff; font-weight:bold; min-width:120px;">Proof of Payment</a>
+                            {% if request.is_approved %}
+                              <a href="#" class="btn btn-sm" style="background:#a80000; color:#fff; font-weight:bold; min-width:120px;">Promissory Note</a>
+                            {% else %}
+                              <a href="#" class="btn btn-sm disabled" style="background:#ccc; color:#fff; font-weight:bold; min-width:120px;">Promissory Note</a>
+                            {% endif %}
+                          </div>
                         </td>
                       </tr>
                       {% endfor %}
