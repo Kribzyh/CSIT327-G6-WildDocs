@@ -738,39 +738,16 @@ function collectActionNote(button, row) {
   const documentKey = row.dataset.documentKey || '';
 
   if (actionType === 'need_requirements') {
-    // Enhanced: Show Bootstrap modal for staff instructions input
-    return new Promise((resolve) => {
-      const modal = document.getElementById('staffInstructionModal');
-      const textarea = document.getElementById('request_instructions');
-      const hiddenId = document.getElementById('modalRequestId');
-      // Clear previous value
-      textarea.value = '';
-      hiddenId.value = row.dataset.requestId;
-      // Show modal
-      const bsModal = new bootstrap.Modal(modal);
-      bsModal.show();
-      // Handle submit
-      const form = document.getElementById('staffInstructionForm');
-      function handleSubmit(e) {
-        e.preventDefault();
-        const value = textarea.value.trim();
-        if (!value) {
-          textarea.classList.add('is-invalid');
-          textarea.focus();
-          return;
-        }
-        textarea.classList.remove('is-invalid');
-        bsModal.hide();
-        form.removeEventListener('submit', handleSubmit);
-        resolve(value);
-      }
-      form.addEventListener('submit', handleSubmit);
-      // If modal is closed without submit, resolve with null
-      modal.addEventListener('hidden.bs.modal', () => {
-        form.removeEventListener('submit', handleSubmit);
-        resolve(null);
-      }, { once: true });
-    });
+    // Show Bootstrap modal for staff instructions input and return value synchronously
+    const modal = document.getElementById('staffInstructionModal');
+    const textarea = document.getElementById('request_instructions');
+    const hiddenId = document.getElementById('modalRequestId');
+    textarea.value = '';
+    hiddenId.value = row.dataset.requestId;
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    // This must be handled asynchronously elsewhere, not as a Promise here
+    return '';
   }
 
   if (!notePrompt) {

@@ -338,10 +338,8 @@
                         <th style="color:#222;">Date of Application</th>
                         <th style="color:#222;">Status</th>
                         <th style="color:#222;">Reviewed By</th>
-                        <th style="color:#222;">Instructions</th>
-                        {% if all_requests|length > 0 and all_requests.0.stage_category == 'requirements' or all_requests.0.stage_category == 'payment' %}
+                        <!-- Instructions column removed -->
                         <th style="color:#222;">Actions</th>
-                        {% endif %}
                       </tr>
                     </thead>
                     <tbody>
@@ -379,16 +377,14 @@
                             N/A
                           {% endif %}
                         </td>
-                        <td>
-                          {{ request.request_instructions|default:"-" }}
-                        </td>
+                        <!-- Instructions cell removed -->
                         {% if request.stage_category == 'requirements' or request.stage_category == 'payment' %}
                         <td>
                           <div style="display:flex; flex-wrap:wrap; gap:8px;">
                             {% if request.stage_category == 'requirements' %}
-                              <a href="#" class="btn btn-sm btn-info" style="font-weight:bold; min-width:80px;">Submit Requirements</a>
+                              <a href="{% url 'submit_requirements' request.id %}" class="btn btn-sm btn-info" style="font-weight:bold; min-width:80px;">Submit Requirements</a>
                             {% elif request.stage_category == 'payment' %}
-                              <a href="#" class="btn btn-sm btn-warning" style="font-weight:bold; min-width:120px;">Upload Proof</a>
+                              <a href="{% url 'submit_payment_receipt' request.id %}" class="btn btn-sm btn-warning" style="font-weight:bold; min-width:120px;">Upload Proof</a>
                             {% endif %}
                           </div>
                         </td>
@@ -419,25 +415,7 @@
 
               {# Payments panel removed — receipts are uploaded via the submit_payment_receipt view #}
               
-              <!-- Submit Requirements Modal -->
-              <div id="requirementsModal" class="d-none" aria-hidden="true">
-                <div class="modal-backdrop-blur" role="dialog" aria-modal="true">
-                  <dialog class="modal-card" id="requirementsDialog">
-                    <div class="modal-header">
-                      <h5 class="mb-0">Submit Requirements</h5>
-                    </div>
-                    <div class="modal-body">
-                      <p class="text-muted small mb-2">Please upload the required documents for your request. Files accepted: JPG, PNG, PDF. Max 5MB per file.</p>
-                      <div>
-                        <strong>Document Requested:</strong>
-                        <p id="modalDocumentName" class="mb-2">&mdash;</p>
-                      </div>
-                      <div>
-                        <strong>Requirements To Submit</strong>
-                        <p id="modalInstructions" class="text-muted small mb-3"></p>
-                      </div>
-                      <div>
-                        <ul id="modalRequirementsList" class="requirements-list"></ul>
+              <!-- Instructions modal removed -->
                       </div>
 
                       <form id="requirementsModalForm" method="post" enctype="multipart/form-data">
