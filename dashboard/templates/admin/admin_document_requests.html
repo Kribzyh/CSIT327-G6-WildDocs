@@ -254,9 +254,7 @@
               <button type="button" class="admin-filter-btn" data-filter="requirements">Requirements</button>
               <button type="button" class="admin-filter-btn" data-filter="payment">Payment</button>
               <button type="button" class="admin-filter-btn" data-filter="processing">Processing</button>
-              <button type="button" class="admin-filter-btn" data-filter="ready">Ready for Pickup</button>
               <button type="button" class="admin-filter-btn" data-filter="completed">Completed</button>
-              <button type="button" class="admin-filter-btn" data-filter="cancelled">Cancelled</button>
               <button type="button" class="admin-filter-btn" data-filter="rejected">Rejected</button>
             </div>
             <div class="input-group filter-search" style="min-width:280px; max-width:420px;">
@@ -1216,15 +1214,14 @@ function wireAdminFilters() {
         } else if (activeFilter === 'requirements') {
           matchesFilter = (stage === 'requirements' || stageKey === 'requirements');
         } else if (activeFilter === 'payment') {
-          // Show all payment-related requests: waiting for payment, payment submitted, and payment issues
           matchesFilter = (stage === 'payment' || stageKey === 'payment');
         } else if (activeFilter === 'processing') {
           // Show requests that are being processed or ready for pickup
-          matchesFilter = status.includes('processing') || status.includes('ready for pickup');
+          matchesFilter = (status.includes('processing') || status.includes('ready for pickup'));
         } else if (activeFilter === 'completed') {
           matchesFilter = (stage === 'completed');
-        } else if (activeFilter === 'exceptions') {
-          matchesFilter = (stage === 'exceptions' || status.includes('issue') || status.includes('rejected'));
+        } else if (activeFilter === 'rejected') {
+          matchesFilter = (status.includes('rejected'));
         }
       }
 

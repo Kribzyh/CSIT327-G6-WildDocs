@@ -77,6 +77,34 @@
 </style>
 {% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}?v=6"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Update the welcome date in staff profile
+  const currentDate = (function() {
+    const philippinesDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' });
+    return new Date(philippinesDate);
+  })();
+  const welcomeDateElement = document.getElementById('welcomeDate');
+  if (welcomeDateElement) {
+    const day = currentDate.getDate();
+    const month = currentDate.toLocaleDateString('en-US', { month: 'long' });
+    const year = currentDate.getFullYear();
+    function ordinal(day) {
+      if (day > 3 && day < 21) return 'th';
+      switch (day % 10) {
+        case 1: return 'st';
+        case 2: return 'nd';
+        case 3: return 'rd';
+        default: return 'th';
+      }
+    }
+    welcomeDateElement.textContent = `${day}${ordinal(day)} day of ${month}, ${year}`;
+  }
+});
+{% endblock %}
+
 {% block content %}
 <div class="dashboard-container">
   {% include 'admin/includes/sidebar.html' %}
@@ -102,18 +130,22 @@
       <div class="profile-card">
         <div class="profile-layout">
           <section class="identity-panel">
-            <h5 class="profile-name">{{ admin.full_name }}</h5>
-            <p class="profile-id">Staff Admin</p>
-            <ul class="profile-stat-list">
-              <li>
-                <span class="label">Department</span>
-                <span class="value">{{ admin.department }}</span>
-              </li>
-              <li>
-                <span class="label">Email</span>
-                <span class="value">{{ admin.user.email }}</span>
-              </li>
-            </ul>
+            <form id="editStaffProfileForm" method="post" action="{% url 'edit_admin_profile' %}" class="d-flex flex-column gap-2">
+              {% csrf_token %}
+              <div class="mb-2">
+                <label for="fullName" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="fullName" name="full_name" value="{{ admin.full_name }}" required>
+              </div>
+              <div class="mb-2">
+                <label for="department" class="form-label">Department</label>
+                <input type="text" class="form-control" id="department" name="department" value="{{ admin.department }}" required>
+              </div>
+              <div class="mb-2">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ admin.user.email }}" disabled>
+              </div>
+              <button type="submit" class="btn btn-maroon btn-rounded mt-2">Save Changes</button>
+            </form>
           </section>
           <section class="details-panel">
             <div class="panel-header">

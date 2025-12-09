@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin-profile/', views.admin_profile, name='admin_profile'),
     path('admin-document-requests/', views.admin_document_requests, name='admin_document_requests'),
     path('admin-manage-students/', views.admin_manage_students, name='admin_manage_students'),
+        path('edit-admin-profile/', views.admin_profile, name='edit_admin_profile'),
     path('admin-settings/', views.admin_settings, name='admin_settings'),
     path('admin-request-action/', views.admin_request_action, name='admin_request_action'),
     path('admin-request-detail/', views.admin_request_detail, name='admin_request_detail'),

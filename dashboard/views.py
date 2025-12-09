@@ -31,8 +31,20 @@ from accounts.models import (
     RequestWorkflow,
 )
 @login_required
+@login_required
 def admin_profile(request):
     admin = get_object_or_404(AdminAccount, user=request.user)
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name', '').strip()
+        department = request.POST.get('department', '').strip()
+        if full_name and department:
+            admin.full_name = full_name
+            admin.department = department
+            admin.save(update_fields=['full_name', 'department'])
+            messages.success(request, 'Profile updated successfully.')
+            return redirect('admin_profile')
+        else:
+            messages.error(request, 'Full name and department are required.')
     return render(request, 'admin/admin_profile.html', {'admin': admin})
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
