@@ -12,6 +12,10 @@
       <i class="fas fa-tachometer-alt"></i>
       Dashboard
     </a>
+    <a href="{% url 'admin_profile' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_profile' %}active{% endif %}">
+      <i class="fas fa-user"></i>
+      Profile
+    </a>
     <a href="{% url 'admin_document_requests' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_document_requests' %}active{% endif %}">
       <i class="fas fa-file-alt"></i>
       Document Requests

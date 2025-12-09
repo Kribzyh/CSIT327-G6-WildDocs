@@ -21,6 +21,7 @@ urlpatterns = [
 
     # Admin routes
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-profile/', views.admin_profile, name='admin_profile'),
     path('admin-document-requests/', views.admin_document_requests, name='admin_document_requests'),
     path('admin-manage-students/', views.admin_manage_students, name='admin_manage_students'),
     path('admin-settings/', views.admin_settings, name='admin_settings'),

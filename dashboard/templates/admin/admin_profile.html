@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Staff Profile</h2>
+  <div class="card mt-3">
+    <div class="card-body">
+      <h4 class="card-title">{{ admin.full_name }}</h4>
+      <p class="card-text"><strong>Department:</strong> {{ admin.department }}</p>
+      <p class="card-text"><strong>Email:</strong> {{ admin.user.email }}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -30,6 +30,10 @@ from accounts.models import (
     Notification,
     RequestWorkflow,
 )
+@login_required
+def admin_profile(request):
+    admin = get_object_or_404(AdminAccount, user=request.user)
+    return render(request, 'admin/admin_profile.html', {'admin': admin})
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from accounts.forms import StudentProfileForm
