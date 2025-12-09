@@ -365,34 +365,38 @@
                           {% endif %}
                         </td>
                         <td style="font-weight:bold;">
-                          {% if request.is_approved %}
-                            {{ request.approved_by.email }}
-                          {% elif request.is_declined %}
-                            {{ request.declined_by.email }}
+                          {% if request.requirements_verified_by %}
+                            {{ request.requirements_verified_by.full_name }} ({{ request.requirements_verified_by.user.email }})
+                          {% elif request.payment_verified_by %}
+                            {{ request.payment_verified_by.full_name }} ({{ request.payment_verified_by.user.email }})
+                          {% elif request.ready_for_pickup_by %}
+                            {{ request.ready_for_pickup_by.full_name }} ({{ request.ready_for_pickup_by.user.email }})
+                          {% elif request.completed_by %}
+                            {{ request.completed_by.full_name }} ({{ request.completed_by.user.email }})
                           {% else %}
                             N/A
                           {% endif %}
                         </td>
                         <td>
-                          {% if request.is_approved %}
-                            You may now proceed with the self enrollment.
-                          {% elif request.is_declined %}
-                            Your application has been declined, please visit FAO.
+                          {% if request.requirements_feedback %}
+                            {{ request.requirements_feedback }}
+                          {% elif request.payment_feedback %}
+                            {{ request.payment_feedback }}
+                          {% elif request.notes %}
+                            {{ request.notes }}
                           {% else %}
-                            {{ request.instructions|default:"-" }}
+                            -
                           {% endif %}
                         </td>
                         <td>
+                          {% if request.stage_category == 'requirements' or request.stage_category == 'payment' %}
                           <div style="display:flex; flex-wrap:wrap; gap:4px;">
                             <a href="#" class="btn btn-sm" style="background:#0096d6; color:#fff; font-weight:bold; min-width:80px;">Details</a>
                             <a href="#" class="btn btn-sm" style="background:#e65c0e; color:#fff; font-weight:bold; min-width:80px;">Messages</a>
                             <a href="#" class="btn btn-sm" style="background:#e65c0e; color:#fff; font-weight:bold; min-width:120px;">Proof of Payment</a>
-                            {% if request.is_approved %}
-                              <a href="#" class="btn btn-sm" style="background:#a80000; color:#fff; font-weight:bold; min-width:120px;">Promissory Note</a>
-                            {% else %}
-                              <a href="#" class="btn btn-sm disabled" style="background:#ccc; color:#fff; font-weight:bold; min-width:120px;">Promissory Note</a>
-                            {% endif %}
+                            <a href="#" class="btn btn-sm" style="background:#a80000; color:#fff; font-weight:bold; min-width:120px;{% if not request.is_approved %} opacity:0.5; pointer-events:none;{% endif %}">Promissory Note</a>
                           </div>
+                          {% endif %}
                         </td>
                       </tr>
                       {% endfor %}
