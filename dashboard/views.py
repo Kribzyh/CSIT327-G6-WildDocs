@@ -1,3 +1,22 @@
+from django.views.decorators.csrf import csrf_exempt
+# ===== ADMIN AJAX: Save staff instructions for a request =====
+@csrf_exempt
+@login_required
+def save_request_instructions(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        req_id = data.get('request_id')
+        instructions = data.get('request_instructions')
+        if not req_id or instructions is None:
+            return JsonResponse({'success': False, 'error': 'Missing request_id or instructions'}, status=400)
+        req_obj = get_object_or_404(Request, id=req_id)
+        req_obj.request_instructions = instructions
+        req_obj.save()
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 # pyright: reportAttributeAccessIssue=false
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages

@@ -1,3 +1,23 @@
+<!-- Staff Instruction Modal -->
+<div class="modal fade" id="staffInstructionModal" tabindex="-1" aria-labelledby="staffInstructionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="staffInstructionForm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staffInstructionModalLabel">Enter Instructions for Student</h5>
+        </div>
+        <div class="modal-body">
+          <textarea class="form-control" name="request_instructions" id="request_instructions" rows="4" placeholder="Please submit required requirements (at least two)"></textarea>
+          <input type="hidden" id="modalRequestId" name="request_id" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-maroon">Save Instructions</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
 {% extends "base.html" %}
 {% load static %}
 
@@ -320,6 +340,40 @@
 {% block extra_js %}
 <script src="{% static 'js/dashboard.js' %}?v=6"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.workflow-actions .dropdown-item[data-action="need_requirements"]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      var requestId = btn.closest('tr').getAttribute('data-request-id');
+      document.getElementById('modalRequestId').value = requestId;
+      var modal = new bootstrap.Modal(document.getElementById('staffInstructionModal'));
+      modal.show();
+    });
+  });
+
+  document.getElementById('staffInstructionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var requestId = document.getElementById('modalRequestId').value;
+    var instructions = document.getElementById('request_instructions').value;
+    // AJAX to save instructions
+    fetch('/admin/save_request_instructions/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({ request_id: requestId, request_instructions: instructions })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      } else {
+        alert('Failed to save instructions');
+      }
+    });
+  });
+});
 window.STATUS_VALUES = window.STATUS_VALUES || {
   pendingReview: 'Pending (For Review)',
   pendingLegacy: 'Pending',
