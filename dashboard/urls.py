@@ -27,5 +27,6 @@ urlpatterns = [
     path('admin-request-action/', views.admin_request_action, name='admin_request_action'),
     path('admin-request-detail/', views.admin_request_detail, name='admin_request_detail'),
     path('admin-debug-echo/', views.admin_debug_echo, name='admin_debug_echo'),
+    path('save_request_instructions/', views.save_request_instructions, name='save_request_instructions'),
 ]
 
