@@ -512,8 +512,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   setupRequestInteractions();
-});
-
 function setupRequestInteractions() {
   const tableRows = Array.from(document.querySelectorAll('.request-row'));
   const summaryElements = {
@@ -596,28 +594,20 @@ function setupRequestInteractions() {
   updateSummaries();
   applyFilters();
 
-  // --- Modal: Submit Requirements handlers ---
-  const submitButtons = Array.from(document.querySelectorAll('.submit-requirements-btn'));
-  const requirementsModal = document.getElementById('requirementsModal');
-  const requirementsDialog = document.getElementById('requirementsDialog');
-  const modalClose = document.getElementById('requirementsModalClose');
-  const modalCancel = document.getElementById('requirementsModalCancel');
-  const modalUpload = document.getElementById('requirementsModalUpload');
-  const modalForm = document.getElementById('requirementsModalForm');
-  const modalInstructions = document.getElementById('modalInstructions');
-  const modalDocumentName = document.getElementById('modalDocumentName');
-  const dropZone = document.getElementById('dropZone');
-  const dropBrowse = document.getElementById('dropBrowse');
-  const fileInput = document.getElementById('modal_requirements_file');
-  const filesPreview = document.getElementById('filesPreview');
-  const endpointPrefix = "{% url 'submit_requirements' 0 %}";
-  const getUploadsPrefix = "{% url 'get_requirement_uploads' 0 %}";
-  // cache of uploaded files per request (populated from AJAX responses)
-  const uploadedFilesByRequest = {};
-  // track currently-open request id for the modal
-  let modalCurrentRequestId = null;
-  // number of required items for the currently-open modal
-  let modalRequiredCount = 0;
+  // Set request ID and form action when modal is shown
+  $('#requirementsModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget); // Button that triggered the modal
+    var requestId = button.data('request-id');
+    $('#modal_requirements_request_id').val(requestId);
+    $('#requirementsModalForm').attr('action', '/submit_requirements/' + requestId + '/');
+  });
+  $('#paymentModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var requestId = button.data('request-id');
+    $('#modal_payment_request_id').val(requestId);
+    $('#paymentModalForm').attr('action', '/submit_payment_receipt/' + requestId + '/');
+  });
+}
 
   // Requirements mapping for common document types
   const documentRequirements = {
