@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Profile - Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  {% include 'admin/includes/sidebar.html' %}
+  <div class="main-content">
+    <div class="welcome-section admin-welcome">
+      <div class="welcome-content">
+        <div class="welcome-left">
+          <div class="date-display-welcome">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="welcomeDate">Loading...</span>
+          </div>
+          <div class="welcome-text">
+            <h3>Profile</h3>
+            <p>Edit your personal and contact information</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-content admin-dashboard-content mt-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="profile-card">
+            <div class="profile-layout">
+              <section class="identity-panel identity-card">
+                <div class="profile-avatar">
+                  {% if admin.profile_picture %}
+                    <div class="avatar-ring">
+                      <img id="profileImage" src="{{ admin.profile_picture.url }}" alt="Avatar">
+                    </div>
+                  {% else %}
+                    <div class="avatar-ring">
+                      <div class="profile-placeholder" id="profilePlaceholder">{{ admin.full_name|default:request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</div>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div style="margin: 0.8rem 0">
+                  <button type="button" id="uploadBtn" class="btn btn-outline-primary mb-3">
+                    <i class="fas fa-camera me-1"></i>
+                    Upload Photo
+                  </button>
+                </div>
+
+                <h5 class="profile-name">{{ admin.full_name|default:request.user.get_full_name|default:request.user.username }}</h5>
+                <p class="profile-id">{{ admin.user.email }}</p>
+                <ul class="profile-stat-list">
+                  <li>
+                    <div class="stat-label">Department</div>
+                    <div class="stat-value">{{ admin.department|default:"Not specified" }}</div>
+                  </li>
+                  <li>
+                    <div class="stat-label">Role</div>
+                    <div class="stat-value">{{ admin.role|default:"Registrar Staff" }}</div>
+                  </li>
+                </ul>
+              </section>
+
+              <section class="details-panel">
+                <div class="panel-header">
+                  <h5>Account Details</h5>
+                </div>
+                <p class="profile-hint">Review or edit your account information. Use the Edit button to switch to edit mode.</p>
+
+                <div id="viewMode">
+                  <div class="info-grid">
+                    <div class="info-card">
+                      <div class="info-label"><i class="fas fa-user me-2"></i>Full Name</div>
+                      <div class="info-value">{{ admin.full_name|default:request.user.get_full_name|default:request.user.username|default:"Not specified" }}</div>
+                    </div>
+                    <div class="info-card">
+                      <div class="info-label"><i class="fas fa-briefcase me-2"></i>Role</div>
+                      <div class="info-value">{{ admin.role|default:"Registrar Staff" }}</div>
+                    </div>
+                    <div class="info-card">
+                      <div class="info-label"><i class="fas fa-building me-2"></i>Department</div>
+                      <div class="info-value" id="displayDepartment">{{ admin.department|default:"Not specified" }}</div>
+                    </div>
+                    <div class="info-card">
+                      <div class="info-label"><i class="fas fa-envelope me-2"></i>Email</div>
+                      <div class="info-value" id="displayEmail">{{ admin.user.email|default:"Not specified" }}</div>
+                    </div>
+                    <div class="info-card">
+                      <div class="info-label"><i class="fas fa-id-card me-2"></i>Employee ID</div>
+                      <div class="info-value">{{ admin.employee_id|default:"N/A" }}</div>
+                    </div>
+                  </div>
+                  <div class="action-row">
+                    <button id="editBtn" class="btn btn-maroon btn-xlg"><i class="fas fa-edit me-2"></i>Edit Information</button>
+                  </div>
+                </div>
+
+                <div id="editMode" style="display: none;">
+                  <form id="profileEditForm" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_profile">
+                    <input type="file" id="editProfilePictureInput" name="profile_picture" accept="image/*" style="display: none;" onchange="previewEditProfilePicture(event)">
+                    <div class="info-banner"><i class="fas fa-info-circle"></i> You can update your name, email, and department. Changes will apply after saving.</div>
+
+                    <div class="info-grid">
+                      <div class="info-card">
+                        <div class="info-label"><i class="fas fa-user me-2"></i>Full Name</div>
+                        <input class="form-control" type="text" id="full_name" name="full_name" value="{{ admin.full_name|default:'' }}">
+                        <div class="hint">Name may be updated here</div>
+                      </div>
+                      <div class="info-card">
+                        <div class="info-label"><i class="fas fa-envelope me-2"></i>Email</div>
+                        <input class="form-control" type="email" id="email_input" name="email" value="{{ admin.user.email|default:'' }}">
+                        <div class="hint">Primary contact email</div>
+                      </div>
+                      <div class="info-card">
+                        <div class="info-label"><i class="fas fa-building me-2"></i>Department</div>
+                        <input class="form-control" type="text" id="department_input" name="department" value="{{ admin.department|default:'' }}">
+                        <div class="hint">Department or unit</div>
+                      </div>
+                      <div class="info-card">
+                        <div class="info-label"><i class="fas fa-id-card me-2"></i>Employee ID</div>
+                        <input class="form-control" type="text" id="employee_id" name="employee_id" value="{{ admin.employee_id|default:'' }}">
+                        <div class="hint">Optional staff identifier</div>
+                      </div>
+                    </div>
+
+                    <div class="action-row" style="margin-top:1rem;">
+                      <button id="saveBtn" type="submit" class="btn-save-lg">Save Changes</button>
+                      <button id="cancelBtn" type="button" class="btn-cancel-lg">Cancel</button>
+                    </div>
+                  </form>
+                </div>
+
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmLogout(event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+      globalThis.location.href = '{% url "logout" %}';
+    }
+}
+
+// Set current date
+document.addEventListener('DOMContentLoaded', function() {
+    const dateElement = document.getElementById('welcomeDate');
+    if (dateElement) {
+        const today = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        dateElement.textContent = today.toLocaleDateString('en-US', options);
+    }
+
+    // Edit/upload controls
+    const editBtn = document.getElementById('editBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const viewMode = document.getElementById('viewMode');
+    const editMode = document.getElementById('editMode');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('editProfilePictureInput');
+
+    if (uploadBtn && fileInput) uploadBtn.addEventListener('click', function() { fileInput.click(); });
+
+    let originalValues = {};
+    if (editBtn) {
+      editBtn.addEventListener('click', function() {
+        originalValues = {
+          full_name: document.getElementById('full_name').value,
+          email: document.getElementById('email_input').value,
+          department: document.getElementById('department_input').value
+        };
+        editBtn.style.display = 'none';
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+      });
+    }
+
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function() {
+        document.getElementById('full_name').value = originalValues.full_name || '';
+        document.getElementById('email_input').value = originalValues.email || '';
+        document.getElementById('department_input').value = originalValues.department || '';
+        editBtn.style.display = 'inline-block';
+        viewMode.style.display = 'block';
+        editMode.style.display = 'none';
+      });
+    }
+
+    function previewEditProfilePicture(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const avatarImg = document.getElementById('profileImage');
+        const placeholder = document.getElementById('profilePlaceholder');
+        if (avatarImg) {
+          avatarImg.src = e.target.result;
+        } else if (placeholder) {
+          const wrapper = placeholder.parentElement;
+          if (wrapper) {
+            wrapper.innerHTML = `<img id="profileImage" src="${e.target.result}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; object-position: center; border-radius: 50%;">`;
+          }
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    globalThis.previewEditProfilePicture = previewEditProfilePicture;
+});
+</script>
+{% endblock %}

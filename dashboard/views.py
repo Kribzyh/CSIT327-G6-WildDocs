@@ -402,6 +402,7 @@ def _apply_request_action(req_obj, admin, action, note):
         req_obj.requirements_submitted_at = None
     elif action == 'requirements_accept':
         req_obj.requirements_verified_at = timestamp
+        req_obj.requirements_verified_by = admin
         if note:
             req_obj.requirements_feedback = note
     elif action == 'requirements_issue':
@@ -411,6 +412,7 @@ def _apply_request_action(req_obj, admin, action, note):
             req_obj.requirements_verified_at = timestamp
     elif action == 'payment_accept':
         req_obj.payment_verified_at = timestamp
+        req_obj.payment_verified_by = admin
         if note:
             req_obj.payment_feedback = note
     elif action == 'payment_issue':
@@ -418,10 +420,12 @@ def _apply_request_action(req_obj, admin, action, note):
     elif action == 'processing':
         if not req_obj.payment_verified_at:
             req_obj.payment_verified_at = timestamp
+            req_obj.payment_verified_by = admin
     elif action == 'ready_for_pickup':
         req_obj.ready_for_pickup_at = timestamp
     elif action == 'complete':
         req_obj.completed_at = timestamp
+        req_obj.completed_by = admin
 
     req_obj.status = new_status
     req_obj.assigned_admin = admin
@@ -1016,6 +1020,37 @@ def admin_settings(request):
         'admin': admin,
     }
     return render(request, 'admin/admin_settings.html', context)
+
+
+@never_cache
+@login_required
+def admin_profile(request):
+    """Admin profile page where staff can edit their display name and email."""
+    try:
+        admin = AdminAccount.objects.get(user=request.user)
+    except AdminAccount.DoesNotExist:
+        messages.error(request, STAFF_ONLY_MESSAGE)
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        department = request.POST.get('department', '').strip()
+        if full_name:
+            admin.full_name = full_name
+        if email:
+            admin.user.email = email
+            admin.user.save()
+        if department is not None:
+            admin.department = department
+        admin.save()
+        messages.success(request, 'Profile updated successfully.')
+        return redirect('admin_profile')
+
+    context = {
+        'admin': admin,
+    }
+    return render(request, 'admin/admin_profile.html', context)
 
 
 @never_cache

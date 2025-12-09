@@ -2,10 +2,12 @@
 <div class="sidebar">
   <div class="sidebar-header">
     <div class="d-flex align-items-center">
-      <h4 class="text-white mb-0">Admin Panel</h4>
+        <h4 class="text-white mb-0">Admin Panel</h4>
     </div>
     <hr class="sidebar-separator">
   </div>
+
+    {# profile summary removed — use Profile page instead #}
 
   <nav class="sidebar-nav">
     <a href="{% url 'admin_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
@@ -23,6 +25,10 @@
     <a href="{% url 'admin_settings' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_settings' %}active{% endif %}">
       <i class="fas fa-cogs"></i>
       Settings
+    </a>
+    <a href="{% url 'admin_profile' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_profile' %}active{% endif %}">
+      <i class="fas fa-user-circle"></i>
+      Profile
     </a>
     <a href="#" class="nav-item logout" onclick="confirmLogout(event)">
       <i class="fas fa-sign-out-alt"></i>

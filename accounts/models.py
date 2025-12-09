@@ -45,6 +45,7 @@ class AdminAccount(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
     role = models.CharField(max_length=50)
+    department = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     last_login_at = models.DateTimeField(blank=True, null=True)
 
@@ -163,6 +164,19 @@ class Request(models.Model):
     payment_submitted_at = models.DateTimeField(blank=True, null=True)
     payment_verified_at = models.DateTimeField(blank=True, null=True)
     payment_feedback = models.TextField(blank=True, null=True)
+    # Staff who verified various stages (nullable FK to AdminAccount)
+    requirements_verified_by = models.ForeignKey(
+        AdminAccount, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='requirements_verified_requests'
+    )
+    payment_verified_by = models.ForeignKey(
+        AdminAccount, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='payment_verified_requests'
+    )
+    completed_by = models.ForeignKey(
+        AdminAccount, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='completed_requests'
+    )
     ready_for_pickup_at = models.DateTimeField(blank=True, null=True)
     completed_at = models.DateTimeField(blank=True, null=True)
 

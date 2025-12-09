@@ -695,6 +695,272 @@ button {
   padding-top: 0.5rem;
 }
 
+/* Admin profile specific styling (matching screenshot) */
+.profile-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(211,207,204,0.45);
+}
+
+.profile-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.identity-panel {
+  text-align: center;
+  padding: 0.75rem 0 0.5rem;
+}
+
+/* Make the left identity panel look like a distinct card */
+.identity-panel.identity-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  box-shadow: 0 10px 30px rgba(15,23,42,0.06);
+  border: 1px solid rgba(211,207,204,0.5);
+}
+.profile-avatar {
+  width: 100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding-top: 0.35rem;
+}
+
+.avatar-ring {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(139,21,56,0.06);
+  border: 6px solid var(--maroon-500);
+}
+
+.avatar-ring img { width: 120px; height: 120px; object-fit: cover; border-radius:50% }
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 999px;
+}
+
+#uploadBtn {
+  display: block;
+  width: 100%;
+  margin: 0.5rem 0 1rem 0;
+  padding: 0.55rem 0.75rem;
+  background: transparent;
+  color: var(--maroon-600);
+  border: 2px solid rgba(139,21,56,0.18);
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+#uploadBtn i { color: var(--maroon-600); margin-right: 0.5rem }
+
+.profile-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #222;
+  margin: 0.35rem 0 0;
+}
+
+.profile-id {
+  color: #6b6464;
+  font-size: 0.95rem;
+  margin-bottom: 0.6rem;
+}
+
+/* Avatar placeholder variant and ring */
+.profile-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: #fff;
+  color: var(--maroon-600);
+  font-weight:700;
+  font-size: 40px;
+  margin: 0 auto 0.6rem auto;
+  /* Keep a subtle shadow, but remove the inner maroon border
+     because the outer `.avatar-ring` already provides the ring. */
+  box-shadow: 0 8px 18px rgba(139,21,56,0.04);
+  border: none;
+}
+
+.profile-avatar .avatar-ring {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin: 0 auto 0.6rem auto;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.8));
+  box-shadow: 0 14px 40px rgba(139,21,56,0.04);
+}
+
+/* Upload button tweaks */
+#uploadBtn {
+  transition: all 0.18s ease;
+  background: transparent;
+}
+#uploadBtn:hover {
+  transform: translateY(-2px);
+  background: rgba(128,0,0,0.03);
+}
+
+.profile-name { font-size:1.08rem; }
+.profile-stat-list { margin-top:0.6rem }
+.profile-stat-list li { color:#616161 }
+
+/* tighten left panel spacing on mobile */
+@media(max-width:900px) {
+  .identity-panel { padding-bottom:0.6rem }
+  .profile-avatar, .profile-placeholder { width:100px; height:100px; font-size:34px }
+}
+
+.profile-stat-list { list-style: none; padding-left: 0; margin: 0.25rem 0 0 0; text-align: left; display: inline-block }
+.profile-stat-list { width:100%; margin-top:0.8rem }
+.profile-stat-list li { padding: 0.85rem 0; border-bottom: 1px solid rgba(200,190,190,0.25); color: #555; font-size: 0.95rem }
+.profile-stat-list .stat-label { display:block; font-size:0.75rem; text-transform:uppercase; color:#9b7a84; font-weight:700; margin-bottom:0.45rem }
+.profile-stat-list .stat-value { font-weight:700; color:#2c2c30 }
+
+/* Upload button appearance inside left card */
+#uploadBtn {
+  border: 2px solid rgba(139,21,56,0.18);
+  background: transparent;
+  color: var(--maroon-600);
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  font-weight:700;
+  width: 100%;
+  max-width: 260px;
+}
+
+.profile-chips { display:flex; gap:0.5rem; justify-content:center; margin-top:0.6rem }
+.status-chip { padding: 0.25rem 0.75rem; border-radius: 999px; font-weight:600; font-size:0.85rem }
+.status-active { background: rgba(128,0,0,0.06); color: var(--maroon-600); border: 1px solid rgba(128,0,0,0.06) }
+.status-verified { background: rgba(0,0,0,0.04); color: #444 }
+
+.details-panel { padding: 0.5rem 0 0; }
+.panel-header h5 { margin: 0 0 0.5rem 0; font-weight:700 }
+.profile-hint { margin: 0 0 1rem 0; color: #6b6464 }
+
+.info-grid-split { display:flex; flex-direction:column; gap:0.75rem }
+.info-field { text-align:left }
+.info-label { display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; color:#3b0c0f; font-weight:700 }
+.info-label i { color: var(--maroon-500); font-size:1rem }
+.info-value { margin-top:0.25rem; color:#2d2a2a; font-weight:600 }
+
+.info-action-field { margin-top:0.5rem }
+
+.edit-guidance { display:flex; gap:0.5rem; align-items:center; color:#6b6464; margin-bottom:0.75rem }
+.edit-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem }
+.edit-field label { display:block; margin-bottom:0.4rem; font-weight:600 }
+.edit-field input[type="text"], .edit-field input[type="email"] { padding:0.55rem; border-radius:8px; border:1px solid rgba(0,0,0,0.08) }
+
+.edit-actions { display:flex; gap:0.6rem; align-items:center; margin-top:0.5rem }
+.btn-maroon { background: linear-gradient(135deg, var(--maroon-500), var(--maroon-700)); color:#fff; border:none; padding:0.5rem 0.9rem; border-radius:999px; font-weight:700 }
+.btn-maroon i { margin-right:0.35rem }
+
+@media(min-width:900px) {
+  .profile-layout { flex-direction: row; align-items:flex-start }
+  .identity-panel { flex: 0 0 280px; text-align:center; padding-right:1.25rem }
+  .details-panel { flex:1; padding-left: 0.75rem }
+  .profile-stat-list { display:block }
+}
+
+/* Info cards for profile details (two-column grid on wide screens) */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+.info-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  border: 1px solid rgba(128,0,0,0.06);
+  box-shadow: 0 10px 24px rgba(139,21,56,0.03);
+}
+.info-card .form-control, .info-card input[type="text"], .info-card input[type="email"], .info-card select {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: #fbfafb;
+  box-shadow: none;
+}
+.info-card .hint { color:#8b8686; font-size:0.85rem; margin-top:0.45rem }
+.info-card .info-label { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em; color:#9b7a84; font-weight:700 }
+.info-card .info-value { font-size:1rem; font-weight:700; color:#2c2c30; margin-top:0.5rem }
+
+.action-row { margin-top:1.25rem }
+.btn-xlg { display:block; width:100%; padding:0.95rem 1rem; border-radius:28px; font-size:1.05rem; box-shadow: 0 18px 30px rgba(15,23,42,0.08) }
+
+@media(min-width:900px) {
+  .info-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* When action-row contains both a large save button and a cancel, layout them side-by-side */
+.action-row { display:flex; gap:0.75rem; align-items:center }
+/* Let buttons share the row equally */
+.action-row .btn-xlg { flex: 1 1 0; min-width: 0 }
+.action-row .btn-outline-secondary { padding: 0.6rem 1rem; border-radius: 28px }
+
+/* Large save/cancel styles to match student layout (side-by-side) */
+.btn-save-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex: 1 1 0;
+  background: #1e9b3b; /* green */
+  color: #fff;
+  border: none;
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  box-shadow: 0 14px 26px rgba(30,155,59,0.12);
+}
+.btn-cancel-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex: 1 1 0;
+  background: #565a60; /* grey */
+  color: #fff;
+  border: none;
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* Responsive: stack and full-width buttons on narrow screens */
+@media (max-width: 640px) {
+  .action-row { flex-direction: column; align-items: stretch }
+  .action-row .btn-xlg, .action-row .btn-outline-secondary, .btn-save-lg, .btn-cancel-lg { width: 100%; }
+}
+
+/* Info banner */
+.info-banner { border:1px dashed rgba(128,0,0,0.12); background: rgba(255,240,240,0.4); padding:0.9rem; border-radius: 10px; color: #6b6464; margin-bottom:0.9rem }
+.info-banner i { background: rgba(128,0,0,0.06); padding:0.4rem; border-radius:6px; margin-right:0.6rem }
+
+
 .admin-stat-cards {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;

@@ -338,8 +338,9 @@
                         <th>Purpose</th>
                         <th>Copies</th>
                         <th>Status</th>
+                        <th>Reviewed By</th>
                         <th>Date Requested</th>
-                        <th>Actions</th>
+                        <th class="actions-col">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -389,8 +390,20 @@
                             {% endif %}
                           {% endwith %}
                         </td>
-                        <td>{{ request.date_requested|date:"F j, Y" }}</td>
                         <td>
+                          {% if request.assigned_admin %}
+                            <div class="reviewed-by">
+                              <div class="reviewer-name">{{ request.assigned_admin.full_name }}</div>
+                              {% if request.assigned_admin.user.email %}
+                                <div class="reviewer-email small text-muted">{{ request.assigned_admin.user.email }}</div>
+                              {% endif %}
+                            </div>
+                          {% else %}
+                            -
+                          {% endif %}
+                        </td>
+                        <td>{{ request.date_requested|date:"F j, Y" }}</td>
+                        <td class="actions-col">
                           {% comment %} Allow students to cancel only when the request is in the pending stage.
                              Otherwise, provide upload actions for requirements or payment where applicable. {% endcomment %}
                           {% if request.stage_category == 'pending' %}
@@ -419,21 +432,6 @@
                       {% endfor %}
                     </tbody>
                   </table>
-                </div>
-                <div id="noRequestMatches" class="no-matching-requests text-center py-4 mt-4 d-none">
-                  <i class="fas fa-search fa-2x text-muted mb-2"></i>
-                  <h6>No requests match your filters</h6>
-                  <p class="text-muted mb-0">Try clearing your search or selecting "All" statuses.</p>
-                </div>
-              {% else %}
-                <div class="request-empty-state text-center py-5 px-3 mt-4">
-                  <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
-                  <h5>No Document Requests Yet</h5>
-                  <p class="text-muted mb-4">Once you submit a request, it will appear here with real-time status updates.</p>
-                  <a href="{% url 'dashboard' %}#request" class="btn btn-primary">
-                    <i class="fas fa-plus-circle me-2"></i>
-                    Start a Request
-                  </a>
                 </div>
               {% endif %}
 
@@ -597,7 +595,7 @@ function setupRequestInteractions() {
     }
   }
 
-  function applyFilters() {
+    function applyFilters() {
     if (!tableRows.length) return;
     const searchTerm = (searchInput?.value || '').trim().toLowerCase();
     let visibleCount = 0;
@@ -619,6 +617,12 @@ function setupRequestInteractions() {
     }
 
     if (noMatches) noMatches.classList.toggle('d-none', visibleCount > 0);
+
+  // Show/hide the Actions column based on the active filter.
+  // Hide Actions for: pending (Pending/Review), completed, and exceptions (Cancel/Rejected).
+  const actionsElements = Array.from(document.querySelectorAll('.actions-col'));
+  const hideActions = ['pending', 'completed', 'exceptions'].includes(activeFilter);
+  for (const el of actionsElements) el.classList.toggle('d-none', hideActions);
 
     // Show/hide the standalone panels depending on the active filter.
     if (requirementsPanel) requirementsPanel.classList.toggle('d-none', activeFilter !== 'requirements');
