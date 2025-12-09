@@ -378,15 +378,7 @@
                           {% endif %}
                         </td>
                         <td>
-                          {% if request.requirements_feedback %}
-                            {{ request.requirements_feedback }}
-                          {% elif request.payment_feedback %}
-                            {{ request.payment_feedback }}
-                          {% elif request.notes %}
-                            {{ request.notes }}
-                          {% else %}
-                            -
-                          {% endif %}
+                          {{ request.request_instructions|default:"-" }}
                         </td>
                         <td>
                           {% if request.stage_category == 'requirements' or request.stage_category == 'payment' %}
